@@ -1,0 +1,48 @@
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import App from './App'
+import LandingPage from './pages/LandingPage'
+import EventsPage from './pages/EventsPage'
+import EventDetailPage from './pages/EventDetailPage'
+import ClockDashboardPage from './pages/ClockDashboardPage'
+import StagesPage from './pages/StagesPage'
+import RunOfShowPage from './pages/RunOfShowPage'
+import PerformersPage from './pages/PerformersPage'
+import CuesPage from './pages/CuesPage'
+import AdminSettingsPage from './pages/AdminSettingsPage'
+import StageManagerPage from './pages/StageManagerPage'
+import { ClockProvider } from './context/ClockContext'
+import { SettingsProvider } from './context/SettingsContext'
+import { RunOfShowProvider } from './context/RunOfShowContext'
+import { PerformerReadinessProvider } from './context/PerformerReadinessContext'
+import './index.css'
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <SettingsProvider>
+      <ClockProvider>
+        <RunOfShowProvider>
+          <PerformerReadinessProvider>
+            <BrowserRouter>
+              <Routes>
+            <Route index element={<LandingPage />} />
+            <Route element={<App />}>
+              <Route path="/events" element={<EventsPage />} />
+              <Route path="/events/:eventId" element={<EventDetailPage />} />
+              <Route path="/clocks" element={<ClockDashboardPage />} />
+              <Route path="/stage-manager" element={<StageManagerPage />} />
+              <Route path="/stages" element={<StagesPage />} />
+              <Route path="/runofshow" element={<RunOfShowPage />} />
+              <Route path="/performers" element={<PerformersPage />} />
+              <Route path="/cues" element={<CuesPage />} />
+              <Route path="/admin/settings" element={<AdminSettingsPage />} />
+            </Route>
+              </Routes>
+            </BrowserRouter>
+          </PerformerReadinessProvider>
+        </RunOfShowProvider>
+      </ClockProvider>
+    </SettingsProvider>
+  </React.StrictMode>,
+)

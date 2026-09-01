@@ -1,2 +1,0 @@
-# SHOWCTRL
-Know the Show

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHOWCTRL</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
+    :root {
+      /* Light Scandinavian palette */
+      --bg: #f9fafb;
+      --surface: #ffffff;
+      --surface-secondary: #f3f4f6;
+      --text: #111827;
+      --text-secondary: #6b7280;
+      --text-tertiary: #9ca3af;
+      --accent: #06b6d4;
+      --accent-dark: #0891b2;
+      --accent-light: #cffafe;
+      --success: #10b981;
+      --pending: #f59e0b;
+      --critical: #ef4444;
+      --border: #e5e7eb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0f172a;
+        --surface: #1e293b;
+        --surface-secondary: #334155;
+        --text: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-tertiary: #94a3b8;
+        --accent: #06b6d4;
+        --accent-dark: #0891b2;
+        --accent-light: #164e63;
+        --success: #10b981;
+        --pending: #f59e0b;
+        --critical: #ef4444;
+        --border: #334155;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --surface-secondary: #334155;
+      --text: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --text-tertiary: #94a3b8;
+      --accent: #06b6d4;
+      --accent-dark: #0891b2;
+      --accent-light: #164e63;
+      --success: #10b981;
+      --pending: #f59e0b;
+      --critical: #ef4444;
+      --border: #334155;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    /* Header */
+    header {
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    nav a:hover {
+      color: var(--accent);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 6rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-description {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 2rem;
+      max-width: 550px;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .cta {
+      padding: 0.875rem 1.75rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .cta-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .cta-primary:hover {
+      background: var(--accent-dark);
+      transform: translateY(-2px);
+    }
+
+    .cta-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .cta-secondary:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Hero Visual */
+    .hero-visual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .metric-card {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .metric-card:hover {
+      border-color: var(--accent);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
+    }
+
+    .metric-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .metric-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+
+    .status-live { background: var(--critical); animation: pulse 2s infinite; }
+    .status-ready { background: var(--success); }
+    .status-pending { background: var(--pending); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* Sections */
+    section {
+      padding: 5rem 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    section:nth-child(even) {
+      background: var(--surface-secondary);
+    }
+
+    h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-description {
+      font-size: 1rem;
+      color: var(--text-secondary);
+      margin-bottom: 3rem;
+      max-width: 700px;
+      line-height: 1.7;
+    }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .feature-card {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.1);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      color: var(--text);
+    }
+
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Use Cases */
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+    }
+
+    .use-case-card {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      border-left: 3px solid var(--accent);
+      transition: all 0.3s;
+    }
+
+    .use-case-card:hover {
+      box-shadow: 0 8px 24px rgba(6, 182, 212, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .use-case-role {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .use-case-text {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    .stat-box {
+      text-align: center;
+      padding: 2rem;
+      background: var(--surface);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-name {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* Footer */
+    footer {
+      padding: 3rem 2rem;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+
+      .hero-visual {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+      }
+
+      h2 {
+        font-size: 1.75rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem 1.5rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      nav {
+        gap: 1rem;
+        font-size: 0.85rem;
+      }
+
+      h1 {
+        font-size: 2rem;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      .hero {
+        padding: 3rem 1.5rem;
+      }
+
+      section {
+        padding: 3rem 1.5rem;
+      }
+
+      .features-grid,
+      .use-cases,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">SHOWCTRL</div>
+    <nav>
+      <a href="#features">Features</a>
+      <a href="#impact">Impact</a>
+      <a href="#users">For Teams</a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div>
+      <h1>Keep the show on time. Keep the team aligned.</h1>
+      <p class="hero-description">The operational platform for live events. Master clock. Run-of-show planning. Cue control. Performer timing. Delay management. Department coordination.</p>
+      <div class="cta-group">
+        <button class="cta cta-primary">Start Free Trial</button>
+        <button class="cta cta-secondary">See Demo</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="metric-card">
+        <div class="metric-label">Status</div>
+        <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
+          <span class="status-indicator status-live"></span>
+          <span style="font-weight: 600; font-size: 0.95rem;">Live</span>
+        </div>
+        <div class="metric-desc">Show execution active. All teams synchronized.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Master Clock</div>
+        <div class="metric-value">14:32</div>
+        <div class="metric-desc">Single source of truth for timing.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Cues Pending</div>
+        <div class="metric-value">3</div>
+        <div class="metric-desc">Next cues queued and ready.</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Time Shift</div>
+        <div class="metric-value">+2m</div>
+        <div class="metric-desc">Show running 2 minutes behind schedule.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features">
+    <h2>Built for stage operations</h2>
+    <p class="section-description">Everything you need to coordinate a live show. From first rehearsal to curtain call. Fast. Clear. Reliable.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⏱️</div>
+        <h3>Master Show Clock</h3>
+        <p>Single source of truth for timing. All departments synchronized to the second. Everyone on the same page.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Run-of-Show</h3>
+        <p>Timeline-based planning with clear cues, transitions, and ownership across departments.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Cue Management</h3>
+        <p>Track every cue in real time. Pending, live, complete, or delayed. No surprises.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎤</div>
+        <h3>Performer Timing</h3>
+        <p>Call windows and readiness tracking. Know when artists are ready, alert them when they're on.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚠️</div>
+        <h3>Delay Logging</h3>
+        <p>Track delays with context. See impact on your timeline. Adjust instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Department Views</h3>
+        <p>Role-based dashboards. Each team sees exactly what they need to execute.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Impact -->
+  <section id="impact">
+    <h2>Measurable operational impact</h2>
+    <p class="section-description">Teams using SHOWCTRL report significant improvements in coordination and timing accuracy.</p>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-number">100%</div>
+        <div class="stat-name">Team Alignment</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">0s</div>
+        <div class="stat-name">Clock Drift</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">&lt;30s</div>
+        <div class="stat-name">Avg. Adjustment</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number">∞</div>
+        <div class="stat-name">Contingency Plans</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Users -->
+  <section id="users">
+    <h2>For every role on your team</h2>
+    <p class="section-description">SHOWCTRL is built for the people who make the show happen. Everyone has clarity. Everyone knows what's expected.</p>
+    <div class="use-cases">
+      <div class="use-case-card">
+        <div class="use-case-role">Stage Manager</div>
+        <div class="use-case-text">I need a master clock so all departments stay aligned. One clock, visible everywhere. No guessing. No missed cues.</div>
+      </div>
+      <div class="use-case-card">
+        <div class="use-case-role">Production Manager</div>
+        <div class="use-case-text">I want to assign artists to stages and plan timelines per event. Real-time adjustments when things change.</div>
+      </div>
+      <div class="use-case-card">
+        <div class="use-case-role">Operations Lead</div>
+        <div class="use-case-text">I want to log delays and understand their impact. See the ripple effect across the timeline. Stay in control.</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2026 SHOWCTRL. The stage execution platform for live events.</p>
+  </footer>
+</body>
+</html>

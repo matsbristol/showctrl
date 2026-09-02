@@ -45,8 +45,35 @@ export default function StageManagerPage() {
   const readyPerformers = performers.filter((p) => p.status === 'ready')
   const notReadyPerformers = performers.filter((p) => p.status === 'not-ready')
 
+  const enabledModules = Object.values(modules).filter((m) => m.enabled)
+
   return (
     <div className="page-container stage-manager-view">
+      {/* Module Status Bar */}
+      <div className="module-status-bar">
+        <div className="module-status-content">
+          <div className="module-status-label">Available Operations:</div>
+          <div className="module-indicators">
+            {Object.values(modules).map((module) => (
+              <div
+                key={module.type}
+                className={`module-indicator ${module.enabled ? 'enabled' : 'disabled'}`}
+                title={module.label}
+              >
+                <span className="indicator-dot"></span>
+                {module.label}
+              </div>
+            ))}
+          </div>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            {showSettings ? 'Hide Settings' : 'Configure'}
+          </button>
+        </div>
+      </div>
+
       {/* Master Clock - Prominent, Always Visible */}
       <div className="master-clock-section">
         <div className="clock-display-large">{displayTime}</div>
@@ -156,9 +183,6 @@ export default function StageManagerPage() {
               Next Cue
             </button>
             <button className="btn btn-secondary btn-lg">Log Delay</button>
-            <button className="btn btn-secondary btn-lg" onClick={() => setShowSettings(!showSettings)}>
-              Modules
-            </button>
           </div>
         </div>
       </div>

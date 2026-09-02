@@ -12,6 +12,8 @@ import PerformersPage from './pages/PerformersPage'
 import CuesPage from './pages/CuesPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
 import StageManagerPage from './pages/StageManagerPage'
+import HospitalityPage from './pages/HospitalityPage'
+import OperationsDashboard from './pages/OperationsDashboard'
 import { ClockProvider } from './context/ClockContext'
 import { SettingsProvider } from './context/SettingsContext'
 import { RunOfShowProvider } from './context/RunOfShowContext'
@@ -50,6 +52,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/runofshow" element={<RunOfShowPage />} />
               <Route path="/performers" element={<PerformersPage />} />
               <Route path="/cues" element={<CuesPage />} />
+              <Route path="/hospitality" element={<HospitalityPage />} />
+              <Route path="/operations" element={<OperationsDashboard />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>
                         </Routes>

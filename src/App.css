@@ -3231,3 +3231,433 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Hospitality Page */
+.hospitality-form {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  max-width: 700px;
+}
+
+.dietary-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.hospitality-entries {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.hospitality-entry-card {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.3s;
+}
+
+.hospitality-entry-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.entry-name-section h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.entry-role-badge {
+  display: inline-block;
+  padding: 0.35rem 0.65rem;
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 3px;
+}
+
+.status-indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meal-badge,
+.accom-badge {
+  display: inline-block;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.meal-badge.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--pending);
+}
+
+.meal-badge.served {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+.meal-badge.completed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.accom-badge {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--critical);
+}
+
+.dietary-requirements {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.dietary-requirements strong {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.requirement-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.requirement-tag {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.performance-info,
+.travel-info {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+}
+
+.entry-notes {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: rgba(6, 182, 212, 0.05);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.entry-notes strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.entry-notes p {
+  margin: 0;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+/* Operations Dashboard */
+.operations-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.operation-card {
+  padding: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.3s;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.operation-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 6px 16px rgba(6, 182, 212, 0.12);
+  transform: translateY(-2px);
+}
+
+.operation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.operation-artist h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.stage-badge {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+.operation-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.time-display {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: var(--surface-secondary);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.info-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.info-item .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+}
+
+.info-item .value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.value.status-pending {
+  color: var(--pending);
+}
+
+.value.status-served {
+  color: #1e40af;
+}
+
+.value.status-completed {
+  color: var(--success);
+}
+
+.value.status-arrived {
+  color: var(--success);
+}
+
+.value.status-in-transit {
+  color: #1e40af;
+}
+
+.value.status-not-traveled {
+  color: var(--critical);
+}
+
+.value.confirmed {
+  color: var(--success);
+}
+
+.value.pending {
+  color: var(--pending);
+}
+
+.tags,
+.crew-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.tag,
+.crew-tag {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: 3px;
+}
+
+.crew-tag.ready {
+  background: var(--success);
+}
+
+.crew-tag.on-site {
+  background: #f59e0b;
+}
+
+.crew-tag.break {
+  background: #8b5cf6;
+}
+
+.crew-tag.more {
+  background: var(--text-tertiary);
+}
+
+.operation-hospitality,
+.operation-travel,
+.operation-stage,
+.operation-crew,
+.operation-performance {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+  border-left: 3px solid var(--border);
+}
+
+.operation-hospitality {
+  border-left-color: #8b5cf6;
+}
+
+.operation-travel {
+  border-left-color: #1e40af;
+}
+
+.operation-stage {
+  border-left-color: var(--pending);
+}
+
+.operation-crew {
+  border-left-color: var(--success);
+}
+
+.operation-performance {
+  border-left-color: var(--accent);
+}
+
+@media (max-width: 1024px) {
+  .operations-view {
+    grid-template-columns: 1fr;
+  }
+
+  .hospitality-entries {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .operation-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .operation-time {
+    align-items: flex-start;
+  }
+
+  .dietary-options {
+    grid-template-columns: 1fr;
+  }
+}

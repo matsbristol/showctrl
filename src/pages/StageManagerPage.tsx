@@ -51,8 +51,8 @@ export default function StageManagerPage() {
       <div className="master-clock-section">
         <div className="clock-display-large">{displayTime}</div>
         <div className={`clock-status ${clockDriftStatus}`}>
-          {clockDriftStatus === 'healthy' ? '🟢' : clockDriftStatus === 'warning' ? '🟡' : '🔴'} Clock{' '}
-          {clockDriftStatus}
+          <span className={`status-dot ${clockDriftStatus}`}></span>
+          Clock {clockDriftStatus}
         </div>
       </div>
 
@@ -68,7 +68,7 @@ export default function StageManagerPage() {
                 Duration: {Math.floor(currentItem.duration / 1000)}s
               </p>
               {currentItem.performers.length > 0 && (
-                <p className="item-performers">🎤 {currentItem.performers.join(', ')}</p>
+                <p className="item-performers">Performers: {currentItem.performers.join(', ')}</p>
               )}
               {currentItem.description && (
                 <p className="item-notes">{currentItem.description}</p>
@@ -134,7 +134,7 @@ export default function StageManagerPage() {
                 <h4>Ready to go:</h4>
                 {readyPerformers.map((p) => (
                   <div key={p.performerId} className="performer-item ready">
-                    <span>✓ {p.name}</span>
+                    <span>{p.name}</span>
                   </div>
                 ))}
               </div>
@@ -153,11 +153,11 @@ export default function StageManagerPage() {
                 setCurrentItemIndex(Math.min(currentItemIndex + 1, items.length - 1))
               }}
             >
-              ▶ Next Cue
+              Next Cue
             </button>
-            <button className="btn btn-secondary btn-lg">⏸ Log Delay</button>
+            <button className="btn btn-secondary btn-lg">Log Delay</button>
             <button className="btn btn-secondary btn-lg" onClick={() => setShowSettings(!showSettings)}>
-              ⚙️ Modules
+              Modules
             </button>
           </div>
         </div>

@@ -60,27 +60,27 @@ export default function LandingPage() {
             <p>Single source of truth. All departments synchronized to the second.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">📋</div>
+            <div className="feature-icon">◷</div>
             <h3>Run-of-Show</h3>
             <p>Timeline-based planning with clear cues, transitions, and ownership.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🎯</div>
+            <div className="feature-icon">◆</div>
             <h3>Cue Management</h3>
             <p>Track every cue in real time. Pending, live, complete, or delayed.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">🎤</div>
+            <div className="feature-icon">♫</div>
             <h3>Performer Timing</h3>
             <p>Call windows and readiness tracking for artists and talent.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">⚠️</div>
+            <div className="feature-icon">!</div>
             <h3>Delay Logging</h3>
             <p>Track delays and see impact across your timeline.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon">👥</div>
+            <div className="feature-icon">∴</div>
             <h3>Department Views</h3>
             <p>Role-based dashboards for every team member.</p>
           </div>

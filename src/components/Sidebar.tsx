@@ -10,31 +10,31 @@ export default function Sidebar() {
       <nav className="sidebar-nav">
         <div className="sidebar-section">
           <Link to="/" className={`sidebar-link ${isActive('/')}`}>
-            <span className="sidebar-icon">📋</span>
+            <span className="sidebar-icon">∷</span>
             Events
           </Link>
           <Link to="/stage-manager" className={`sidebar-link ${isActive('/stage-manager')}`}>
-            <span className="sidebar-icon">🎬</span>
+            <span className="sidebar-icon">▶</span>
             Stage Manager
           </Link>
           <Link to="/clocks" className={`sidebar-link ${isActive('/clocks')}`}>
-            <span className="sidebar-icon">⏱️</span>
+            <span className="sidebar-icon">◐</span>
             Master Clock
           </Link>
           <Link to="/runofshow" className="sidebar-link">
-            <span className="sidebar-icon">📊</span>
+            <span className="sidebar-icon">≡</span>
             Run-of-Show
           </Link>
           <Link to="/stages" className="sidebar-link">
-            <span className="sidebar-icon">🎭</span>
+            <span className="sidebar-icon">⊡</span>
             Stages
           </Link>
           <Link to="/performers" className="sidebar-link">
-            <span className="sidebar-icon">🎤</span>
+            <span className="sidebar-icon">♫</span>
             Performers
           </Link>
           <Link to="/cues" className="sidebar-link">
-            <span className="sidebar-icon">🎯</span>
+            <span className="sidebar-icon">✦</span>
             Cues
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default function Sidebar() {
       </nav>
       <div className="sidebar-footer">
         <div className="sidebar-user">
-          <div className="sidebar-avatar">👤</div>
+          <div className="sidebar-avatar">U</div>
           <div className="sidebar-userinfo">
             <div className="sidebar-username">User</div>
             <div className="sidebar-org">Organization</div>

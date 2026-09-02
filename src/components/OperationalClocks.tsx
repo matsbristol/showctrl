@@ -12,12 +12,12 @@ export default function OperationalClocks() {
 
   const getPhaseIcon = (phaseId: string) => {
     const icons: Record<string, string> = {
-      getin: '📥',
-      loadin: '📦',
-      'show-start': '🎬',
-      loadout: '📤',
+      getin: '↓',
+      loadin: '⊟',
+      'show-start': '▶',
+      loadout: '↑',
     }
-    return icons[phaseId] || '⏰'
+    return icons[phaseId] || '◐'
   }
 
   return (

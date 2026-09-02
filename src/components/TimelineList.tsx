@@ -32,11 +32,11 @@ export default function TimelineList({ items }: TimelineListProps) {
 
   const getItemTypeIcon = (type: string) => {
     const icons: Record<string, string> = {
-      cue: '🎯',
-      transition: '↻',
-      'performer-entry': '🎤',
-      technical: '⚙️',
-      break: '⏸️',
+      cue: '◆',
+      transition: '→',
+      'performer-entry': '♫',
+      technical: '⚙',
+      break: '‖',
     }
     return icons[type] || '•'
   }
@@ -115,7 +115,7 @@ export default function TimelineList({ items }: TimelineListProps) {
                 </div>
               )}
 
-              {item.notes && <div className="item-notes">📝 {item.notes}</div>}
+              {item.notes && <div className="item-notes">{item.notes}</div>}
             </div>
 
             <div className="item-actions">

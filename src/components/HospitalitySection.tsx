@@ -27,13 +27,13 @@ export default function HospitalitySection() {
       <div className="hospitality-alerts">
         {missingAccom.length > 0 && (
           <div className="alert alert-warning">
-            <span className="alert-icon">⚠️</span>
+            <span className="alert-icon">!</span>
             <span>{missingAccom.length} missing accommodations</span>
           </div>
         )}
         {pending.length > 0 && (
           <div className="alert alert-info">
-            <span className="alert-icon">🍽️</span>
+            <span className="alert-icon">•</span>
             <span>{pending.length} pending meals</span>
           </div>
         )}
@@ -64,7 +64,7 @@ export default function HospitalitySection() {
                   {entry.mealStatus}
                 </span>
                 {!entry.accommodationConfirmed && (
-                  <span className="accom-status">🏨 Accom TBD</span>
+                  <span className="accom-status">Accom TBD</span>
                 )}
               </div>
             </div>

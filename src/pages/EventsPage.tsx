@@ -69,8 +69,8 @@ export default function EventsPage() {
               </div>
             </div>
             <div className="event-meta">
-              <div className="event-date">📅 {event.date}</div>
-              <div className="event-location">📍 {event.location}</div>
+              <div className="event-date">{event.date}</div>
+              <div className="event-location">{event.location}</div>
             </div>
             <div className="event-stats">
               <div className="stat">

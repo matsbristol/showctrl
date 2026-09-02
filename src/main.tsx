@@ -22,12 +22,14 @@ import { RiserPlanningProvider } from './context/RiserPlanningContext'
 import { TravelProvider } from './context/TravelContext'
 import { HospitalityProvider } from './context/HospitalityContext'
 import { PerformersContextProvider } from './context/PerformersContext'
+import { StagesProvider } from './context/StagesContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <SettingsProvider>
       <PerformersContextProvider>
+        <StagesProvider>
         <ClockProvider>
           <RunOfShowProvider>
             <PerformerReadinessProvider>
@@ -60,6 +62,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </PerformerReadinessProvider>
         </RunOfShowProvider>
       </ClockProvider>
+      </StagesProvider>
       </PerformersContextProvider>
     </SettingsProvider>
   </React.StrictMode>,

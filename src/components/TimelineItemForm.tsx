@@ -23,13 +23,20 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    startTime: 0,
-    duration: 300000, // 5 minutes default
+    clockTime: '14:00', // HH:MM format
+    durationMinutes: 5,
     department: 'stage-manager',
     performers: '',
     notes: '',
     type: 'cue' as TimelineItemType,
   })
+
+  const convertClockTimeToTimestamp = (clockTime: string): number => {
+    const [hours, minutes] = clockTime.split(':').map(Number)
+    const today = new Date()
+    today.setHours(hours, minutes, 0, 0)
+    return today.getTime()
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,11 +46,19 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
       return
     }
 
+    if (!formData.clockTime) {
+      alert('Please enter a start time')
+      return
+    }
+
+    const startTimeMs = convertClockTimeToTimestamp(formData.clockTime)
+    const durationMs = formData.durationMinutes * 60 * 1000
+
     addTimelineItem({
       name: formData.name,
       description: formData.description,
-      startTime: formData.startTime,
-      duration: formData.duration,
+      startTime: startTimeMs,
+      duration: durationMs,
       department: formData.department,
       performers: formData.performers
         .split(',')
@@ -56,8 +71,8 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
     setFormData({
       name: '',
       description: '',
-      startTime: 0,
-      duration: 300000,
+      clockTime: '14:00',
+      durationMinutes: 5,
       department: 'stage-manager',
       performers: '',
       notes: '',
@@ -118,25 +133,25 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
 
       <div className="form-row">
         <div className="form-group">
-          <label>Start Time (seconds from show start)</label>
+          <label>Start Time (HH:MM)</label>
           <input
-            type="number"
-            name="startTime"
-            value={formData.startTime}
+            type="time"
+            name="clockTime"
+            value={formData.clockTime}
             onChange={handleChange}
-            min="0"
-            step="60"
+            required
           />
         </div>
         <div className="form-group">
-          <label>Duration (milliseconds)</label>
+          <label>Duration (minutes)</label>
           <input
             type="number"
-            name="duration"
-            value={formData.duration}
+            name="durationMinutes"
+            value={formData.durationMinutes}
             onChange={handleChange}
-            min="0"
-            step="60000"
+            min="1"
+            step="1"
+            required
           />
         </div>
       </div>

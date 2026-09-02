@@ -55,7 +55,7 @@ export default function StageManagerPage() {
           <h3>Now Playing</h3>
           {currentItem ? (
             <div className="current-item-card">
-              <div className="item-badge">{currentItem.type}</div>
+              <div className="item-badge" data-type={currentItem.type}>{currentItem.type}</div>
               <h2 className="item-title">{currentItem.name}</h2>
               <p className="item-duration">
                 Duration: {Math.floor(currentItem.duration / 1000)}s

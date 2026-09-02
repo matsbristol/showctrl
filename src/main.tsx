@@ -16,6 +16,11 @@ import { ClockProvider } from './context/ClockContext'
 import { SettingsProvider } from './context/SettingsContext'
 import { RunOfShowProvider } from './context/RunOfShowContext'
 import { PerformerReadinessProvider } from './context/PerformerReadinessContext'
+import { ModulesProvider } from './context/ModulesContext'
+import { CrewProvider } from './context/CrewContext'
+import { RiserPlanningProvider } from './context/RiserPlanningContext'
+import { TravelProvider } from './context/TravelContext'
+import { HospitalityProvider } from './context/HospitalityContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -24,8 +29,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ClockProvider>
         <RunOfShowProvider>
           <PerformerReadinessProvider>
-            <BrowserRouter>
-              <Routes>
+            <ModulesProvider>
+              <CrewProvider>
+                <RiserPlanningProvider>
+                  <TravelProvider>
+                    <HospitalityProvider>
+                      <BrowserRouter>
+                        <Routes>
             <Route index element={<LandingPage />} />
             <Route element={<App />}>
               <Route path="/events" element={<EventsPage />} />
@@ -38,8 +48,13 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/cues" element={<CuesPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>
-              </Routes>
-            </BrowserRouter>
+                        </Routes>
+                      </BrowserRouter>
+                    </HospitalityProvider>
+                  </TravelProvider>
+                </RiserPlanningProvider>
+              </CrewProvider>
+            </ModulesProvider>
           </PerformerReadinessProvider>
         </RunOfShowProvider>
       </ClockProvider>

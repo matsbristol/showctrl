@@ -2151,3 +2151,489 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Modules Container */
+.modules-container {
+  margin-top: 1rem;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+/* Module Settings */
+.modules-settings {
+  padding: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.modules-settings h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.settings-desc {
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+  margin: 0 0 1rem 0;
+}
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.module-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.module-toggle:hover {
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.module-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+/* Crew Section */
+.crew-section h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.crew-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.crew-stat {
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.crew-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.crew-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+  font-weight: 600;
+}
+
+.crew-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.crew-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid;
+}
+
+.crew-item:hover {
+  transform: translateX(2px);
+}
+
+.crew-info {
+  flex: 1;
+}
+
+.crew-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.crew-role {
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+.crew-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  text-align: right;
+}
+
+/* Riser Section */
+.riser-section h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.riser-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.riser-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.zone-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.zone-risers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.riser-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.riser-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.riser-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.riser-capacity {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 0.25rem 0.5rem;
+  background: rgba(6, 182, 212, 0.1);
+  border-radius: 3px;
+}
+
+.riser-capacity.near-capacity {
+  color: var(--pending);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.riser-capacity.at-capacity {
+  color: var(--critical);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.riser-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.riser-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  transition: width 0.3s ease;
+}
+
+.riser-performers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.performer-tag {
+  font-size: 0.7rem;
+  background: var(--accent);
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+/* Travel Section */
+.travel-section h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.travel-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.travel-stat {
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.travel-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.travel-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+  font-weight: 600;
+}
+
+.travel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.travel-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
+.travel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid var(--border);
+}
+
+.travel-item:hover {
+  transform: translateX(2px);
+}
+
+.travel-info {
+  flex: 1;
+}
+
+.travel-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.travel-countdown {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  margin-top: 0.2rem;
+}
+
+.travel-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Hospitality Section */
+.hospitality-section h3 {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.hospitality-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.alert-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--pending);
+  border-left: 2px solid var(--pending);
+}
+
+.alert-info {
+  background: rgba(6, 182, 212, 0.1);
+  color: var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.special-requirements {
+  margin-bottom: 0.75rem;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+}
+
+.sr-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+}
+
+.sr-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sr-tag {
+  font-size: 0.75rem;
+  background: var(--accent);
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.hospitality-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hospitality-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--surface-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid var(--border);
+}
+
+.hospitality-item:hover {
+  background: rgba(6, 182, 212, 0.08);
+  transform: translateX(2px);
+}
+
+.hospitality-info {
+  flex: 1;
+}
+
+.hospitality-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hospitality-status {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.meal-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.accom-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--critical);
+}
+
+/* Responsive adjustments for modules */
+@media (max-width: 1200px) {
+  .modules-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crew-stats,
+  .travel-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modules-settings .modules-grid {
+    grid-template-columns: 1fr;
+  }
+}

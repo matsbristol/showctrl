@@ -1,14 +1,21 @@
 import { useClock } from '../context/ClockContext'
 import { useRunOfShow } from '../context/RunOfShowContext'
 import { usePerformerReadiness } from '../context/PerformerReadinessContext'
+import { useModules } from '../context/ModulesContext'
+import CrewSection from '../components/CrewSection'
+import RiserPlanningSection from '../components/RiserPlanningSection'
+import TravelLogisticsSection from '../components/TravelLogisticsSection'
+import HospitalitySection from '../components/HospitalitySection'
 import { useEffect, useState } from 'react'
 
 export default function StageManagerPage() {
   const { masterTime, clockDriftStatus } = useClock()
   const { currentRunOfShow } = useRunOfShow()
   const { performers, cues, updatePerformerStatus, updateCueStatus } = usePerformerReadiness()
+  const { modules, toggleModule } = useModules()
   const [displayTime, setDisplayTime] = useState('')
   const [currentItemIndex, setCurrentItemIndex] = useState(0)
+  const [showSettings, setShowSettings] = useState(false)
 
   // Update display time
   useEffect(() => {
@@ -149,10 +156,44 @@ export default function StageManagerPage() {
               ▶ Next Cue
             </button>
             <button className="btn btn-secondary btn-lg">⏸ Log Delay</button>
-            <button className="btn btn-secondary btn-lg">⚙️ Settings</button>
+            <button className="btn btn-secondary btn-lg" onClick={() => setShowSettings(!showSettings)}>
+              ⚙️ Modules
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Module Settings */}
+      {showSettings && (
+        <div className="modules-settings">
+          <h3>Available Modules</h3>
+          <p className="settings-desc">Enable/disable operational sections for this event</p>
+          <div className="modules-grid">
+            {Object.values(modules).map((module) => (
+              <label key={module.type} className="module-toggle">
+                <input
+                  type="checkbox"
+                  checked={module.enabled}
+                  onChange={() => toggleModule(module.type)}
+                />
+                <span className="toggle-label">{module.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Operational Modules */}
+      {Object.values(modules).some((m) => m.enabled) && (
+        <div className="modules-container">
+          <div className="modules-grid">
+            {modules.crew.enabled && <CrewSection />}
+            {modules['riser-planning'].enabled && <RiserPlanningSection />}
+            {modules.travel.enabled && <TravelLogisticsSection />}
+            {modules.hospitality.enabled && <HospitalitySection />}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { useRunOfShow } from '../context/RunOfShowContext'
+import { useRunOfShow, type TimelineItem } from '../context/RunOfShowContext'
 import TimelineItemForm from '../components/TimelineItemForm'
 import TimelineList from '../components/TimelineList'
 
 export default function RunOfShowPage() {
   const { currentRunOfShow, createRunOfShow } = useRunOfShow()
   const [showForm, setShowForm] = useState(false)
+  const [editingItem, setEditingItem] = useState<TimelineItem | undefined>()
   const [rosName, setRosName] = useState('')
   const [isCreating, setIsCreating] = useState(!currentRunOfShow)
 
@@ -54,19 +55,37 @@ export default function RunOfShowPage() {
           <h1>Run-of-Show</h1>
           <p className="page-subtitle">{currentRunOfShow?.name}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            setEditingItem(undefined)
+            setShowForm(!showForm)
+          }}
+        >
           {showForm ? '✕ Cancel' : '+ Add Item'}
         </button>
       </div>
 
       {showForm && (
         <div className="form-section">
-          <TimelineItemForm onClose={() => setShowForm(false)} />
+          <TimelineItemForm
+            item={editingItem}
+            onClose={() => {
+              setShowForm(false)
+              setEditingItem(undefined)
+            }}
+          />
         </div>
       )}
 
       {currentRunOfShow && currentRunOfShow.items.length > 0 ? (
-        <TimelineList items={currentRunOfShow.items} />
+        <TimelineList
+          items={currentRunOfShow.items}
+          onEdit={(item) => {
+            setEditingItem(item)
+            setShowForm(true)
+          }}
+        />
       ) : (
         <div className="placeholder-content">
           <p>No timeline items yet. Click "+ Add Item" to get started.</p>

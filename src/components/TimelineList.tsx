@@ -3,9 +3,10 @@ import { usePerformersContext } from '../context/PerformersContext'
 
 interface TimelineListProps {
   items: TimelineItem[]
+  onEdit?: (item: TimelineItem) => void
 }
 
-export default function TimelineList({ items }: TimelineListProps) {
+export default function TimelineList({ items, onEdit }: TimelineListProps) {
   const { deleteTimelineItem } = useRunOfShow()
   const { getArtistName } = usePerformersContext()
 
@@ -54,7 +55,7 @@ export default function TimelineList({ items }: TimelineListProps) {
   }
 
   const totalDuration = items.length > 0
-    ? items[items.length - 1].startTime + items[items.length - 1].duration
+    ? items[items.length - 1].endTime || items[items.length - 1].startTime
     : 0
 
   return (
@@ -92,10 +93,12 @@ export default function TimelineList({ items }: TimelineListProps) {
                   <span className="meta-label">Start:</span>
                   <span className="meta-value">{formatTime(item.startTime)}</span>
                 </div>
-                <div className="meta-row">
-                  <span className="meta-label">Duration:</span>
-                  <span className="meta-value">{formatDuration(item.duration)}</span>
-                </div>
+                {item.endTime && (
+                  <div className="meta-row">
+                    <span className="meta-label">End:</span>
+                    <span className="meta-value">{formatTime(item.endTime)}</span>
+                  </div>
+                )}
                 <div className="meta-row">
                   <span className="meta-label">Stage:</span>
                   <span className="meta-value">{item.stage}</span>
@@ -121,6 +124,14 @@ export default function TimelineList({ items }: TimelineListProps) {
             </div>
 
             <div className="item-actions">
+              {onEdit && (
+                <button
+                  className="btn btn-secondary btn-small"
+                  onClick={() => onEdit(item)}
+                >
+                  Edit
+                </button>
+              )}
               <button
                 className="btn btn-secondary btn-small"
                 onClick={() => deleteTimelineItem(item.id)}

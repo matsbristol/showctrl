@@ -8,7 +8,7 @@ export interface TimelineItem {
   name: string
   description?: string
   startTime: number // Unix timestamp
-  duration: number // milliseconds
+  endTime?: number // Unix timestamp, optional
   department: string
   stage: string
   performers: string[] // artist IDs
@@ -57,7 +57,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'transition',
           description: 'House opens, audience entry begins',
           startTime: 0,
-          duration: 900000,
+          endTime: 900000,
           department: 'venue',
           stage: 'main',
           performers: [],
@@ -69,7 +69,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'performer-entry',
           description: 'First performance of the day',
           startTime: 900000,
-          duration: 1800000,
+          endTime: 2700000,
           department: 'stage',
           stage: 'main',
           performers: ['artist-1'],
@@ -81,7 +81,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'technical',
           description: 'Stage reset for headliner',
           startTime: 2700000,
-          duration: 600000,
+          endTime: 3300000,
           department: 'technical',
           stage: 'main',
           performers: [],
@@ -93,7 +93,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'performer-entry',
           description: 'Main headline act',
           startTime: 3300000,
-          duration: 3600000,
+          endTime: 6900000,
           department: 'stage',
           stage: 'main',
           performers: ['artist-2'],
@@ -105,7 +105,6 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'break',
           description: 'Event wrap-up',
           startTime: 6900000,
-          duration: 900000,
           department: 'venue',
           stage: 'main',
           performers: [],

@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useRunOfShow, type TimelineItemType } from '../context/RunOfShowContext'
+import { useState, useEffect } from 'react'
+import { useRunOfShow, type TimelineItem, type TimelineItemType } from '../context/RunOfShowContext'
 import { usePerformersContext } from '../context/PerformersContext'
 
 const DEPARTMENTS = [
@@ -18,17 +18,18 @@ const STAGES = ['main', 'secondary', 'vip-lounge', 'outdoor']
 const ITEM_TYPES: TimelineItemType[] = ['transition', 'performer-entry', 'technical', 'break']
 
 interface TimelineItemFormProps {
+  item?: TimelineItem
   onClose: () => void
 }
 
-export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
-  const { addTimelineItem, currentRunOfShow } = useRunOfShow()
+export default function TimelineItemForm({ item, onClose }: TimelineItemFormProps) {
+  const { addTimelineItem, updateTimelineItem, currentRunOfShow } = useRunOfShow()
   const { artists } = usePerformersContext()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     clockTime: '14:00',
-    durationMinutes: 5,
+    endClockTime: '',
     department: 'stage-manager',
     stage: 'main',
     performers: [] as string[],
@@ -37,42 +38,40 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
   })
   const [error, setError] = useState('')
 
+  useEffect(() => {
+    if (item) {
+      const startDate = new Date(item.startTime)
+      const startHours = startDate.getHours().toString().padStart(2, '0')
+      const startMinutes = startDate.getMinutes().toString().padStart(2, '0')
+      const clockTime = `${startHours}:${startMinutes}`
+
+      let endClockTime = ''
+      if (item.endTime) {
+        const endDate = new Date(item.endTime)
+        const endHours = endDate.getHours().toString().padStart(2, '0')
+        const endMinutes = endDate.getMinutes().toString().padStart(2, '0')
+        endClockTime = `${endHours}:${endMinutes}`
+      }
+
+      setFormData({
+        name: item.name,
+        description: item.description || '',
+        clockTime,
+        endClockTime,
+        department: item.department,
+        stage: item.stage,
+        performers: item.performers,
+        notes: item.notes || '',
+        type: item.type,
+      })
+    }
+  }, [item])
+
   const convertClockTimeToTimestamp = (clockTime: string): number => {
     const [hours, minutes] = clockTime.split(':').map(Number)
     const today = new Date()
     today.setHours(hours, minutes, 0, 0)
     return today.getTime()
-  }
-
-  const checkConflicts = (): string[] => {
-    const conflicts: string[] = []
-    const startMs = convertClockTimeToTimestamp(formData.clockTime)
-    const endMs = startMs + formData.durationMinutes * 60 * 1000
-
-    if (!currentRunOfShow) return conflicts
-
-    currentRunOfShow.items.forEach((item) => {
-      const itemEnd = item.startTime + item.duration
-
-      // Check if times overlap
-      const hasTimeOverlap = (startMs < itemEnd && endMs > item.startTime)
-
-      if (hasTimeOverlap) {
-        // Check for artist conflicts on same stage
-        const conflictingArtists = formData.performers.filter((perfId) =>
-          item.performers.includes(perfId)
-        )
-
-        if (conflictingArtists.length > 0 && item.stage === formData.stage) {
-          conflictingArtists.forEach((perfId) => {
-            const artistName = artists.find((a) => a.id === perfId)?.name || perfId
-            conflicts.push(`${artistName} is already scheduled on ${formData.stage} stage at this time`)
-          })
-        }
-      }
-    })
-
-    return conflicts
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -96,25 +95,42 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
     }
 
     const startTimeMs = convertClockTimeToTimestamp(formData.clockTime)
-    const durationMs = formData.durationMinutes * 60 * 1000
+    let endTimeMs: number | undefined
+    if (formData.endClockTime) {
+      endTimeMs = convertClockTimeToTimestamp(formData.endClockTime)
+    }
 
-    addTimelineItem({
-      name: formData.name,
-      description: formData.description,
-      startTime: startTimeMs,
-      duration: durationMs,
-      department: formData.department,
-      stage: formData.stage,
-      performers: formData.performers,
-      notes: formData.notes,
-      type: formData.type,
-    })
+    if (item) {
+      updateTimelineItem(item.id, {
+        name: formData.name,
+        description: formData.description,
+        startTime: startTimeMs,
+        endTime: endTimeMs,
+        department: formData.department,
+        stage: formData.stage,
+        performers: formData.performers,
+        notes: formData.notes,
+        type: formData.type,
+      })
+    } else {
+      addTimelineItem({
+        name: formData.name,
+        description: formData.description,
+        startTime: startTimeMs,
+        endTime: endTimeMs,
+        department: formData.department,
+        stage: formData.stage,
+        performers: formData.performers,
+        notes: formData.notes,
+        type: formData.type,
+      })
+    }
 
     setFormData({
       name: '',
       description: '',
       clockTime: '14:00',
-      durationMinutes: 5,
+      endClockTime: '',
       department: 'stage-manager',
       stage: 'main',
       performers: [],
@@ -123,6 +139,37 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
     })
 
     onClose()
+  }
+
+  const checkConflicts = (): string[] => {
+    const conflicts: string[] = []
+    const startMs = convertClockTimeToTimestamp(formData.clockTime)
+    const endMs = formData.endClockTime ? convertClockTimeToTimestamp(formData.endClockTime) : startMs
+
+    if (!currentRunOfShow) return conflicts
+
+    currentRunOfShow.items.forEach((existingItem) => {
+      // Skip self if editing
+      if (item && existingItem.id === item.id) return
+
+      const itemEnd = existingItem.endTime || existingItem.startTime
+      const hasTimeOverlap = (startMs < itemEnd && endMs > existingItem.startTime)
+
+      if (hasTimeOverlap) {
+        const conflictingArtists = formData.performers.filter((perfId) =>
+          existingItem.performers.includes(perfId)
+        )
+
+        if (conflictingArtists.length > 0 && existingItem.stage === formData.stage) {
+          conflictingArtists.forEach((perfId) => {
+            const artistName = artists.find((a) => a.id === perfId)?.name || perfId
+            conflicts.push(`${artistName} is already scheduled on ${formData.stage} stage at this time`)
+          })
+        }
+      }
+    })
+
+    return conflicts
   }
 
   const handleChange = (
@@ -145,7 +192,7 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
 
   return (
     <form className="timeline-item-form" onSubmit={handleSubmit}>
-      <h3>Add Timeline Item</h3>
+      <h3>{item ? 'Edit Timeline Item' : 'Add Timeline Item'}</h3>
 
       {error && <div className="form-error">{error}</div>}
 
@@ -196,15 +243,13 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
           />
         </div>
         <div className="form-group">
-          <label>Duration (minutes) *</label>
+          <label>End Time (HH:MM) - Optional</label>
           <input
-            type="number"
-            name="durationMinutes"
-            value={formData.durationMinutes}
+            type="time"
+            name="endClockTime"
+            value={formData.endClockTime}
             onChange={handleChange}
-            min="1"
-            step="1"
-            required
+            placeholder="Leave blank if no end time"
           />
         </div>
       </div>
@@ -262,7 +307,7 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
 
       <div className="form-actions">
         <button type="submit" className="btn btn-primary">
-          Add Item
+          {item ? 'Update Item' : 'Add Item'}
         </button>
         <button type="button" className="btn btn-secondary" onClick={onClose}>
           Cancel

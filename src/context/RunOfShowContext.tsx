@@ -7,10 +7,11 @@ export interface TimelineItem {
   id: string
   name: string
   description?: string
-  startTime: number // Unix timestamp or offset from show start
+  startTime: number // Unix timestamp
   duration: number // milliseconds
   department: string
-  performers: string[]
+  stage: string
+  performers: string[] // artist IDs
   notes?: string
   type: TimelineItemType
 }
@@ -53,11 +54,12 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
         {
           id: 'item-1',
           name: 'Doors Open',
-          type: 'cue',
+          type: 'transition',
           description: 'House opens, audience entry begins',
           startTime: 0,
-          duration: 900000, // 15 mins
+          duration: 900000,
           department: 'venue',
+          stage: 'main',
           performers: [],
           notes: 'Full capacity: 5000 people'
         },
@@ -67,9 +69,10 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'performer-entry',
           description: 'First performance of the day',
           startTime: 900000,
-          duration: 1800000, // 30 mins
+          duration: 1800000,
           department: 'stage',
-          performers: ['The Echoes'],
+          stage: 'main',
+          performers: ['artist-1'],
           notes: 'Sound check at 10 mins before'
         },
         {
@@ -78,8 +81,9 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'technical',
           description: 'Stage reset for headliner',
           startTime: 2700000,
-          duration: 600000, // 10 mins
+          duration: 600000,
           department: 'technical',
+          stage: 'main',
           performers: [],
           notes: 'Lighting reset, stage setup'
         },
@@ -89,9 +93,10 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'performer-entry',
           description: 'Main headline act',
           startTime: 3300000,
-          duration: 3600000, // 60 mins
+          duration: 3600000,
           department: 'stage',
-          performers: ['Aurora'],
+          stage: 'main',
+          performers: ['artist-2'],
           notes: 'VIP meet & greet after show'
         },
         {
@@ -100,8 +105,9 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'break',
           description: 'Event wrap-up',
           startTime: 6900000,
-          duration: 900000, // 15 mins
+          duration: 900000,
           department: 'venue',
+          stage: 'main',
           performers: [],
           notes: 'Expected completion 8:45 PM'
         }

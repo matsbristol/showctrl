@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useRunOfShow, type TimelineItemType } from '../context/RunOfShowContext'
+import { usePerformersContext } from '../context/PerformersContext'
 
 const DEPARTMENTS = [
   'stage-manager',
@@ -12,24 +13,29 @@ const DEPARTMENTS = [
   'talent-liaison',
 ]
 
-const ITEM_TYPES: TimelineItemType[] = ['cue', 'transition', 'performer-entry', 'technical', 'break']
+const STAGES = ['main', 'secondary', 'vip-lounge', 'outdoor']
+
+const ITEM_TYPES: TimelineItemType[] = ['transition', 'performer-entry', 'technical', 'break']
 
 interface TimelineItemFormProps {
   onClose: () => void
 }
 
 export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
-  const { addTimelineItem } = useRunOfShow()
+  const { addTimelineItem, currentRunOfShow } = useRunOfShow()
+  const { artists } = usePerformersContext()
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    clockTime: '14:00', // HH:MM format
+    clockTime: '14:00',
     durationMinutes: 5,
     department: 'stage-manager',
-    performers: '',
+    stage: 'main',
+    performers: [] as string[],
     notes: '',
-    type: 'cue' as TimelineItemType,
+    type: 'performer-entry' as TimelineItemType,
   })
+  const [error, setError] = useState('')
 
   const convertClockTimeToTimestamp = (clockTime: string): number => {
     const [hours, minutes] = clockTime.split(':').map(Number)
@@ -38,16 +44,54 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
     return today.getTime()
   }
 
+  const checkConflicts = (): string[] => {
+    const conflicts: string[] = []
+    const startMs = convertClockTimeToTimestamp(formData.clockTime)
+    const endMs = startMs + formData.durationMinutes * 60 * 1000
+
+    if (!currentRunOfShow) return conflicts
+
+    currentRunOfShow.items.forEach((item) => {
+      const itemEnd = item.startTime + item.duration
+
+      // Check if times overlap
+      const hasTimeOverlap = (startMs < itemEnd && endMs > item.startTime)
+
+      if (hasTimeOverlap) {
+        // Check for artist conflicts on same stage
+        const conflictingArtists = formData.performers.filter((perfId) =>
+          item.performers.includes(perfId)
+        )
+
+        if (conflictingArtists.length > 0 && item.stage === formData.stage) {
+          conflictingArtists.forEach((perfId) => {
+            const artistName = artists.find((a) => a.id === perfId)?.name || perfId
+            conflicts.push(`${artistName} is already scheduled on ${formData.stage} stage at this time`)
+          })
+        }
+      }
+    })
+
+    return conflicts
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
 
     if (!formData.name.trim()) {
-      alert('Please enter a name')
+      setError('Please enter a name')
       return
     }
 
     if (!formData.clockTime) {
-      alert('Please enter a start time')
+      setError('Please enter a start time')
+      return
+    }
+
+    const conflicts = checkConflicts()
+    if (conflicts.length > 0) {
+      setError(`Scheduling conflict: ${conflicts[0]}`)
       return
     }
 
@@ -60,10 +104,8 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
       startTime: startTimeMs,
       duration: durationMs,
       department: formData.department,
-      performers: formData.performers
-        .split(',')
-        .map((p) => p.trim())
-        .filter((p) => p),
+      stage: formData.stage,
+      performers: formData.performers,
       notes: formData.notes,
       type: formData.type,
     })
@@ -74,9 +116,10 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
       clockTime: '14:00',
       durationMinutes: 5,
       department: 'stage-manager',
-      performers: '',
+      stage: 'main',
+      performers: [],
       notes: '',
-      type: 'cue',
+      type: 'performer-entry',
     })
 
     onClose()
@@ -92,9 +135,19 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
     })
   }
 
+  const handlePerformerChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
+    setFormData({
+      ...formData,
+      performers: selectedOptions,
+    })
+  }
+
   return (
     <form className="timeline-item-form" onSubmit={handleSubmit}>
       <h3>Add Timeline Item</h3>
+
+      {error && <div className="form-error">{error}</div>}
 
       <div className="form-row">
         <div className="form-group">
@@ -102,7 +155,7 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
           <input
             type="text"
             name="name"
-            placeholder="e.g., Artist A Entrance"
+            placeholder="e.g., Aurora Performance"
             value={formData.name}
             onChange={handleChange}
             required
@@ -133,7 +186,7 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
 
       <div className="form-row">
         <div className="form-group">
-          <label>Start Time (HH:MM)</label>
+          <label>Start Time (HH:MM) *</label>
           <input
             type="time"
             name="clockTime"
@@ -143,7 +196,7 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
           />
         </div>
         <div className="form-group">
-          <label>Duration (minutes)</label>
+          <label>Duration (minutes) *</label>
           <input
             type="number"
             name="durationMinutes"
@@ -158,6 +211,16 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
 
       <div className="form-row">
         <div className="form-group">
+          <label>Stage *</label>
+          <select name="stage" value={formData.stage} onChange={handleChange} required>
+            {STAGES.map((stage) => (
+              <option key={stage} value={stage}>
+                {stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="form-group">
           <label>Department</label>
           <select name="department" value={formData.department} onChange={handleChange}>
             {DEPARTMENTS.map((dept) => (
@@ -167,16 +230,23 @@ export default function TimelineItemForm({ onClose }: TimelineItemFormProps) {
             ))}
           </select>
         </div>
-        <div className="form-group">
-          <label>Performers</label>
-          <input
-            type="text"
-            name="performers"
-            placeholder="e.g., Artist A, Artist B"
-            value={formData.performers}
-            onChange={handleChange}
-          />
-        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Artists</label>
+        <select
+          multiple
+          value={formData.performers}
+          onChange={handlePerformerChange}
+          className="form-select-multiple"
+        >
+          {artists.map((artist) => (
+            <option key={artist.id} value={artist.id}>
+              {artist.name}
+            </option>
+          ))}
+        </select>
+        <div className="form-help">Hold Ctrl/Cmd to select multiple artists</div>
       </div>
 
       <div className="form-group">

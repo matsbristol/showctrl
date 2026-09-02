@@ -1,4 +1,5 @@
 import { useRunOfShow, type TimelineItem } from '../context/RunOfShowContext'
+import { usePerformersContext } from '../context/PerformersContext'
 
 interface TimelineListProps {
   items: TimelineItem[]
@@ -6,6 +7,7 @@ interface TimelineListProps {
 
 export default function TimelineList({ items }: TimelineListProps) {
   const { deleteTimelineItem } = useRunOfShow()
+  const { getArtistName } = usePerformersContext()
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp)
@@ -95,6 +97,10 @@ export default function TimelineList({ items }: TimelineListProps) {
                   <span className="meta-value">{formatDuration(item.duration)}</span>
                 </div>
                 <div className="meta-row">
+                  <span className="meta-label">Stage:</span>
+                  <span className="meta-value">{item.stage}</span>
+                </div>
+                <div className="meta-row">
                   <span className="meta-label">Department:</span>
                   <span
                     className="meta-badge"
@@ -107,7 +113,7 @@ export default function TimelineList({ items }: TimelineListProps) {
 
               {item.performers.length > 0 && (
                 <div className="item-performers">
-                  <strong>Performers:</strong> {item.performers.join(', ')}
+                  <strong>Artists:</strong> {item.performers.map((perfId) => getArtistName(perfId) || perfId).join(', ')}
                 </div>
               )}
 

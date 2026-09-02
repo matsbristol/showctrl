@@ -21,19 +21,21 @@ import { CrewProvider } from './context/CrewContext'
 import { RiserPlanningProvider } from './context/RiserPlanningContext'
 import { TravelProvider } from './context/TravelContext'
 import { HospitalityProvider } from './context/HospitalityContext'
+import { PerformersContextProvider } from './context/PerformersContext'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <SettingsProvider>
-      <ClockProvider>
-        <RunOfShowProvider>
-          <PerformerReadinessProvider>
-            <ModulesProvider>
-              <CrewProvider>
-                <RiserPlanningProvider>
-                  <TravelProvider>
-                    <HospitalityProvider>
+      <PerformersContextProvider>
+        <ClockProvider>
+          <RunOfShowProvider>
+            <PerformerReadinessProvider>
+              <ModulesProvider>
+                <CrewProvider>
+                  <RiserPlanningProvider>
+                    <TravelProvider>
+                      <HospitalityProvider>
                       <BrowserRouter>
                         <Routes>
             <Route index element={<LandingPage />} />
@@ -58,6 +60,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           </PerformerReadinessProvider>
         </RunOfShowProvider>
       </ClockProvider>
+      </PerformersContextProvider>
     </SettingsProvider>
   </React.StrictMode>,
 )

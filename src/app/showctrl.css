@@ -178,9 +178,9 @@
 
 /* ---------- day sheet (vertical) ---------- */
 .sc .sheet { list-style: none; margin: 0; padding: 0 }
-.sc .sheet li { display: grid; grid-template-columns: 5.5rem 1fr auto; gap: .1rem .8rem; padding: .6rem 1rem; border-bottom: 1px solid var(--line); align-items: baseline }
+.sc .sheet li { display: grid; grid-template-columns: 7.4rem 1fr auto; gap: .1rem .8rem; padding: .6rem 1rem; border-bottom: 1px solid var(--line); align-items: baseline }
 .sc .sheet li:last-child { border-bottom: 0 }
-.sc .sheet .tm { font-weight: 700; font-variant-numeric: tabular-nums }
+.sc .sheet .tm { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap }
 .sc .sheet .tm s { display: block; font-weight: 400; color: var(--ink3); font-size: .78rem }
 .sc .sheet .what { font-weight: 700 }
 .sc .sheet .what small { display: block; font-weight: 400; color: var(--ink2); font-size: .82rem }
@@ -308,3 +308,16 @@
 
 /* The older pages' App.css has an unscoped .actions rule; undo it here. */
 .sc .actions { border-left: 0; border-top: 0; grid-column: auto; grid-row: auto }
+
+/* ---------- step 6: lists, contacts, setup ---------- */
+.sc tr.click { cursor: pointer }
+.sc tr.click:hover td { background: var(--surface2) }
+.sc .contact.click, .sc .sheet li.click { cursor: pointer }
+.sc .contact.click:hover, .sc .sheet li.click:hover { background: var(--surface2) }
+.sc td select, .sc .inline-sel { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: .2rem .35rem; font-size: .85rem }
+.sc .lock { display: inline-flex; align-items: center; gap: .3rem; color: var(--ink3); font-size: .82rem }
+.sc .lock svg { width: 14px; height: 14px }
+.sc .kv { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; font-size: .92rem; margin: 0 }
+.sc .kv dt { color: var(--ink2) }
+.sc .kv dd { margin: 0 }
+.sc .pb.row { flex-wrap: wrap }

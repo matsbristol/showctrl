@@ -1,0 +1,149 @@
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useCollection, useConfig } from '../../data/hooks'
+import { dayLabel, festDay, fmtTime, tzCity } from '../../lib/time'
+import { moduleOn } from '../../shared/access'
+import { TAPE } from '../../types/constants'
+import type { Artist, ArtistContact, Id, RosItem } from '../../types/model'
+import { ArtistForm, ContactForm } from '../artists/forms'
+import { useDay } from '../day'
+import { DaySheetForm, ItemForm } from '../runsheet/forms'
+import { SheetRow, StatusChip, Tel } from '../runsheet/parts'
+import { useAccess, useNow, useTerms, useTz } from '../session'
+import { Hidden } from './ArtistsPage'
+
+type Dialog =
+  | { type: 'edit' } | { type: 'daysheet' } | { type: 'item'; item: Partial<RosItem> }
+  | { type: 'contact'; contact: ArtistContact | null } | null
+
+/** One performer: day sheet, contacts, production details and bookings. Riders arrive in step 8. */
+export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }) {
+  const a = useAccess()
+  const t = useTerms()
+  const tz = useTz()
+  const now = useNow(60_000)
+  const cfg = useConfig('event')
+  const ros = useCollection('ros')
+  const stages = useCollection('stages')
+  const bookings = useCollection('bookings')
+  const hotels = useCollection('hotels')
+  const navigate = useNavigate()
+  const [day] = useDay()
+  const [dialog, setDialog] = useState<Dialog>(null)
+  const base = sid ? `/s/${sid}` : '/hq'
+  const w = a.canW('artists', artist.stage)
+  const ws = a.canW('schedule', artist.stage)
+  const sens = a.artistContacts(artist)
+  const st = stages[artist.stage]
+  const items = Object.values(ros).filter(i => i.artist === artist.id).sort((x, y) => x.start - y.start)
+  const days = [...new Set(items.map(i => festDay(i.start, tz)))]
+  const bks = Object.values(bookings).filter(b => b.artist === artist.id)
+  const homeNow = artist.home ? `${fmtTime(now, artist.home)} at home in ${tzCity(artist.home)}` : ''
+  const firstShow = items.find(i => i.kind === 'show')
+
+  return (
+    <>
+      <div className="head">
+        <div>
+          <p className="small"><Link to={`${base}/artists`}>← {t.performers}</Link></p>
+          <h1>{artist.name}</h1>
+          <p>
+            {st && <span className="row" style={{ display: 'inline-flex' }}><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} /><Link to={`/s/${st.id}/today`}>{st.name}</Link></span>}
+            {artist.genre ? ` · ${artist.genre}` : ''}{homeNow ? ` · ${homeNow}` : ''}
+          </p>
+        </div>
+        <div className="actions">
+          <StatusChip status={artist.status} />
+          {w && <button type="button" className="btn" onClick={() => setDialog({ type: 'edit' })}>Edit</button>}
+        </div>
+      </div>
+
+      <div className="grid g2">
+        <section className="panel">
+          <div className="ph">
+            <h3>Day sheet</h3>
+            {ws && (
+              <div className="actions">
+                <button type="button" className="btn sm" onClick={() => setDialog({ type: 'item', item: { artist: artist.id, stage: artist.stage, kind: 'other', start: firstShow?.start } })}>+ Item</button>
+                <button type="button" className="btn sm primary" onClick={() => setDialog({ type: 'daysheet' })}>{items.length ? 'Regenerate' : 'Create day sheet'}</button>
+              </div>
+            )}
+          </div>
+          {items.length ? days.map(d => (
+            <div key={d}>
+              <div className="small muted" style={{ padding: '.5rem 1rem 0', fontWeight: 700 }}>{dayLabel(d, true)}</div>
+              <ul className="sheet">
+                {items.filter(i => festDay(i.start, tz) === d).map(i => (
+                  <SheetRow key={i.id} item={i} onClick={ws ? () => setDialog({ type: 'item', item: i }) : undefined} />
+                ))}
+              </ul>
+            </div>
+          )) : (
+            <p className="empty">No day sheet yet.{ws && ' Create one from the stage template: arrival, get in, load in, stage access, changeover, show, load out and departure.'}</p>
+          )}
+        </section>
+
+        <div className="grid" style={{ alignContent: 'start' }}>
+          <section className="panel">
+            <div className="ph">
+              <h3>Contacts</h3>
+              {w && sens && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'contact', contact: null })}>+ Add</button></div>}
+            </div>
+            {!sens ? <p className="empty"><Hidden /></p>
+              : artist.contacts?.length ? artist.contacts.map(c => (
+                <div
+                  key={c.id}
+                  className={`contact${w ? ' click' : ''}`}
+                  {...(w ? { role: 'button', tabIndex: 0, onClick: () => setDialog({ type: 'contact', contact: c }), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') setDialog({ type: 'contact', contact: c }) } } : {})}
+                >
+                  <div><b>{c.name}</b> <span className="r">{c.role}</span></div>
+                  <span />
+                  <span className="c" onClick={e => e.stopPropagation()}><Tel phone={c.phone} />{c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}</span>
+                  {c.note && <span className="r" style={{ gridColumn: '1 / -1' }}>{c.note}</span>}
+                </div>
+              )) : <p className="empty">No contacts yet.</p>}
+          </section>
+
+          <section className="panel">
+            <div className="ph"><h3>Production</h3></div>
+            <div className="pb">
+              <dl className="kv">
+                <dt>Travelling party</dt><dd>{artist.party || '—'}</dd>
+                <dt>Vehicles</dt><dd>{artist.vehicles || '—'}</dd>
+                {artist.notes && <><dt>Notes</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{artist.notes}</dd></>}
+              </dl>
+            </div>
+          </section>
+
+          {moduleOn(cfg, 'accommodation') && a.lv('accommodation', artist.stage) >= 1 && (
+            <section className="panel">
+              <div className="ph"><h3>Accommodation</h3></div>
+              {bks.length ? (
+                <ul className="list">
+                  {bks.map(b => (
+                    <li key={b.id}>
+                      <div className="stack">
+                        <b>{hotels[b.hotel]?.name ?? 'Hotel'}</b>
+                        <span className="small muted">
+                          {dayLabel(b.checkIn)} → {dayLabel(b.checkOut)} · {b.rooms || 1} × {b.roomType || 'room'}{sens && b.conf ? ` · Ref ${b.conf}` : ''}
+                        </span>
+                      </div>
+                      <span className={`chip ${b.status === 'confirmed' || b.status === 'checked in' ? 'go' : 'sb'}`} style={{ marginLeft: 'auto' }}>{b.status}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : <p className="empty">No rooms booked.</p>}
+            </section>
+          )}
+        </div>
+      </div>
+
+      {dialog?.type === 'edit' && (
+        <ArtistForm artist={artist} sid={sid} onClose={() => setDialog(null)} onDeleted={() => navigate(`${base}/artists`, { replace: true })} />
+      )}
+      {dialog?.type === 'daysheet' && <DaySheetForm artist={artist} day={day} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'item' && <ItemForm item={dialog.item} sid={artist.stage} day={day} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'contact' && <ContactForm artist={artist} contact={dialog.contact} onClose={() => setDialog(null)} />}
+    </>
+  )
+}

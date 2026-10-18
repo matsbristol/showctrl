@@ -6,11 +6,15 @@ import { HQ_VIEWS, STAGE_VIEWS, canOpenHqView, canOpenStageView, homePath, type 
 import { HQ_NAV, STAGE_NAV } from '../nav'
 import { useAccess, useTerms } from '../session'
 import { AdminPage } from './AdminPage'
+import { ArtistDetail } from './ArtistPage'
+import { ArtistsPage } from './ArtistsPage'
 import { ClocksPage } from './ClocksPage'
 import { DisplayPage } from './DisplayPage'
 import { OverviewPage } from './OverviewPage'
 import { RunSheetPage } from './RunSheetPage'
+import { PersonnelPage } from './PersonnelPage'
 import { SchedulePage } from './SchedulePage'
+import { SetupPage } from './SetupPage'
 import { TodayPage } from './TodayPage'
 import { NoAccess } from './NoAccess'
 import { Placeholder } from './Placeholder'
@@ -34,6 +38,8 @@ export function HqPage() {
     case 'overview': return <OverviewPage />
     case 'schedule': return <SchedulePage />
     case 'clocks': return <ClocksPage sid={null} />
+    case 'artists': return <ArtistsPage sid={null} />
+    case 'personnel': return <PersonnelPage sid={null} />
     default: return <Placeholder meta={HQ_NAV[view]} />
   }
 }
@@ -63,6 +69,9 @@ export function StagePage() {
     case 'runsheet': return <RunSheetPage sid={sid} />
     case 'clocks': return <ClocksPage sid={sid} />
     case 'display': return <DisplayPage sid={sid} />
+    case 'artists': return <ArtistsPage sid={sid} />
+    case 'personnel': return <PersonnelPage sid={sid} />
+    case 'setup': return <SetupPage sid={sid} />
     default: return <Placeholder meta={STAGE_NAV[view]} sub={`${stages[sid].name} · ${STAGE_NAV[view].about(t)}`} />
   }
 }
@@ -73,16 +82,10 @@ export function ArtistPage() {
   const a = useAccess()
   const t = useTerms()
   const artists = useCollection('artists')
-  const stages = useCollection('stages')
   const blocked = useStageGuard(stageId)
   if (stageId && blocked) return blocked
   const artist = artistId ? artists[artistId] : undefined
   if (!artist) return <NoAccess message={`This ${t.performer.toLowerCase()} no longer exists.`} />
   if (a.lv('artists', artist.stage) < 1) return <NoAccess />
-  return (
-    <Placeholder
-      meta={{ ...STAGE_NAV.artists, label: () => artist.name }}
-      sub={`${stages[artist.stage]?.name ?? ''} · ${artist.status}`}
-    />
-  )
+  return <ArtistDetail artist={artist} sid={stageId ?? null} />
 }

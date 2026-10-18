@@ -61,7 +61,7 @@ export function Slot({ label, item, isNow }: { label: string; item?: RosItem; is
 }
 
 /** A row in a vertical day sheet. */
-export function SheetRow({ item, showArtist }: { item: RosItem; showArtist?: boolean }) {
+export function SheetRow({ item, showArtist, onClick }: { item: RosItem; showArtist?: boolean; onClick?: () => void }) {
   const tz = useTz()
   const t = useNow(5_000)
   const artists = useCollection('artists')
@@ -72,7 +72,10 @@ export function SheetRow({ item, showArtist }: { item: RosItem; showArtist?: boo
   const artistName = item.artist ? artists[item.artist]?.name ?? '' : ''
   const label = showArtist && item.artist ? artistName : item.artist && item.title === artistName ? '' : item.title
   return (
-    <li className={`${item.status ?? ''}${running ? ' live' : ''} k-${item.kind}`}>
+    <li
+      className={`${item.status ?? ''}${running ? ' live' : ''} k-${item.kind}${onClick ? ' click' : ''}`}
+      {...(onClick ? { role: 'button', tabIndex: 0, onClick, onKeyDown: (ev: React.KeyboardEvent) => { if (ev.key === 'Enter') onClick() } } : {})}
+    >
       <span className="tm">
         {item.delay ? <s>{fmtTime(item.start, tz)}</s> : null}
         {fmtTime(e.s, tz)}{e.e - e.s >= 5 * MIN ? `–${fmtTime(e.e, tz)}` : ''}

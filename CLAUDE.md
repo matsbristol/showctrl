@@ -19,6 +19,11 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | --- | --- |
 | `public/showctrl.html` | The working prototype. One self-contained HTML file (vanilla JS, no build step). This is the reference implementation for behaviour, data model and UI. |
 | `src/` | The original React + TypeScript + Vite app. Local state only (React contexts). To be brought in line with the prototype. |
+| `src/types/` | The data model (`model.ts`) and constants ported from the prototype (`constants.ts`). Literal types are derived from the constants. |
+| `src/data/` | The data layer: `DataStore` interface (`store.ts`), demo-mode `LocalStore`, the sample festival, and React hooks (`useCollection`, `useDoc`, `useConfig`). |
+| `src/lib/` | Pure helpers shared by client and (later) the Worker: time zones, day sheet generator, ids. |
+
+Run `npm test` for the Vitest suite.
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
 
 Run `npm run dev` and open `/showctrl.html` to use the prototype locally.
@@ -131,16 +136,32 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 
 Suggested porting order:
 
-1. Types for the data model above, in `src/types/`.
-2. A data layer behind one interface with get, subscribe, set, update and delete.
-3. Access helpers (`lv`, `canW`, `stageRole`).
+1. ~~Types for the data model above, in `src/types/`.~~ Done.
+2. ~~A data layer behind one interface with get, subscribe, set, update and delete.~~ Done (demo mode only; see "Backend").
+3. Access helpers (`lv`, `canW`, `stageRole`), as pure functions in `src/shared/` so the Worker can run the same checks.
 4. Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).
 5. Run sheet, day sheet generator and clocks.
 6. Artists and personnel.
 7. Messages.
 8. Accommodation and riders.
 
+Step 2b (after routing): the Cloudflare adapter and `worker/`.
+
 ## Backend (not built yet)
+
+**Target: Cloudflare.** Fallback if Cloudflare is ruled out: the owner's Domeneshop account (PHP + MySQL, no WebSockets, so live data would have to poll).
+
+Planned Cloudflare shape:
+
+- **One Durable Object per event** holds that event's records in its SQLite storage and pushes changes to clients over WebSockets.
+- **The Worker checks permissions** (`lv` / `canW` from `src/shared/`) before every write. This replaces row-level security.
+- **D1** holds organisations, users and the list of events.
+- **`/time` endpoint** returns server time for clock sync.
+- **Audit log** is an append-only table in the event's SQLite. `DataStore.audit()` already exists for it.
+- **Static assets** (the Vite build) are served by the same Worker.
+- **Sign-in** is undecided: Cloudflare Access, or a custom magic-link login.
+
+The client side is ready for this: `CloudflareStore` will implement `DataStore` (`src/data/store.ts`), whose `subscribe` already delivers per-document changes, and `createDataStore()` picks the adapter.
 
 Requirements for production at festival scale:
 
@@ -150,7 +171,7 @@ Requirements for production at festival scale:
 - **Thousands of personnel records and a few thousand run sheet items per event.**
 - **Audit history** of who changed timings.
 
-Supabase (Postgres + row-level security + realtime) fits well, and Firebase is an alternative. Server time should come from the backend for clock sync.
+Server time should come from the backend for clock sync.
 
 ## Known limitations of the prototype
 

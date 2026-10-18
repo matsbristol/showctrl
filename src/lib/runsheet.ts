@@ -21,6 +21,32 @@ export function itemsFor(ros: Readonly<Record<Id, RosItem>>, sid: Id, tz: TimeZo
     .sort((a, b) => a.start - b.start || a.end - b.end)
 }
 
+/** Items that a delay on `item` moves: it and everything after it that day, not done. */
+export function shiftTargets(ros: Readonly<Record<Id, RosItem>>, item: RosItem, tz: TimeZone, dockToo = true): RosItem[] {
+  return itemsFor(ros, item.stage, tz, festDay(item.start, tz))
+    .filter(x => x.start >= item.start && x.status !== 'done' && (dockToo || track(x) === 'stage'))
+}
+
+/** How far behind (positive) or ahead (negative) a stage runs, from its now or next item. */
+export function stageDelay(ros: Readonly<Record<Id, RosItem>>, sid: Id, t: Ms, tz: TimeZone): number {
+  const { cur, next } = nowNext(ros, sid, t, tz)
+  return next?.delay || cur?.delay || 0
+}
+
+/** Packs timeline blocks into rows so they don't overlap. Returns [item, row] pairs. */
+export function packRows(items: RosItem[]): { out: [RosItem, number][]; rows: number } {
+  const ends: number[] = []
+  const out: [RosItem, number][] = []
+  for (const i of [...items].sort((a, b) => eff(a).s - eff(b).s)) {
+    const e = eff(i)
+    let r = ends.findIndex(end => end <= e.s)
+    if (r < 0) { r = ends.length; ends.push(0) }
+    ends[r] = Math.max(e.e, e.s + 10 * MIN)
+    out.push([i, r])
+  }
+  return { out, rows: Math.max(1, ends.length) }
+}
+
 /**
  * A stage's "now" is the live on-stage item (or the one running by the clock).
  * Its "next" is the next show not yet done.

@@ -38,6 +38,24 @@ export function personTag(
   return 'No access'
 }
 
+/** People listed on a stage (or everyone when sid is null), key contacts first. */
+export function peopleFor(people: Readonly<Record<Id, Person>>, sid: Id | null): Person[] {
+  return Object.values(people)
+    .filter(p => !sid || (p.stages || []).includes(sid))
+    .sort((a, b) => (a.lead === b.lead ? 0 : a.lead ? -1 : 1) || a.name.localeCompare(b.name))
+}
+
+/** The stage's lead: an appointed manager's personnel record, else whoever's titled stage manager, else a key contact. */
+export function stageLead(
+  sid: Id,
+  members: Readonly<Record<Id, Member>>,
+  people: Readonly<Record<Id, Person>>,
+): Person | null {
+  for (const m of Object.values(members)) if (m.stages?.[sid] === 'manager' && m.person && people[m.person]) return people[m.person]
+  const ps = peopleFor(people, sid)
+  return ps.find(p => /stage manager/i.test(p.title || '') && !/assistant/i.test(p.title || '')) ?? ps.find(p => p.lead) ?? null
+}
+
 /** Avatar colour, stable per id. */
 export function personColor(id: string): string {
   const cs = ['#2F6FE0', '#8A4FD3', '#16999A', '#DB4E95', '#EE7A1F', '#2E9E57']

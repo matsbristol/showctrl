@@ -25,7 +25,9 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/app/` | The new showctrl workspace UI: `ShowctrlRoot` (data + session + layout), `routes.tsx` (`/hq/...`, `/s/:stageId/...`), `session.ts` (`useAccess`, `useTerms`, `useNow`), styles scoped under `.sc`. Mounted from `src/main.tsx`; open `/hq` in `npm run dev`. |
 | `src/shared/` | Access rules shared by client and Worker: `createAccess()` (levels, visibility, messages), `views.ts` (which pages a user can open), `writeRules.ts` (`canWrite()`, which the Worker must call before every write). |
 
-Run `npm test` for the Vitest suite.
+Run `npm test` for the Vitest suite. Component tests that click through the UI use happy-dom (`// @vitest-environment happy-dom` at the top of the file).
+
+`src/App.css` (the older pages) has unscoped rules such as `.actions`; `src/app/showctrl.css` overrides them inside `.sc`. Watch for more leaks when porting pages.
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
 
 Run `npm run dev` and open `/showctrl.html` to use the prototype locally.
@@ -142,7 +144,7 @@ Suggested porting order:
 2. ~~A data layer behind one interface with get, subscribe, set, update and delete.~~ Done (demo mode only; see "Backend").
 3. ~~Access helpers (`lv`, `canW`, `stageRole`), as pure functions in `src/shared/` so the Worker can run the same checks.~~ Done: `createAccess()`, page rules in `views.ts`, and server write rules in `writeRules.ts`.
 4. ~~Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).~~ Done: `src/app/` (layout, demo persona switcher, preview, route guards). Pages are placeholders until their step.
-5. Run sheet, day sheet generator and clocks.
+5. ~~Run sheet, day sheet generator and clocks.~~ Done: HQ overview and running order, stage Today, run sheet (lanes, on stage / done / delay, add item, add performer with day sheet), clocks with wall mode, stage display, server clock sync (`/time` JSON or the `Date` header).
 6. Artists and personnel.
 7. Messages.
 8. Accommodation and riders.

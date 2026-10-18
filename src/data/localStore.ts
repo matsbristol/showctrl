@@ -3,7 +3,7 @@
 import { COLLECTIONS, SCHEMA_VERSION } from '../types/constants'
 import type { CollectionName, Collections, ConfigDocs, ConfigName, EventConfig, Id, RolesConfig } from '../types/model'
 import {
-  type AuditEntry, type CollectionSnapshot, type DataStore, type DeepPartial, type DocChange, type DocInput,
+  type AuditEntry, type CollectionSnapshot, type DataStore, type DocChange, type DocInput, type DocPatch,
   StoreError, type Unsubscribe,
 } from './store'
 
@@ -132,7 +132,7 @@ export class LocalStore implements DataStore {
 
   async set<K extends CollectionName>(col: K, id: Id, doc: DocInput<Collections[K]>) {
     const existed = id in this.col[col]
-    const next = { ...doc, id } as Collections[K]
+    const next = { ...doc, id } as unknown as Collections[K]
     this.col = { ...this.col, [col]: { ...this.col[col], [id]: next } }
     this.record('set', col, id)
     this.emit(col, [{ type: existed ? 'modified' : 'added', id, doc: next }])
@@ -152,7 +152,7 @@ export class LocalStore implements DataStore {
     this.emit(col, changes)
   }
 
-  async update<K extends CollectionName>(col: K, id: Id, patch: DeepPartial<Omit<Collections[K], 'id'>>) {
+  async update<K extends CollectionName>(col: K, id: Id, patch: DocPatch<Collections[K]>) {
     const cur = this.col[col][id]
     if (!cur) throw new StoreError('not_found', `${col}/${id} does not exist`)
     const next = { ...deepMerge(cur, patch), id }

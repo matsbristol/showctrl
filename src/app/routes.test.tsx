@@ -23,13 +23,13 @@ describe('showctrl routes', () => {
     const html = render('/hq/overview', 'demo-admin')
     expect(html).toContain('Festival HQ')
     for (const name of ['Main Stage', 'Fjord Stage', 'The Tent', 'Harbour Club', 'Forest Stage']) expect(html).toContain(name)
-    expect(html).toContain('<h1>Overview</h1>')
+    expect(html).toContain('<h1>Festival overview</h1>')
     expect(html).toContain('href="/hq/admin"')
   })
 
   it('shows a stage manager only their own stage, with Stage setup', () => {
     const html = render('/s/main/runsheet', 'demo-sm-main')
-    expect(html).toContain('<h1>Run sheet</h1>')
+    expect(html).toContain('<h1>Run sheet · Main Stage</h1>')
     expect(html).toContain('href="/s/main/setup"')
     expect(html).not.toContain('Festival HQ</a>')
     expect(html).not.toContain('href="/s/fjord/today"')

@@ -31,6 +31,9 @@ export type RiderKind = (typeof RIDER_KINDS)[number]
 export type MsgPriority = (typeof MSG_PRIORITY)[number]
 export type DayTemplate = { [K in keyof typeof DEFAULT_TPL]: number }
 
+/** Omit that keeps union members apart, so Omit<Clock, 'id'> still knows each kind's fields. */
+export type DistOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
 /** Every record carries its id, which is also its key in the collection. */
 export interface BaseDoc {
   id: Id

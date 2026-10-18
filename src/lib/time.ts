@@ -78,6 +78,31 @@ export function dayLabel(k: DayKey, long = false): string {
   return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-GB', { weekday: long ? 'long' : 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
 }
 
+const pad = (n: number) => String(n).padStart(2, '0')
+
+/** Countdown text: `4:05`, `1:02:09`, or `+3:10` once passed. */
+export function fmtCountdown(ms: number): string {
+  const neg = ms < 0
+  const s = Math.floor(Math.abs(ms) / 1000)
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60
+  return (neg ? '+' : '') + (h ? `${h}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`)
+}
+
+export type CountdownState = '' | 'warn' | 'over'
+
+/** `over` once passed, `warn` under `warnMin` minutes. */
+export function countdownState(ms: number, warnMin = 5): CountdownState {
+  return ms < 0 ? 'over' : ms < warnMin * 60_000 ? 'warn' : ''
+}
+
+/** "in 5 min", "2.5 h ago", "just now". */
+export function relTime(ms: Ms, now: Ms): string {
+  const d = ms - now, a = Math.abs(d)
+  if (a < 60_000) return 'just now'
+  const v = a < 3_600_000 ? `${Math.round(a / 60_000)} min` : a < 48 * 3_600_000 ? `${Math.round(a / 360_000) / 10} h` : `${Math.round(a / 86_400_000)} days`
+  return d > 0 ? `in ${v}` : `${v} ago`
+}
+
 /** The city part of a time zone, e.g. Europe/Oslo → Oslo. */
 export function tzCity(tz: TimeZone): string {
   return tz.split('/').pop()!.replace(/_/g, ' ')

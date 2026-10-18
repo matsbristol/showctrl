@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useMemo } from 'react'
 import { useCollection, useConfig } from '../data/hooks'
 import { createAccess, type Access, type Preview } from '../shared/access'
 import { DEFAULT_TZ, EVENT_TYPES } from '../types/constants'
@@ -48,18 +48,4 @@ export function useTerms(): Terms {
   return { ...EVENT_TYPES.festival.terms, ...cfg?.terms }
 }
 
-/** Current time, updated every `everyMs`, aligned to whole seconds. */
-export function useNow(everyMs = 1000): number {
-  const [t, setT] = useState(() => Date.now())
-  useEffect(() => {
-    let id: ReturnType<typeof setTimeout>
-    const tick = () => {
-      const n = Date.now()
-      setT(n)
-      id = setTimeout(tick, everyMs - (n % 1000) + 5)
-    }
-    id = setTimeout(tick, everyMs - (Date.now() % 1000) + 5)
-    return () => clearTimeout(id)
-  }, [everyMs])
-  return t
-}
+export { useNow } from './time'

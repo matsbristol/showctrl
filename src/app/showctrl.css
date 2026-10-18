@@ -124,3 +124,187 @@
 .sc .setup { max-width: 640px; margin: 3rem auto; display: grid; gap: 1rem; padding: 0 1rem }
 .sc .setup .panel { padding: 1.5rem }
 .sc .loading { padding: 3rem; text-align: center; color: var(--ink2) }
+.sc .stack { display: flex; flex-direction: column; gap: .25rem }
+.sc .grid { display: grid; gap: 1rem }
+.sc .g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)) }
+.sc .g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) }
+.sc .chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 4px; padding: .05rem .45rem; font-size: .78rem; font-weight: 700; background: var(--surface2); color: var(--ink2); white-space: nowrap }
+.sc .chip.go { background: var(--go-soft); color: var(--go) }
+.sc .chip.sb { background: var(--standby-soft); color: var(--standby) }
+.sc .chip.st { background: var(--stop-soft); color: var(--stop) }
+.sc .chip.ac { background: var(--accent-soft); color: var(--accent) }
+.sc .tapeL { border-left: 6px solid var(--c) }
+.sc .btn:disabled { opacity: .45; cursor: not-allowed }
+.sc .panel > .ph .actions { margin-left: auto; display: flex; gap: .4rem }
+.sc .seg { display: inline-flex; max-width: 100%; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--r) }
+.sc .seg button { white-space: nowrap; border: 0; background: var(--surface); padding: .35rem .75rem; font-weight: 700; font-size: .85rem; cursor: pointer; color: var(--ink2) }
+.sc .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface) }
+.sc .filters { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center }
+.sc .filters select, .sc .filters input:not([type=checkbox]) { border: 1px solid var(--line); background: var(--surface); border-radius: var(--r); padding: .4rem .55rem; font-size: .9rem }
+.sc .list { list-style: none; margin: 0; padding: 0 }
+.sc .list li { padding: .65rem 1rem; border-bottom: 1px solid var(--line); display: flex; gap: .6rem; align-items: flex-start }
+.sc .list li:last-child { border-bottom: 0 }
+.sc .tel { font-variant-numeric: tabular-nums; white-space: nowrap }
+
+/* ---------- tables ---------- */
+.sc .tbl-wrap { overflow-x: auto }
+.sc table { border-collapse: collapse; width: 100%; font-size: .93rem }
+.sc th { text-align: left; font-weight: 700; color: var(--ink2); font-size: .82rem; padding: .55rem .75rem; border-bottom: 1px solid var(--line); white-space: nowrap }
+.sc td { padding: .55rem .75rem; border-bottom: 1px solid var(--line); vertical-align: middle }
+.sc tr:last-child td { border-bottom: 0 }
+
+/* ---------- stage cards ---------- */
+.sc .stagecard { padding: 0; overflow: hidden }
+.sc .stagecard .sh { display: flex; align-items: center; gap: .6rem; padding: .75rem 1rem; border-bottom: 1px solid var(--line) }
+.sc .stagecard .sh h2 { font-size: 1.35rem }
+.sc .stagecard .sh .chip { margin-left: auto }
+.sc .slot { padding: .8rem 1rem; display: grid; grid-template-columns: 4.2rem 1fr auto; gap: .15rem .75rem; align-items: baseline }
+.sc .slot + .slot { border-top: 1px dashed var(--line) }
+.sc .slot .lbl { font-size: .8rem; font-weight: 700; color: var(--ink3) }
+.sc .slot .ttl { font-weight: 700; font-size: 1.05rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sc .slot .cd { font-family: var(--display); font-size: 1.9rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; text-align: right }
+.sc .slot .sub { grid-column: 2 / 4; color: var(--ink2); font-size: .85rem }
+.sc .slot.now .lbl { color: var(--go) }
+.sc .cd.warn { color: var(--standby) }
+.sc .cd.over { color: var(--stop) }
+.sc .sc-meta { display: flex; gap: .4rem 1rem; flex-wrap: wrap; padding: .6rem 1rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--ink2) }
+.sc .sc-meta b { color: var(--ink) }
+.sc .sc-meta a { color: inherit }
+.sc .contact { display: grid; grid-template-columns: 1fr auto; gap: .1rem .6rem; padding: .6rem 1rem; border-bottom: 1px solid var(--line) }
+.sc .contact:last-child { border-bottom: 0 }
+.sc .contact .r { color: var(--ink2); font-size: .82rem }
+.sc .contact .c { font-size: .88rem; display: flex; gap: .8rem; flex-wrap: wrap }
+.sc .contact .c a { color: var(--accent); text-decoration: none }
+
+/* ---------- day sheet (vertical) ---------- */
+.sc .sheet { list-style: none; margin: 0; padding: 0 }
+.sc .sheet li { display: grid; grid-template-columns: 5.5rem 1fr auto; gap: .1rem .8rem; padding: .6rem 1rem; border-bottom: 1px solid var(--line); align-items: baseline }
+.sc .sheet li:last-child { border-bottom: 0 }
+.sc .sheet .tm { font-weight: 700; font-variant-numeric: tabular-nums }
+.sc .sheet .tm s { display: block; font-weight: 400; color: var(--ink3); font-size: .78rem }
+.sc .sheet .what { font-weight: 700 }
+.sc .sheet .what small { display: block; font-weight: 400; color: var(--ink2); font-size: .82rem }
+.sc .sheet .cd { font-family: var(--display); font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink2) }
+.sc .sheet li.live { background: var(--go-soft) }
+.sc .sheet li.done { color: var(--ink3) }
+.sc .sheet li.k-show .what { font-size: 1.1rem }
+.sc .kind { display: inline-block; font-size: .72rem; font-weight: 700; padding: 0 .35rem; border-radius: 3px; background: var(--surface2); color: var(--ink2); margin-right: .35rem; vertical-align: 1px }
+.sc .kind.k-show { background: var(--accent-soft); color: var(--accent) }
+.sc .kind.k-soundcheck, .sc .kind.k-linecheck { background: var(--standby-soft); color: var(--standby) }
+
+/* ---------- lanes (timeline) ---------- */
+.sc .lanes { position: relative; overflow-x: auto }
+.sc .lanes-inner { position: relative }
+.sc .hours { margin-left: 130px; height: 24px; position: relative; font-size: .78rem; color: var(--ink3) }
+.sc .hours span { position: absolute; transform: translateX(-50%); top: 2px }
+.sc .lane { display: flex; align-items: stretch; border-top: 1px solid var(--line); min-height: 58px }
+.sc .lane .ln { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); width: 130px; flex: none; display: flex; align-items: center; gap: .5rem; padding: .4rem .6rem; font-weight: 700; font-size: .92rem }
+.sc .lane .ln small { display: block; font-weight: 400; color: var(--ink3); font-size: .75rem }
+.sc .lane .lt { flex: 1; position: relative; min-height: var(--lh, 52px); background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); background-size: var(--hw) 100% }
+.sc .blk { position: absolute; height: 24px; border-radius: 4px; padding: .15rem .4rem; font-size: .78rem; line-height: 1.25; overflow: hidden; background: var(--surface2); border: 1px solid var(--line); color: var(--ink); cursor: default; text-align: left; display: flex; align-items: center; gap: .3rem; white-space: nowrap }
+.sc .blk b { display: inline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .78rem }
+.sc button.blk { cursor: pointer }
+.sc .blk.k-show { background: var(--accent-soft); border-color: transparent; border-left: 4px solid var(--c) }
+.sc .blk.k-soundcheck, .sc .blk.k-linecheck { background: var(--standby-soft); border-color: transparent }
+.sc .blk.k-changeover { background: repeating-linear-gradient(135deg, var(--surface2) 0 6px, transparent 6px 12px); color: var(--ink2) }
+.sc .blk.k-loadin, .sc .blk.k-loadout { background: var(--surface); border-style: dashed }
+.sc .blk.k-arrival, .sc .blk.k-departure, .sc .blk.k-getin, .sc .blk.k-access { background: var(--surface2); color: var(--ink2) }
+.sc .blk.live { background: var(--go-soft) !important; border-left: 4px solid var(--go) }
+.sc .blk.done { opacity: .5 }
+.sc .mark { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--ink2); z-index: 1 }
+.sc .mark span { position: absolute; left: 4px; bottom: 3px; font-size: .7rem; font-weight: 700; color: var(--ink2); white-space: nowrap; background: var(--surface); padding: 0 .2rem }
+.sc .nowline { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--stop); z-index: 2; pointer-events: none }
+.sc .nowline[data-l]::before { content: attr(data-l); position: absolute; top: -1px; left: 4px; background: var(--stop); color: #fff; font-size: .7rem; font-weight: 700; padding: 0 .3rem; border-radius: 3px }
+
+/* ---------- run sheet table ---------- */
+.sc .ro td.t { white-space: nowrap; font-variant-numeric: tabular-nums }
+.sc .ro s { color: var(--ink3); font-size: .8rem; margin-right: .3rem }
+.sc .ro tr.live td { background: var(--go-soft) }
+.sc .ro tr.done td { color: var(--ink3) }
+.sc .ro .acts { display: flex; gap: .3rem; justify-content: flex-end; flex-wrap: nowrap }
+@media (max-width: 600px) {
+  .sc .ro tr { display: grid; grid-template-columns: 7.2rem 1fr; border-bottom: 1px solid var(--line) }
+  .sc .ro thead { display: none }
+  .sc .ro td { border: 0; padding: .45rem .7rem }
+  .sc .ro td:nth-child(3) { display: none }
+  .sc .ro td:nth-child(4) { grid-column: 1 / -1; padding-top: 0 }
+  .sc .ro td:nth-child(4):empty { display: none }
+  .sc .ro .acts { justify-content: flex-start }
+  .sc .ro s { display: block; margin: 0 }
+}
+
+/* ---------- clocks ---------- */
+.sc .wall { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)) }
+.sc .tile { background: var(--strip); color: var(--strip-ink); border-radius: 8px; padding: 1rem 1.1rem 1.1rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: .2rem; min-height: 170px }
+.sc .tile::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 6px; background: var(--c, #3E63FF) }
+.sc .tile .lab { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: .5rem; padding-right: 2.6rem }
+.sc .tile .lab span { margin-left: auto; color: var(--strip-ink2); font-weight: 400; font-size: .8rem }
+.sc .tile .val { font-family: var(--display); font-weight: 600; font-size: clamp(3rem, 6.5vw, 4.6rem); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .01em; margin-top: auto }
+.sc .tile .val.warn { color: #FFC94A }
+.sc .tile .val.over { color: #FF6E6B }
+.sc .tile .sub { color: var(--strip-ink2); font-size: .88rem; min-height: 1.3em }
+.sc .tile .ctl { display: flex; gap: .35rem; margin-top: .5rem; flex-wrap: wrap }
+.sc .tile .ctl button { background: var(--strip2); color: var(--strip-ink); border: 1px solid #2C3850; border-radius: 4px; padding: .25rem .6rem; font-size: .8rem; font-weight: 700; cursor: pointer }
+.sc .tile .ctl button:hover { border-color: #5A6A8C }
+.sc .tile .edit { position: absolute; top: .7rem; right: .7rem; background: none; border: 0; color: var(--strip-ink2); cursor: pointer; padding: .2rem; font-size: .8rem; text-decoration: underline }
+@media (prefers-reduced-motion: no-preference) { .sc .tile .val.over { animation: sc-blink 1s steps(2) infinite } }
+@keyframes sc-blink { 50% { opacity: .55 } }
+.sc .wallclock { display: none; justify-content: space-between; align-items: baseline; color: #EEF1F7; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap }
+.sc .wallclock .t { font-family: var(--display); font-size: clamp(4rem, 12vw, 10rem); font-weight: 600; line-height: .9; font-variant-numeric: tabular-nums }
+.sc .wallclock .e { font-family: var(--display); font-size: 1.6rem; color: #9AA6BD }
+
+/* ---------- wall mode ---------- */
+.sc.wallmode { background: #05070C }
+.sc.wallmode .strip, .sc.wallmode .ctxbar, .sc.wallmode nav.side, .sc.wallmode .head, .sc.wallmode .preview { display: none }
+.sc.wallmode .shell { grid-template-columns: 1fr }
+.sc.wallmode main { padding: 1rem }
+.sc.wallmode .wall { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)) }
+.sc.wallmode .tile { min-height: 30vh }
+.sc.wallmode .tile .val { font-size: clamp(4rem, 9vw, 8rem) }
+.sc.wallmode .tile .ctl, .sc.wallmode .tile .edit { display: none }
+.sc.wallmode .wallclock { display: flex }
+.sc.wallmode .display { min-height: calc(100vh - 2rem) }
+.sc .exitwall { position: fixed; right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30 }
+
+/* ---------- on-stage display ---------- */
+.sc .display { background: #05070C; color: #EEF1F7; border-radius: 10px; padding: clamp(1rem, 3vw, 2.5rem); min-height: 72vh; display: grid; grid-template-rows: auto 1fr auto; gap: 1rem; position: relative; overflow: hidden }
+.sc .display::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 10px; background: var(--c) }
+.sc .display .top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; font-family: var(--display) }
+.sc .display .top .st { font-size: clamp(1.6rem, 3vw, 2.6rem); font-weight: 700 }
+.sc .display .top .tod { font-size: clamp(2rem, 5vw, 4rem); font-weight: 600; font-variant-numeric: tabular-nums }
+.sc .display .mid { display: flex; flex-direction: column; justify-content: center; gap: .3rem }
+.sc .display .lbl { font-size: clamp(1rem, 2vw, 1.6rem); color: #9AA6BD; font-weight: 700 }
+.sc .display .lbl.on { color: #45C982 }
+.sc .display .dwho { font-family: var(--display); font-size: clamp(2.4rem, 6vw, 5.5rem); font-weight: 700; line-height: 1 }
+.sc .display .big { font-family: var(--display); font-size: clamp(5rem, 20vw, 17rem); font-weight: 600; line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: .01em }
+.sc .display .big.warn { color: #FFC94A }
+.sc .display .big.over { color: #FF6E6B }
+.sc .display .bot { display: flex; gap: 2rem; flex-wrap: wrap; color: #9AA6BD; font-size: clamp(1rem, 1.8vw, 1.4rem) }
+.sc .display .bot b { color: #EEF1F7 }
+
+/* ---------- dialog ---------- */
+.sc dialog.dlg { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 0; width: min(560px, calc(100vw - 2rem)); max-height: calc(100vh - 2rem) }
+.sc dialog.dlg::backdrop { background: rgba(8, 12, 20, .55) }
+.sc dialog.dlg form { display: flex; flex-direction: column; max-height: calc(100vh - 2rem) }
+.sc dialog.dlg .dh { padding: 1rem 1.25rem; border-bottom: 1px solid var(--line); display: flex; align-items: center }
+.sc dialog.dlg .dh button { margin-left: auto; background: none; border: 0; cursor: pointer; color: var(--ink2); font-size: 1.4rem; line-height: 1 }
+.sc dialog.dlg .db { padding: 1rem 1.25rem; overflow: auto; display: grid; grid-template-columns: 1fr 1fr; gap: .85rem 1rem }
+.sc dialog.dlg .df { padding: .85rem 1.25rem; border-top: 1px solid var(--line); display: flex; gap: .5rem }
+.sc dialog.dlg .df .r { margin-left: auto; display: flex; gap: .5rem }
+.sc .fld { display: flex; flex-direction: column; gap: .3rem; min-width: 0 }
+.sc .fld.full { grid-column: 1 / -1 }
+.sc .fld > span { font-size: .85rem; font-weight: 700; color: var(--ink2) }
+.sc .fld input:not([type=checkbox]), .sc .fld select, .sc .fld textarea { border: 1px solid var(--line); border-radius: var(--r); padding: .5rem .6rem; background: var(--bg); width: 100% }
+.sc .fld textarea { min-height: 90px; resize: vertical }
+.sc .checks { display: flex; flex-wrap: wrap; gap: .35rem .9rem }
+.sc .checks label { display: flex; gap: .35rem; align-items: center; font-size: .9rem }
+@media (max-width: 520px) { .sc dialog.dlg .db { grid-template-columns: 1fr } }
+
+/* ---------- toasts ---------- */
+.sc .toasts { position: fixed; left: 50%; bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: .5rem; align-items: center; pointer-events: none }
+.sc .toasts div { background: var(--ink); color: var(--surface); padding: .6rem 1rem; border-radius: var(--r); font-size: .9rem; display: flex; gap: .8rem; align-items: center; pointer-events: auto; max-width: min(560px, calc(100vw - 2rem)) }
+.sc .toasts button { background: none; border: 1px solid currentColor; color: inherit; border-radius: 4px; padding: .15rem .5rem; cursor: pointer; font-weight: 700 }
+@media (max-width: 860px) { .sc .toasts { bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) } }
+
+/* The older pages' App.css has an unscoped .actions rule; undo it here. */
+.sc .actions { border-left: 0; border-top: 0; grid-column: auto; grid-row: auto }

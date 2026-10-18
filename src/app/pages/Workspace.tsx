@@ -6,6 +6,12 @@ import { HQ_VIEWS, STAGE_VIEWS, canOpenHqView, canOpenStageView, homePath, type 
 import { HQ_NAV, STAGE_NAV } from '../nav'
 import { useAccess, useTerms } from '../session'
 import { AdminPage } from './AdminPage'
+import { ClocksPage } from './ClocksPage'
+import { DisplayPage } from './DisplayPage'
+import { OverviewPage } from './OverviewPage'
+import { RunSheetPage } from './RunSheetPage'
+import { SchedulePage } from './SchedulePage'
+import { TodayPage } from './TodayPage'
 import { NoAccess } from './NoAccess'
 import { Placeholder } from './Placeholder'
 
@@ -23,8 +29,13 @@ export function HqPage() {
   const a = useAccess()
   const cfg = useConfig('event')
   if (!a.hqVisible() || !isHqView(view) || !canOpenHqView(a, cfg, view)) return <NoAccess />
-  if (view === 'admin') return <AdminPage />
-  return <Placeholder meta={HQ_NAV[view]} />
+  switch (view) {
+    case 'admin': return <AdminPage />
+    case 'overview': return <OverviewPage />
+    case 'schedule': return <SchedulePage />
+    case 'clocks': return <ClocksPage sid={null} />
+    default: return <Placeholder meta={HQ_NAV[view]} />
+  }
 }
 
 /** Checks the stage exists and is visible; returns an error page or null. */
@@ -46,7 +57,14 @@ export function StagePage() {
   const blocked = useStageGuard(stageId)
   if (blocked) return blocked
   if (!isStageView(view) || !canOpenStageView(a, cfg, stageId!, view)) return <NoAccess />
-  return <Placeholder meta={STAGE_NAV[view]} sub={`${stages[stageId!].name} · ${STAGE_NAV[view].about(t)}`} />
+  const sid = stageId!
+  switch (view) {
+    case 'today': return <TodayPage sid={sid} />
+    case 'runsheet': return <RunSheetPage sid={sid} />
+    case 'clocks': return <ClocksPage sid={sid} />
+    case 'display': return <DisplayPage sid={sid} />
+    default: return <Placeholder meta={STAGE_NAV[view]} sub={`${stages[sid].name} · ${STAGE_NAV[view].about(t)}`} />
+  }
 }
 
 /** `/hq/artists/:artistId` and `/s/:stageId/artists/:artistId` */

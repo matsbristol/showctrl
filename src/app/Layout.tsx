@@ -10,6 +10,7 @@ import type { Id, TapeColor } from '../types/model'
 import { Icon } from './Icon'
 import { HQ_NAV, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
+import { useSyncState } from './time'
 
 const HQ_COLOR = '#3E63FF'
 const tapeHex = (t: TapeColor | undefined) => TAPE[t ?? 'grey'] ?? TAPE.grey
@@ -21,7 +22,7 @@ function useCtx(): 'hq' | Id {
 
 export function Layout() {
   return (
-    <div className="sc">
+    <>
       <header className="strip">
         <div className="brand"><i />showctrl</div>
         <EventName />
@@ -34,7 +35,7 @@ export function Layout() {
         <SideNav />
         <main><Outlet /></main>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -58,11 +59,14 @@ function EventName() {
 function MasterClock() {
   const tz = useTz()
   const now = useNow()
+  const { state, offset } = useSyncState()
+  const city = tzCity(tz)
+  const label = state === 'ok' ? `Synced · ${city}` : state === 'corrected' ? `Corrected ${Math.round(offset / 1000)}s · ${city}` : `Device time · ${city}`
+  const color = state === 'device' ? '#8E9AB1' : state === 'corrected' ? '#F1B734' : '#45C982'
   return (
     <div className="master">
       <span className="t" aria-label="Current time">{fmtTime(now, tz, true)}</span>
-      {/* Server time sync arrives with the clocks in step 5. */}
-      <span className="sync" style={{ ['--c' as string]: '#8E9AB1' }}>Device time · {tzCity(tz)}</span>
+      <span className="sync" style={{ ['--c' as string]: color }}>{label}</span>
     </div>
   )
 }

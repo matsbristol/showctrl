@@ -1,7 +1,7 @@
 // The one interface every backend implements. Demo mode uses LocalStore; the
 // Cloudflare adapter (Worker + Durable Object per event) will implement the same.
 
-import type { CollectionName, Collections, ConfigDocs, ConfigName, Id, Ms } from '../types/model'
+import type { CollectionName, Collections, ConfigDocs, ConfigName, DistOmit, Id, Ms } from '../types/model'
 
 export type Unsubscribe = () => void
 
@@ -30,7 +30,10 @@ export type DeepPartial<T> = T extends readonly unknown[]
     : T
 
 /** A record as written. The id comes from the call, so the body may omit it. */
-export type DocInput<T extends { id: Id }> = Omit<T, 'id'> & { id?: Id }
+export type DocInput<T extends { id: Id }> = T extends unknown ? Omit<T, 'id'> & { id?: Id } : never
+
+/** An update body: any subset of the record's fields, per union member. */
+export type DocPatch<T extends { id: Id }> = DeepPartial<DistOmit<T, 'id'>>
 
 /** One entry in the write log, kept for "who changed this timing" history. */
 export interface AuditEntry {
@@ -71,7 +74,7 @@ export interface DataStore {
   /** Creates or replaces many records in one call. Each needs an id. */
   setMany<K extends CollectionName>(col: K, docs: Collections[K][]): Promise<void>
   /** Merges into an existing record. Throws `not_found` if it doesn't exist. */
-  update<K extends CollectionName>(col: K, id: Id, patch: DeepPartial<Omit<Collections[K], 'id'>>): Promise<void>
+  update<K extends CollectionName>(col: K, id: Id, patch: DocPatch<Collections[K]>): Promise<void>
   delete(col: CollectionName, id: Id): Promise<void>
 
   /** The cached config doc: null if it doesn't exist, undefined if not loaded yet. */

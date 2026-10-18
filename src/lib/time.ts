@@ -62,3 +62,23 @@ export function addDays(k: DayKey, n: number): DayKey {
   const [y, m, d] = k.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
+
+/** Every day of the event, start to end inclusive (max 21). */
+export function eventDays(cfg: { start?: DayKey; end?: DayKey } | null | undefined): DayKey[] {
+  const out: DayKey[] = []
+  if (!cfg?.start) return out
+  const last = cfg.end || cfg.start
+  for (let k = cfg.start, i = 0; i < 21 && k <= last; i++, k = addDays(k, 1)) out.push(k)
+  return out
+}
+
+/** e.g. "Fri 10 Jul", or "Friday 10 Jul" with `long`. */
+export function dayLabel(k: DayKey, long = false): string {
+  const [y, m, d] = k.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-GB', { weekday: long ? 'long' : 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+}
+
+/** The city part of a time zone, e.g. Europe/Oslo → Oslo. */
+export function tzCity(tz: TimeZone): string {
+  return tz.split('/').pop()!.replace(/_/g, ' ')
+}

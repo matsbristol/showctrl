@@ -25,6 +25,7 @@ import { TravelProvider } from './context/TravelContext'
 import { HospitalityProvider } from './context/HospitalityContext'
 import { PerformersContextProvider } from './context/PerformersContext'
 import { StagesProvider } from './context/StagesContext'
+import { showctrlRoutes } from './app/routes'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -43,6 +44,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                       <BrowserRouter>
                         <Routes>
             <Route index element={<LandingPage />} />
+            {showctrlRoutes()}
             <Route element={<App />}>
               <Route path="/events" element={<EventsPage />} />
               <Route path="/events/:eventId" element={<EventDetailPage />} />

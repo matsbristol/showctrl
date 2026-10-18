@@ -22,6 +22,7 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/types/` | The data model (`model.ts`) and constants ported from the prototype (`constants.ts`). Literal types are derived from the constants. |
 | `src/data/` | The data layer: `DataStore` interface (`store.ts`), demo-mode `LocalStore`, the sample festival, and React hooks (`useCollection`, `useDoc`, `useConfig`). |
 | `src/lib/` | Pure helpers shared by client and (later) the Worker: time zones, day sheet generator, ids. |
+| `src/app/` | The new showctrl workspace UI: `ShowctrlRoot` (data + session + layout), `routes.tsx` (`/hq/...`, `/s/:stageId/...`), `session.ts` (`useAccess`, `useTerms`, `useNow`), styles scoped under `.sc`. Mounted from `src/main.tsx`; open `/hq` in `npm run dev`. |
 | `src/shared/` | Access rules shared by client and Worker: `createAccess()` (levels, visibility, messages), `views.ts` (which pages a user can open), `writeRules.ts` (`canWrite()`, which the Worker must call before every write). |
 
 Run `npm test` for the Vitest suite.
@@ -140,7 +141,7 @@ Suggested porting order:
 1. ~~Types for the data model above, in `src/types/`.~~ Done.
 2. ~~A data layer behind one interface with get, subscribe, set, update and delete.~~ Done (demo mode only; see "Backend").
 3. ~~Access helpers (`lv`, `canW`, `stageRole`), as pure functions in `src/shared/` so the Worker can run the same checks.~~ Done: `createAccess()`, page rules in `views.ts`, and server write rules in `writeRules.ts`.
-4. Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).
+4. ~~Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).~~ Done: `src/app/` (layout, demo persona switcher, preview, route guards). Pages are placeholders until their step.
 5. Run sheet, day sheet generator and clocks.
 6. Artists and personnel.
 7. Messages.

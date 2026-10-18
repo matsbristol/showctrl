@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { Link, Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom'
 import { useCollection, useConfig, useStore } from '../data/hooks'
 import { nowNext } from '../lib/runsheet'
@@ -11,6 +11,8 @@ import { Icon } from './Icon'
 import { HQ_NAV, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
+import { useLive } from './live'
+import { CloudflareStore, type ConnectionStatus } from '../data/cloudflareStore'
 import { useUnreadCount } from './messages/hooks'
 import { UrgentBanner } from './messages/UrgentBanner'
 
@@ -63,15 +65,25 @@ function MasterClock() {
   const tz = useTz()
   const now = useNow()
   const { state, offset } = useSyncState()
+  const conn = useConnection()
   const city = tzCity(tz)
-  const label = state === 'ok' ? `Synced · ${city}` : state === 'corrected' ? `Corrected ${Math.round(offset / 1000)}s · ${city}` : `Device time · ${city}`
-  const color = state === 'device' ? '#8E9AB1' : state === 'corrected' ? '#F1B734' : '#45C982'
+  const offline = conn === 'offline'
+  const label = offline ? 'Offline · reconnecting' : state === 'ok' ? `Synced · ${city}` : state === 'corrected' ? `Corrected ${Math.round(offset / 1000)}s · ${city}` : `Device time · ${city}`
+  const color = offline ? '#FF6764' : state === 'device' ? '#8E9AB1' : state === 'corrected' ? '#F1B734' : '#45C982'
   return (
     <div className="master">
       <span className="t" aria-label="Current time">{fmtTime(now, tz, true)}</span>
-      <span className="sync" style={{ ['--c' as string]: color }}>{label}</span>
+      <span className="sync" style={{ ['--c' as string]: color }} role="status">{label}</span>
     </div>
   )
+}
+
+/** Live mode: whether the connection to the event is up. Demo mode is always 'online'. */
+function useConnection(): ConnectionStatus {
+  const store = useStore()
+  const sub = useCallback((l: () => void) => (store instanceof CloudflareStore ? store.onStatus(l) : () => {}), [store])
+  const get = () => (store instanceof CloudflareStore ? store.status : 'online')
+  return useSyncExternalStore(sub, get, get)
 }
 
 function Avatar({ id, name }: { id: Id; name: string }) {
@@ -87,6 +99,7 @@ function Who() {
   const stageteam = useCollection('stageteam')
   const stages = useCollection('stages')
   const navigate = useNavigate()
+  const live = useLive()
   const name = personName(me, members, people, {}, me)
 
   const personas = useMemo(
@@ -98,7 +111,13 @@ function Who() {
 
   if (store.mode !== 'local') {
     const label = a.role() !== 'none' ? a.roleDef().label : a.myStages().map(s => `${STAGE_ROLES[a.stageRole(s.id)!]}, ${s.name}`)[0] ?? a.roleDef().label
-    return <div className="who"><span>{name} <span className="role">· {label}</span></span>{me && <Avatar id={me} name={name} />}</div>
+    return (
+      <div className="who">
+        <span>{name} <span className="role">· {label}</span></span>
+        {me && <Avatar id={me} name={name} />}
+        {live && <button type="button" className="who-btn" onClick={live.switchEvent}>Events</button>}
+      </div>
+    )
   }
 
   return (

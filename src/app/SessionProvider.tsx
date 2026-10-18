@@ -17,23 +17,26 @@ function readMe(): Id {
 
 /**
  * Who is using the app. In demo mode the user picks a persona from the sample
- * members; live sign-in replaces this in step 2b.
+ * members. In live mode `initialMe` is the signed-in email and the persona can't change.
  */
-export function SessionProvider({ initialMe, children }: { initialMe?: Id; children: ReactNode }) {
+export function SessionProvider({ initialMe, isOwner = false, children }: { initialMe?: Id; isOwner?: boolean; children: ReactNode }) {
   const store = useStore()
   const [me, setMeState] = useState<Id>(() => initialMe ?? readMe())
   const [preview, setPreview] = useState<Preview | null>(null)
 
   useEffect(() => { store.setActor(me) }, [store, me])
 
-  // A persona that no longer exists (e.g. after a demo reset) falls back to the admin.
-  useEffect(() => store.subscribe('members', ({ docs }) => {
-    if (!docs[me] && docs[DEFAULT_ME]) setMeState(DEFAULT_ME)
-  }), [store, me])
+  // Demo only: a persona that no longer exists (e.g. after a demo reset) falls back to the admin.
+  useEffect(() => {
+    if (store.mode !== 'local') return
+    return store.subscribe('members', ({ docs }) => {
+      if (!docs[me] && docs[DEFAULT_ME]) setMeState(DEFAULT_ME)
+    })
+  }, [store, me])
 
   const value = useMemo<Session>(() => ({
     me,
-    isOwner: false,
+    isOwner,
     preview,
     setPreview,
     setMe: (id: Id) => {
@@ -41,7 +44,7 @@ export function SessionProvider({ initialMe, children }: { initialMe?: Id; child
       setPreview(null)
       try { localStorage.setItem(ME_KEY, id) } catch { /* private mode */ }
     },
-  }), [me, preview])
+  }), [me, preview, isOwner])
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
 }

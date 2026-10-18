@@ -13,6 +13,7 @@
   --strip-h: 64px;
   color-scheme: light;
   min-height: 100vh;
+  display: flow-root; /* keep children's margins inside the dark background */
   background: var(--bg);
   color: var(--ink);
   font: 16px/1.5 var(--body);
@@ -375,3 +376,4 @@
 .sc .lv2 { color: var(--go); font-weight: 700 }
 .sc fieldset.fld { border: 0; padding: 0; margin: 0 }
 .sc fieldset.fld legend { font-size: .85rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .3rem }
+.sc .who-btn { background: transparent; border: 1px solid #2C3850; color: var(--strip-ink); border-radius: 999px; padding: .1rem .6rem; font-size: .8rem; cursor: pointer }

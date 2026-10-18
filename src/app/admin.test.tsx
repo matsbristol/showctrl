@@ -20,7 +20,6 @@ function mount(path: string, me: string, store = new LocalStore({ initial: () =>
 }
 const click = async (el: HTMLElement) => { await act(async () => { fireEvent.click(el) }) }
 const change = async (el: HTMLElement, value: string) => { await act(async () => { fireEvent.change(el, { target: { value } }) }) }
-const tab = (name: string) => click(screen.getByRole('tab', { name }))
 const nav = () => within(document.querySelector<HTMLElement>('nav.side')!)
 const withConfirm = async (fn: () => Promise<void>) => { const o = globalThis.confirm; globalThis.confirm = () => true; try { await fn() } finally { globalThis.confirm = o } }
 

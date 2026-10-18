@@ -1,32 +1,86 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { createDataStore } from '../data/createDataStore'
 import { DataProvider } from '../data/DataProvider'
 import { useConfig, useStore } from '../data/hooks'
 import { LocalStore } from '../data/localStore'
 import { blankEvent, buildSample } from '../data/sample'
 import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
+import { detectBackend, eventStore, rememberEvent, type Backend, type Me } from './backend'
+import { EventPicker } from './EventPicker'
 import { Layout } from './Layout'
+import { LiveContext, type Live } from './live'
 import { SessionProvider } from './SessionProvider'
 import { TimeProvider } from './TimeProvider'
 import { ToastProvider } from './ui/ToastProvider'
 import { WallContext } from './ui/wall'
 import './showctrl.css'
 
-/** Data, session, shared clock, toasts and layout for every showctrl route. */
+/**
+ * Data, session, shared clock, toasts and layout for every showctrl route.
+ * Pass `store` (tests) to skip backend detection; otherwise the app checks for a backend
+ * and runs live (Cloudflare) or in demo mode.
+ */
 export function ShowctrlRoot({ store, initialMe }: { store?: DataStore; initialMe?: Id }) {
+  if (store) return <App store={store} initialMe={initialMe} />
+  return <Boot />
+}
+
+function App({ store, initialMe, isOwner, live }: { store: DataStore; initialMe?: Id; isOwner?: boolean; live?: Live }) {
   return (
-    <DataProvider store={store}>
-      <SessionProvider initialMe={initialMe}>
-        <TimeProvider>
-          <Frame>
-            <ToastProvider>
-              <EventGate />
-            </ToastProvider>
-          </Frame>
-        </TimeProvider>
-      </SessionProvider>
-    </DataProvider>
+    <LiveContext.Provider value={live ?? null}>
+      <DataProvider store={store}>
+        <SessionProvider initialMe={initialMe} isOwner={isOwner}>
+          <TimeProvider>
+            <Frame>
+              <ToastProvider>
+                <EventGate />
+              </ToastProvider>
+            </Frame>
+          </TimeProvider>
+        </SessionProvider>
+      </DataProvider>
+    </LiveContext.Provider>
   )
+}
+
+function Boot() {
+  const [backend, setBackend] = useState<Backend | null>(null)
+  useEffect(() => { void detectBackend().then(setBackend) }, [])
+  if (!backend) return <Frame><div className="loading">Connecting…</div></Frame>
+  if (backend.mode === 'demo') return <App store={demoStore()} />
+  if (backend.mode === 'error') return <Frame><div className="setup"><div className="panel"><h2>Can’t open showctrl</h2><p className="muted">{backend.message}</p></div></div></Frame>
+  return <LiveApp me={backend.me} />
+}
+
+let demo: DataStore | null = null
+/** One demo store for the page's lifetime. */
+function demoStore() {
+  return (demo ??= createDataStore())
+}
+
+/** Live mode: pick (or create) an event, then connect to it. */
+function LiveApp({ me }: { me: Me }) {
+  const [events, setEvents] = useState(me.events)
+  const initial = me.lastEvent && me.events.some(e => e.id === me.lastEvent) ? me.lastEvent : me.events.length === 1 ? me.events[0].id : null
+  const [eventId, setEventId] = useState<Id | null>(initial)
+  const open = (id: Id) => { rememberEvent(id); setEventId(id) }
+  const live = useMemo<Live>(() => ({ events, switchEvent: () => setEventId(null) }), [events])
+  if (!eventId) {
+    return (
+      <Frame>
+        <EventPicker me={me} events={events} onOpen={open} onCreated={(id, name) => { setEvents(e => [{ id, name, owner: me.email }, ...e]); open(id) }} />
+      </Frame>
+    )
+  }
+  return <LiveEvent id={eventId} me={me.email} live={live} />
+}
+
+function LiveEvent({ id, me, live }: { id: Id; me: Id; live: Live }) {
+  const store = eventStore(id)
+  const getSession = () => store.session
+  const session = useSyncExternalStore(useCallback(l => store.onSession(l), [store]), getSession, getSession)
+  return <App key={id} store={store} initialMe={session?.me ?? me} isOwner={session?.isOwner ?? false} live={live} />
 }
 
 /** The .sc styling root, with wall mode (chrome hidden, full screen). */

@@ -144,7 +144,7 @@ function AccessTab({ w, open }: TabProps) {
       <section className="panel">
         <div className="ph">
           <h3>People with access</h3>
-          {w && store.mode === 'local' && <div className="actions"><button type="button" className="btn sm primary" onClick={() => open({ type: 'access', uid: 'demo-' + rid(), isNew: true })}>+ Give someone access</button></div>}
+          {w && <div className="actions"><button type="button" className="btn sm primary" onClick={() => open({ type: 'access', uid: store.mode === 'local' ? 'demo-' + rid() : '', isNew: true })}>+ Give someone access</button></div>}
         </div>
         <div className="tbl-wrap">
           <table>

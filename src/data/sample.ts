@@ -5,7 +5,7 @@ import { buildDaySheet } from '../lib/daySheet'
 import { addDays, festDay, fromLocal } from '../lib/time'
 import { DEFAULT_ROLES, DEFAULT_TPL, EVENT_TYPES, HOUR, KINDS, MIN, SCHEMA_VERSION, defaultDepts } from '../types/constants'
 import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RosItem, TapeColor } from '../types/model'
-import { emptyCollections, type LocalData } from './localStore'
+import { emptyCollections, type LocalData } from './collections'
 
 /** An empty three-day festival starting today, with one admin user (the demo persona `demo-admin`). */
 export function blankEvent(t: number = Date.now()): LocalData {

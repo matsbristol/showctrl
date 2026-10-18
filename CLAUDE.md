@@ -23,6 +23,7 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/data/` | The data layer: `DataStore` interface (`store.ts`), demo-mode `LocalStore`, the sample festival, and React hooks (`useCollection`, `useDoc`, `useConfig`). |
 | `src/lib/` | Pure helpers shared by client and (later) the Worker: time zones, day sheet generator, ids. |
 | `src/app/` | The new showctrl workspace UI: `ShowctrlRoot` (data + session + layout), `routes.tsx` (`/hq/...`, `/s/:stageId/...`), `session.ts` (`useAccess`, `useTerms`, `useNow`), styles scoped under `.sc`. Mounted from `src/main.tsx`; open `/hq` in `npm run dev`. |
+| `worker/`, `src/server/` | The Cloudflare backend. See "Backend" below. |
 | `src/shared/` | Access rules shared by client and Worker: `createAccess()` (levels, visibility, messages), `views.ts` (which pages a user can open), `writeRules.ts` (`canWrite()`, which the Worker must call before every write). |
 
 Run `npm test` for the Vitest suite. Component tests that click through the UI use happy-dom (`// @vitest-environment happy-dom` at the top of the file).
@@ -157,35 +158,30 @@ Suggested porting order:
 
 Admin is done too: stages and stage managers, people with access (and access requests), the roles matrix with custom roles and preview, event settings and modules, departments, and in demo mode reload sample or start blank.
 
-Still to do:
+Step 2b (Cloudflare backend with Access sign-in) is done too. See "Backend" below and `DEPLOY.md`.
 
-- **Step 2b:** the Cloudflare adapter and `worker/`, with sign-in.
+## Backend (Cloudflare)
 
-## Backend (not built yet)
+Deploy and local-dev instructions are in `DEPLOY.md`. Shape:
 
-**Target: Cloudflare.** Fallback if Cloudflare is ruled out: the owner's Domeneshop account (PHP + MySQL, no WebSockets, so live data would have to poll).
+| Path | What it is |
+| --- | --- |
+| `worker/index.ts` | The Worker. Serves `dist/` (single-page fallback); `/time` (server time); `/api/me`, `POST /api/events`, `POST /api/me/last-event`; `/api/events/:id/ws` (WebSocket to the event). |
+| `worker/auth.ts` | Verifies the Cloudflare Access JWT (`Cf-Access-Jwt-Assertion` or the `CF_Authorization` cookie) against the team's certs. Users are identified by **lower-case email**, which is also their `members` key. `DEV_USER_EMAIL` (+ `?as=`) is for `wrangler dev` only and is ignored once `ACCESS_AUD` is set. |
+| `worker/event.ts` | `EventObject`, one Durable Object per event. SQLite tables `docs`, `config`, `meta` (eventId, owner) and `audit`. WebSocket hibernation API. Mirrors members into D1 `memberships`. |
+| `worker/schema.sql` | D1: `events`, `memberships`, `users` (last opened event). |
+| `src/server/core.ts` | `EventCore`, the server's rules, with no Cloudflare APIs. Applies writes with `canWrite`, makes batches all-or-nothing, stamps message times, keeps locked roles, filters reads (others' direct messages, others' prefs, requests) and redacts fields (artist contacts, hotel details, booking refs). It also restores those fields if a writer who can't see them saves the record. |
+| `src/server/hub.ts` | `EventHub`: per-connection snapshot, write handling, and a per-viewer broadcast. Access changes (members, stage teams, roles) re-send full snapshots. |
+| `src/shared/protocol.ts` | The WebSocket messages. `undefined` in an update is sent as `{ $delete: true }`. |
+| `src/data/cloudflareStore.ts` | `CloudflareStore`, the browser's `DataStore` over the socket, with reconnect and backoff. Writes resolve on the server's ack; refusals become `StoreError('denied')`. |
+| `src/app/backend.ts` | Detects live mode (`/api/me` returns JSON), event list and creation, `eventStore(id)`. |
 
-Planned Cloudflare shape:
+Things to keep in mind:
 
-- **One Durable Object per event** holds that event's records in its SQLite storage and pushes changes to clients over WebSockets.
-- **The Worker checks permissions** (`lv` / `canW` from `src/shared/`) before every write. This replaces row-level security.
-- **D1** holds organisations, users and the list of events.
-- **`/time` endpoint** returns server time for clock sync.
-- **Audit log** is an append-only table in the event's SQLite. `DataStore.audit()` already exists for it.
-- **Static assets** (the Vite build) are served by the same Worker.
-- **Sign-in** is undecided: Cloudflare Access, or a custom magic-link login.
-
-The client side is ready for this: `CloudflareStore` will implement `DataStore` (`src/data/store.ts`), whose `subscribe` already delivers per-document changes, and `createDataStore()` picks the adapter.
-
-Requirements for production at festival scale:
-
-- **Real-time subscriptions**, so clocks, run sheets and messages update everywhere within a second.
-- **Server-side permissions** per stage (row-level security).
-- **Multi-tenant:** one organisation, many events.
-- **Thousands of personnel records and a few thousand run sheet items per event.**
-- **Audit history** of who changed timings.
-
-Server time should come from the backend for clock sync.
+- **Testing:** `src/server/server.test.ts` runs real `CloudflareStore` clients against a real `EventHub` over a fake network. `@cloudflare/vitest-pool-workers` isn't used, because it needs Vitest 4 and this repo is on 5.
+- **Reads by permission:** only the sensitive cases are filtered or redacted on the server. Someone with access to one stage still receives other stages' run sheets (the UI hides them). Tighten `EventCore.viewDoc` if that matters.
+- **Sample events created live** keep the demo people (`demo-pm` and so on), which aren't real sign-ins.
+- **`npm run deploy`** uses `vite build`, not `npm run build`, because `tsc -b` still fails on older files in `src/components` and `src/pages`.
 
 ## Known limitations of the prototype
 

@@ -1,5 +1,7 @@
 // Demo mode: all data in memory, saved to localStorage. Every viewer has their own copy.
 
+import { deepMerge } from '../lib/merge'
+import { emptyCollections, type LocalData, type CollectionData } from './collections'
 import { COLLECTIONS, SCHEMA_VERSION } from '../types/constants'
 import type { CollectionName, Collections, ConfigDocs, ConfigName, EventConfig, Id, RolesConfig } from '../types/model'
 import {
@@ -7,14 +9,8 @@ import {
   StoreError, type Unsubscribe,
 } from './store'
 
-export type CollectionData = { [K in CollectionName]: Record<Id, Collections[K]> }
-
-export interface LocalData {
-  cfg: EventConfig | null
-  roles: RolesConfig | null
-  col: CollectionData
-  audit?: AuditEntry[]
-}
+export { deepMerge }
+export { emptyCollections, type CollectionData, type LocalData } from './collections'
 
 export interface LocalStoreOptions {
   /** Data to start from when nothing valid is saved. */
@@ -34,25 +30,6 @@ const AUDIT_CAP = 1000
 
 type AnyDoc = { id: Id }
 type Listener = (snap: CollectionSnapshot<AnyDoc>) => void
-
-export function emptyCollections(): CollectionData {
-  return Object.fromEntries(COLLECTIONS.map(c => [c, {}])) as CollectionData
-}
-
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-  return v !== null && typeof v === 'object' && !Array.isArray(v)
-}
-
-/** Objects merge recursively, arrays and other values replace, `undefined` removes the key. */
-export function deepMerge<T>(a: T, b: unknown): T {
-  const out: Record<string, unknown> = { ...(a as Record<string, unknown>) }
-  for (const [k, v] of Object.entries(b as Record<string, unknown>)) {
-    if (v === undefined) delete out[k]
-    else if (isPlainObject(v) && isPlainObject(out[k])) out[k] = deepMerge(out[k], v)
-    else out[k] = v
-  }
-  return out as T
-}
 
 function defaultStorage(): Storage | null {
   try {

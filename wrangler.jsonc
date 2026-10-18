@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "showctrl",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // The Vite build. The Worker runs first only for the API and server time;
+  // every other path is the app, with index.html as the single-page fallback.
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/time"]
+  },
+
+  "durable_objects": {
+    "bindings": [{ "name": "EVENT", "class_name": "EventObject" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EventObject"] }],
+
+  // Create with: npx wrangler d1 create showctrl — then paste the id here.
+  "d1_databases": [
+    { "binding": "DB", "database_name": "showctrl", "database_id": "00000000-0000-0000-0000-000000000000" }
+  ],
+
+  // Set ACCESS_TEAM_DOMAIN and ACCESS_AUD for production (see DEPLOY.md).
+  // CREATORS: who may create events (comma-separated emails, or *).
+  "vars": {
+    "CREATORS": "*"
+  }
+}

@@ -18,6 +18,7 @@ export function personName(
   if (m?.person && people[m.person]) return people[m.person].name
   if (m?.name) return m.name
   if (profiles[id]?.name) return profiles[id].name!
+  if (id.includes('@')) return id // live users are known by their sign-in email
   return id === me ? 'You' : 'Someone'
 }
 

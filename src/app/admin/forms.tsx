@@ -77,7 +77,7 @@ export function DeptForm({ dept, onClose }: { dept: Dept | null; onClose: () => 
  * stage manager and stage crew appointments, and departments for department messages.
  * `isNew` creates a demo user (live mode will pick an existing account instead).
  */
-export function AccessForm({ uid, isNew, onClose }: { uid: Id; isNew?: boolean; onClose: () => void }) {
+export function AccessForm({ uid: uid0, isNew, onClose }: { uid: Id; isNew?: boolean; onClose: () => void }) {
   const store = useStore()
   const a = useAccess()
   const cfg = useConfig('event')
@@ -85,6 +85,10 @@ export function AccessForm({ uid, isNew, onClose }: { uid: Id; isNew?: boolean; 
   const people = useCollection('people')
   const stageteam = useCollection('stageteam')
   const requests = useCollection('requests')
+  // Live mode: a new person is added by the email they sign in with.
+  const askEmail = isNew && store.mode === 'live'
+  const [email, setEmail] = useState('')
+  const uid = askEmail ? email.trim().toLowerCase() : uid0
   const m: Partial<Member> = members[uid] ?? {}
   const rq = requests[uid]
   const stages = a.stagesSorted()
@@ -115,9 +119,11 @@ export function AccessForm({ uid, isNew, onClose }: { uid: Id; isNew?: boolean; 
         await store.delete('members', uid)
       } : undefined}
       onSave={async () => {
+        if (askEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(uid)) return 'Enter the email address they sign in with.'
         const p = v.person ? people[v.person] : undefined
         const name = v.name.trim() || p?.name || m.name
         if (store.mode === 'local' && !name) return 'Enter a name or link a personnel entry.'
+        if (!uid) return 'Enter the email address they sign in with.'
         if (uid === a.me && m.role === 'admin' && v.role !== 'admin') return 'You can’t remove your own admin role. Ask another admin.'
         await store.set('members', uid, {
           role: v.role, person: v.person || null, depts: v.depts,
@@ -132,7 +138,8 @@ export function AccessForm({ uid, isNew, onClose }: { uid: Id; isNew?: boolean; 
         if (rq) await store.delete('requests', uid)
       }}
     >
-      {store.mode === 'local' && <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>}
+      {askEmail && <Field label="Email (the one they sign in with)" full><input type="email" value={email} autoComplete="off" onChange={e => setEmail(e.target.value)} /></Field>}
+      <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
       <Field label="Festival role">
         <select value={v.role} onChange={e => set('role', e.target.value)}>
           {Object.entries(a.roles).map(([k, r]) => <option key={k} value={k}>{r.label}</option>)}

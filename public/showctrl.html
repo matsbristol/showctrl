@@ -1,0 +1,1711 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>showctrl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E3E7EC; --surface:#F7F8FA; --surface2:#ECEFF3; --ink:#1A1F27; --ink2:#4E5868; --ink3:#788396; --line:#CBD2DB;
+  --accent:#2747C9; --accent-ink:#FFFFFF; --accent-soft:#DCE3FB;
+  --go:#1C8549; --standby:#B07800; --stop:#C3302E; --go-soft:#D7F0E1; --standby-soft:#F8ECCB; --stop-soft:#F8DAD9;
+  --strip:#131A2A; --strip2:#1D2639; --strip-ink:#EEF1F7; --strip-ink2:#9AA6BD;
+  --display:'Barlow Condensed','Arial Narrow','Roboto Condensed',sans-serif;
+  --body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r:6px;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0B101B; --surface:#131A28; --surface2:#1A2334; --ink:#E6EAF2; --ink2:#AAB4C6; --ink3:#7C879C; --line:#263149;
+    --accent:#8299FF; --accent-ink:#0B101B; --accent-soft:#1F2A4D;
+    --go:#45C982; --standby:#F1B734; --stop:#FF6764; --go-soft:#123323; --standby-soft:#3A2D0B; --stop-soft:#3E1717;
+    --strip:#060910; --strip2:#111827; --strip-ink:#EEF1F7; --strip-ink2:#8E9AB1;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0B101B; --surface:#131A28; --surface2:#1A2334; --ink:#E6EAF2; --ink2:#AAB4C6; --ink3:#7C879C; --line:#263149;
+  --accent:#8299FF; --accent-ink:#0B101B; --accent-soft:#1F2A4D;
+  --go:#45C982; --standby:#F1B734; --stop:#FF6764; --go-soft:#123323; --standby-soft:#3A2D0B; --stop-soft:#3E1717;
+  --strip:#060910; --strip2:#111827; --strip-ink:#EEF1F7; --strip-ink2:#8E9AB1;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.5 var(--body);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--strip)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.1;margin:0}
+h1{font-size:2rem;letter-spacing:.01em}
+h2{font-size:1.45rem}
+h3{font-size:1.15rem}
+p{margin:0}
+a{color:var(--accent)}
+img{max-width:100%}
+
+/* ---------- strip ---------- */
+.strip{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--strip);color:var(--strip-ink);display:flex;align-items:center;gap:1.25rem;padding:.5rem 1rem;min-height:64px;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:700;font-size:1.35rem;letter-spacing:.06em;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+.brand i{display:inline-block;width:10px;height:10px;border-radius:50%;background:#3E63FF;box-shadow:0 0 0 3px rgba(62,99,255,.25)}
+.ev{min-width:0;line-height:1.2}
+.ev b{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26ch}
+.ev span{color:var(--strip-ink2);font-size:.85rem}
+.master{margin-left:auto;display:flex;align-items:baseline;gap:.6rem}
+.master .t{font-family:var(--display);font-weight:600;font-size:2.6rem;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.sync{font-size:.78rem;color:var(--strip-ink2);display:flex;align-items:center;gap:.35rem;white-space:nowrap}
+.sync::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c,#8E9AB1)}
+.who{display:flex;align-items:center;gap:.5rem;background:var(--strip2);border-radius:999px;padding:.25rem .3rem .25rem .75rem;font-size:.85rem;white-space:nowrap}
+.who select{background:transparent;border:0;color:var(--strip-ink);max-width:16ch;padding:.15rem}
+.who select option{color:#1A1F27}
+.who .role{color:var(--strip-ink2)}
+.av{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.75rem;color:#fff;background:var(--c,#555);flex:none;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+
+.urgent{background:#C3302E;color:#fff;display:flex;gap:1rem;align-items:center;padding:.6rem 1rem;flex-wrap:wrap}
+.urgent b{font-family:var(--display);font-size:1.15rem;letter-spacing:.02em}
+.urgent .msg{flex:1;min-width:16ch}
+.urgent button{background:#fff;color:#C3302E;border:0;border-radius:var(--r);padding:.4rem .9rem;font-weight:700;cursor:pointer}
+.preview{background:var(--standby);color:#1A1F27;padding:.4rem 1rem;font-size:.9rem;display:flex;gap:.75rem;align-items:center}
+.preview button{background:rgba(0,0,0,.12);border:0;border-radius:var(--r);padding:.2rem .6rem;cursor:pointer}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:calc(100vh - 64px)}
+nav.side{border-right:1px solid var(--line);padding:1rem .6rem;display:flex;flex-direction:column;gap:2px;position:sticky;top:calc(64px + env(safe-area-inset-top,0px));align-self:start;max-height:calc(100vh - 64px);overflow:auto}
+nav.side a{display:flex;align-items:center;gap:.65rem;padding:.55rem .7rem;border-radius:var(--r);text-decoration:none;color:var(--ink2);font-weight:700;font-size:.95rem}
+nav.side a:hover{background:var(--surface2);color:var(--ink)}
+nav.side a[aria-current="page"]{background:var(--accent-soft);color:var(--ink)}
+nav.side a[aria-current="page"] svg{color:var(--accent)}
+nav.side svg{width:20px;height:20px;flex:none}
+nav.side .badge{margin-left:auto}
+nav.side .sep{height:1px;background:var(--line);margin:.6rem .4rem}
+main{padding:1.5rem clamp(1rem,3vw,2.25rem) 4rem;min-width:0;overflow-x:clip}
+.head>div:first-child{min-width:0}
+.head .actions{max-width:100%}
+.head{display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.head p{color:var(--ink2);max-width:62ch}
+.head .actions{margin-left:auto;display:flex;gap:.5rem;flex-wrap:wrap}
+
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  nav.side{position:fixed;bottom:0;left:0;right:0;top:auto;z-index:15;flex-direction:row;overflow-x:auto;border-right:0;border-top:1px solid var(--line);background:var(--surface);padding:.35rem .4rem calc(.35rem + env(safe-area-inset-bottom,0px));max-height:none}
+  nav.side a{flex-direction:column;gap:.15rem;font-size:.7rem;padding:.35rem .55rem;white-space:nowrap}
+  nav.side .sep{display:none}
+  nav.side .badge{position:absolute;margin:0;transform:translate(10px,-4px)}
+  nav.side a{position:relative}
+  main{padding-bottom:6.5rem}
+  .master .t{font-size:2rem}
+  .ev b{max-width:18ch}
+  .strip{gap:.75rem}
+}
+@media (max-width:520px){ .ev{display:none} .sync{display:none} }
+
+/* ---------- atoms ---------- */
+.btn{display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:var(--r);padding:.45rem .85rem;font-weight:700;font-size:.9rem;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--ink3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.go{background:var(--go);border-color:var(--go);color:#fff}
+.btn.danger{color:var(--stop)}
+.btn.sm{padding:.25rem .55rem;font-size:.8rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn svg{width:16px;height:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.panel>.ph{display:flex;align-items:center;gap:.6rem;padding:.8rem 1rem;border-bottom:1px solid var(--line)}
+.panel>.ph .actions{margin-left:auto;display:flex;gap:.4rem}
+.panel>.pb{padding:1rem}
+.empty{color:var(--ink2);padding:1.25rem 1rem;font-size:.95rem}
+.muted{color:var(--ink2)}
+.small{font-size:.85rem}
+.grid{display:grid;gap:1rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.chip{display:inline-flex;align-items:center;gap:.3rem;border-radius:4px;padding:.05rem .45rem;font-size:.78rem;font-weight:700;background:var(--surface2);color:var(--ink2);white-space:nowrap}
+.chip.go{background:var(--go-soft);color:var(--go)}
+.chip.sb{background:var(--standby-soft);color:var(--standby)}
+.chip.st{background:var(--stop-soft);color:var(--stop)}
+.chip.ac{background:var(--accent-soft);color:var(--accent)}
+.badge{background:var(--stop);color:#fff;border-radius:999px;font-size:.7rem;font-weight:700;padding:0 .4rem;min-width:1.2rem;text-align:center;line-height:1.2rem}
+.tape{display:inline-block;width:18px;height:8px;background:var(--c);border-radius:1px;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.tapeL{border-left:6px solid var(--c)}
+.tabs{display:flex;gap:.25rem;border-bottom:1px solid var(--line);margin-bottom:1rem;overflow-x:auto}
+.tabs button{border:0;background:none;padding:.55rem .9rem;font-weight:700;color:var(--ink2);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--accent)}
+.seg{display:inline-flex;max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{white-space:nowrap;border:0;background:var(--surface);padding:.35rem .75rem;font-weight:700;font-size:.85rem;cursor:pointer;color:var(--ink2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th{text-align:left;font-weight:700;color:var(--ink2);font-size:.82rem;padding:.55rem .75rem;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--surface2)}
+td select,.inline-sel{border:1px solid var(--line);background:var(--surface);border-radius:4px;padding:.2rem .35rem;font-size:.85rem}
+.lock{display:inline-flex;align-items:center;gap:.3rem;color:var(--ink3);font-size:.82rem}
+.lock svg{width:14px;height:14px}
+.row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.stack{display:flex;flex-direction:column;gap:.25rem}
+.bar{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;background:var(--go)}
+
+/* ---------- show overview ---------- */
+.stagecard{padding:0;overflow:hidden}
+.stagecard .sh{display:flex;align-items:center;gap:.6rem;padding:.75rem 1rem;border-bottom:1px solid var(--line)}
+.stagecard .sh h2{font-size:1.35rem}
+.slot{padding:.8rem 1rem;display:grid;grid-template-columns:4.2rem 1fr auto;gap:.15rem .75rem;align-items:baseline}
+.slot+.slot{border-top:1px dashed var(--line)}
+.slot .lbl{font-size:.8rem;font-weight:700;color:var(--ink3)}
+.slot .ttl{font-weight:700;font-size:1.05rem;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot .cd{font-family:var(--display);font-size:1.9rem;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:right}
+.slot .sub{grid-column:2/4;color:var(--ink2);font-size:.85rem}
+.cd.warn{color:var(--standby)} .cd.over{color:var(--stop)}
+.slot.now .lbl{color:var(--go)}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:.65rem 1rem;border-bottom:1px solid var(--line);display:flex;gap:.6rem;align-items:flex-start}
+.list li:last-child{border-bottom:0}
+
+/* ---------- clocks ---------- */
+.wall{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.tile{background:var(--strip);color:var(--strip-ink);border-radius:8px;padding:1rem 1.1rem 1.1rem;position:relative;overflow:hidden;display:flex;flex-direction:column;gap:.2rem;min-height:170px}
+.tile::before{content:"";position:absolute;left:0;top:0;right:0;height:6px;background:var(--c,#3E63FF)}
+.tile .lab{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:.5rem}
+.tile .lab{padding-right:1.6rem}
+.tile .lab span{margin-left:auto;color:var(--strip-ink2);font-weight:400;font-size:.8rem}
+.tile .val{font-family:var(--display);font-weight:600;font-size:clamp(3rem,6.5vw,4.6rem);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em;margin-top:auto}
+.tile .val.warn{color:#FFC94A} .tile .val.over{color:#FF6E6B}
+.tile .sub{color:var(--strip-ink2);font-size:.88rem;min-height:1.3em}
+.tile .ctl{display:flex;gap:.35rem;margin-top:.5rem;flex-wrap:wrap}
+.tile .ctl button{background:var(--strip2);color:var(--strip-ink);border:1px solid #2C3850;border-radius:4px;padding:.25rem .6rem;font-size:.8rem;font-weight:700;cursor:pointer}
+.tile .ctl button:hover{border-color:#5A6A8C}
+.tile .edit{position:absolute;top:.7rem;right:.7rem;background:none;border:0;color:var(--strip-ink2);cursor:pointer;padding:.2rem}
+.tile .edit svg{width:16px;height:16px}
+body.wallmode .strip, body.wallmode nav.side, body.wallmode .head, body.wallmode .urgent, body.wallmode .preview{display:none}
+body.wallmode{background:#05070C}
+body.wallmode .shell{grid-template-columns:1fr}
+body.wallmode main{padding:1rem}
+body.wallmode .wall{grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+body.wallmode .tile{min-height:30vh}
+body.wallmode .tile .val{font-size:clamp(4rem,9vw,8rem)}
+body.wallmode .tile .ctl,body.wallmode .tile .edit{display:none}
+.exitwall{display:none}
+body.wallmode .exitwall{display:flex;position:fixed;right:1rem;bottom:calc(1rem + env(safe-area-inset-bottom,0px));z-index:30}
+body.wallmode .wallclock{display:flex}
+.wallclock{display:none;justify-content:space-between;align-items:baseline;color:#EEF1F7;margin-bottom:1rem;gap:1rem;flex-wrap:wrap}
+.wallclock .t{font-family:var(--display);font-size:clamp(4rem,12vw,10rem);font-weight:600;line-height:.9;font-variant-numeric:tabular-nums}
+.wallclock .e{font-family:var(--display);font-size:1.6rem;color:#9AA6BD}
+
+/* ---------- schedule ---------- */
+.lanes{position:relative;overflow-x:auto}
+.lanes-inner{min-width:820px;position:relative}
+.hours{display:grid;margin-left:130px;height:24px;position:relative;font-size:.78rem;color:var(--ink3)}
+.hours span{position:absolute;transform:translateX(-50%);top:2px}
+.lane{display:flex;align-items:stretch;border-top:1px solid var(--line);min-height:58px}
+.lane .ln{width:130px;flex:none;display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;font-weight:700;font-size:.92rem}
+.lane .lt{flex:1;position:relative;background-image:linear-gradient(to right,var(--line) 1px,transparent 1px);background-size:var(--hw) 100%}
+.blk{position:absolute;top:7px;bottom:7px;border-radius:4px;padding:.15rem .4rem;font-size:.78rem;line-height:1.25;overflow:hidden;background:var(--surface2);border:1px solid var(--line);color:var(--ink);cursor:default;text-align:left}
+.blk b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.82rem}
+.blk.set{background:var(--accent-soft);border-color:transparent;border-left:4px solid var(--c)}
+.blk.live{background:var(--go-soft);border-left-color:var(--go)}
+.blk.done{opacity:.55}
+.blk.ch{background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,transparent 6px 12px);color:var(--ink3)}
+button.blk{cursor:pointer}
+.mark{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--ink2);z-index:1}
+.mark span{position:absolute;left:4px;bottom:3px;font-size:.7rem;font-weight:700;color:var(--ink2);white-space:nowrap;background:var(--surface);padding:0 .2rem}
+.nowline{position:absolute;top:0;bottom:0;width:2px;background:var(--stop);z-index:2;pointer-events:none}
+.nowline[data-l]::before{content:attr(data-l);position:absolute;top:-1px;left:4px;background:var(--stop);color:#fff;font-size:.7rem;font-weight:700;padding:0 .3rem;border-radius:3px}
+.ro td.t{white-space:nowrap;font-variant-numeric:tabular-nums}
+.ro s{color:var(--ink3);font-size:.8rem;margin-right:.3rem}
+.ro tr.live td{background:var(--go-soft)}
+.ro tr.done td{color:var(--ink3)}
+.ro .acts{display:flex;gap:.3rem;justify-content:flex-end;flex-wrap:nowrap}
+@media (max-width:600px){
+  .ro tr{display:grid;grid-template-columns:7.2rem 1fr;border-bottom:1px solid var(--line)}
+  .ro td{border:0;padding:.45rem .7rem}
+  .ro td:nth-child(3){display:none}
+  .ro td:nth-child(4){grid-column:1/-1;padding-top:0}
+  .ro td:nth-child(4):empty{display:none}
+  .ro .acts{justify-content:flex-start}
+  .ro s{display:block;margin:0}
+}
+
+/* ---------- messages ---------- */
+.msgs{display:grid;grid-template-columns:220px minmax(0,1fr);gap:1rem;align-items:start}
+@media (max-width:860px){.msgs{grid-template-columns:1fr}}
+.chan{display:flex;flex-direction:column;gap:2px;padding:.4rem}
+.chan button{display:flex;align-items:center;gap:.5rem;border:0;background:none;padding:.45rem .6rem;border-radius:4px;font-weight:700;color:var(--ink2);cursor:pointer;text-align:left;font-size:.9rem}
+.chan button[aria-pressed="true"]{background:var(--surface2);color:var(--ink)}
+.chan .badge{margin-left:auto}
+.compose{display:grid;gap:.6rem;padding:1rem;border-bottom:1px solid var(--line)}
+.compose textarea{width:100%;min-height:70px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);padding:.6rem;background:var(--bg)}
+.compose .row select{border:1px solid var(--line);border-radius:var(--r);padding:.35rem;background:var(--surface)}
+.m{padding:.8rem 1rem;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:.2rem .75rem}
+.m.urg{background:var(--stop-soft)}
+.m .meta{font-size:.82rem;color:var(--ink2);display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.m .meta b{color:var(--ink)}
+.m .txt{grid-column:2;white-space:pre-wrap;overflow-wrap:anywhere}
+.m .ack{grid-column:2;font-size:.8rem;color:var(--ink3);display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+
+/* ---------- accommodation ---------- */
+.nights th.n,.nights td.n{text-align:center;padding:.4rem .3rem;min-width:62px}
+.nights td.n i{display:block;height:22px;border-radius:3px;background:var(--accent-soft);border:1px solid var(--accent)}
+.nights td.n i.req{background:var(--standby-soft);border-color:var(--standby)}
+.nights td.n i.in{background:var(--go-soft);border-color:var(--go)}
+.over{color:var(--stop);font-weight:700}
+
+/* ---------- riders ---------- */
+.rider .ph{flex-wrap:wrap}
+.items{list-style:none;margin:0;padding:0}
+.items li{display:grid;grid-template-columns:1fr auto auto;gap:.6rem;align-items:center;padding:.5rem 1rem;border-bottom:1px solid var(--line)}
+.items li:last-child{border-bottom:0}
+.items li .q{color:var(--ink3);font-size:.85rem}
+.items li.declined .tx{text-decoration:line-through;color:var(--ink3)}
+@media (max-width:600px){.items li{grid-template-columns:1fr 1fr}.items li .tx{grid-column:1/3}}
+
+/* ---------- people ---------- */
+.matrix th,.matrix td{text-align:center}
+.matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+.matrix select{font-size:.8rem}
+.lv0{color:var(--ink3)} .lv2{color:var(--go);font-weight:700}
+
+/* ---------- dialog ---------- */
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100vw - 2rem));max-height:calc(100vh - 2rem)}
+dialog::backdrop{background:rgba(8,12,20,.55)}
+dialog form{display:flex;flex-direction:column;max-height:calc(100vh - 2rem)}
+dialog .dh{padding:1rem 1.25rem;border-bottom:1px solid var(--line);display:flex;align-items:center}
+dialog .dh button{margin-left:auto;background:none;border:0;cursor:pointer;color:var(--ink2);font-size:1.4rem;line-height:1}
+dialog .db{padding:1rem 1.25rem;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:.85rem 1rem}
+dialog .df{padding:.85rem 1.25rem;border-top:1px solid var(--line);display:flex;gap:.5rem}
+dialog .df .r{margin-left:auto;display:flex;gap:.5rem}
+.fld{display:flex;flex-direction:column;gap:.3rem;min-width:0}
+.fld.full{grid-column:1/-1}
+.fld>span{font-size:.85rem;font-weight:700;color:var(--ink2)}
+.fld small{color:var(--ink3);font-size:.8rem}
+.fld input:not([type=checkbox]),.fld select,.fld textarea{border:1px solid var(--line);border-radius:var(--r);padding:.5rem .6rem;background:var(--bg);width:100%}
+.fld textarea{min-height:90px;resize:vertical}
+.checks{display:flex;flex-wrap:wrap;gap:.35rem .9rem}
+.checks label{display:flex;gap:.35rem;align-items:center;font-size:.9rem}
+@media (max-width:520px){dialog .db{grid-template-columns:1fr}}
+.pick{list-style:none;margin:0;padding:0;grid-column:1/-1;max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:var(--r)}
+.pick li{display:flex;align-items:center;gap:.6rem;padding:.5rem .7rem;border-bottom:1px solid var(--line);cursor:pointer}
+.pick li:hover{background:var(--surface2)}
+
+#toast{position:fixed;left:50%;bottom:calc(1.25rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;display:flex;flex-direction:column;gap:.5rem;align-items:center;pointer-events:none}
+#toast div{background:var(--ink);color:var(--surface);padding:.6rem 1rem;border-radius:var(--r);font-size:.9rem;display:flex;gap:.8rem;align-items:center;pointer-events:auto;max-width:min(560px,calc(100vw - 2rem))}
+#toast button{background:none;border:1px solid currentColor;color:inherit;border-radius:4px;padding:.15rem .5rem;cursor:pointer;font-weight:700}
+@media (max-width:860px){#toast{bottom:calc(5.5rem + env(safe-area-inset-bottom,0px))}}
+
+.setup{max-width:640px;margin:3rem auto;display:grid;gap:1rem}
+.setup .panel{padding:1.5rem}
+.loading{padding:3rem;text-align:center;color:var(--ink2)}
+@media (prefers-reduced-motion:no-preference){ .tile .val.over{animation:blink 1s steps(2) infinite} }
+@keyframes blink{50%{opacity:.55}}
+
+/* ---------- context bar: Festival HQ + one tab per stage ---------- */
+.ctxbar{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));z-index:19;background:var(--strip2);display:flex;gap:2px;padding:0 .5rem;overflow-x:auto;scrollbar-width:thin}
+.ctxbar a{display:flex;align-items:center;gap:.45rem;padding:.55rem .85rem;color:var(--strip-ink2);text-decoration:none;font-weight:700;font-size:.9rem;white-space:nowrap;border-bottom:3px solid transparent}
+.ctxbar a:hover{color:var(--strip-ink)}
+.ctxbar a[aria-current="true"]{color:var(--strip-ink);border-bottom-color:var(--c,#3E63FF)}
+.ctxbar .live{width:7px;height:7px;border-radius:50%;background:#45C982;box-shadow:0 0 0 3px rgba(69,201,130,.2)}
+.ctxbar .role{font-weight:400;font-size:.75rem;color:var(--strip-ink2);border:1px solid #2C3850;border-radius:3px;padding:0 .3rem}
+@media (min-width:861px){ nav.side{top:calc(106px + env(safe-area-inset-top,0px));max-height:calc(100vh - 106px)} .shell{min-height:calc(100vh - 106px)} }
+@media (max-width:860px){ .strip{position:relative;top:auto} .ctxbar{top:env(safe-area-inset-top,0px)} }
+.kv{margin:0}
+.lanes{scroll-behavior:auto}
+.ctxhead{display:flex;align-items:center;gap:.6rem;padding:.2rem .7rem .7rem;font-family:var(--display);font-size:1.25rem;font-weight:600}
+@media (max-width:860px){ .ctxhead{display:none} }
+
+/* ---------- stage overview cards ---------- */
+.sc-meta{display:flex;gap:.4rem 1rem;flex-wrap:wrap;padding:.6rem 1rem;border-top:1px solid var(--line);font-size:.85rem;color:var(--ink2)}
+.sc-meta b{color:var(--ink)}
+.sc-meta a{color:inherit}
+
+/* ---------- lanes with packed rows ---------- */
+.lane .lt{min-height:var(--lh,52px)}
+.blk{height:24px;top:auto}
+.lane .ln small{display:block;font-weight:400;color:var(--ink3);font-size:.75rem}
+.blk.k-show{background:var(--accent-soft);border-color:transparent;border-left:4px solid var(--c)}
+.blk.k-soundcheck,.blk.k-linecheck{background:var(--standby-soft);border-color:transparent}
+.blk.k-changeover{background:repeating-linear-gradient(135deg,var(--surface2) 0 6px,transparent 6px 12px);color:var(--ink2)}
+.blk.k-loadin,.blk.k-loadout{background:var(--surface);border-style:dashed}
+.blk.k-arrival,.blk.k-departure,.blk.k-getin,.blk.k-access{background:var(--surface2);color:var(--ink2)}
+.blk.live{background:var(--go-soft)!important;border-left:4px solid var(--go)}
+.blk.done{opacity:.5}
+.blk{display:flex;align-items:center;gap:.3rem;white-space:nowrap}
+.blk b{display:inline;font-size:.78rem}
+
+/* ---------- day sheet (vertical) ---------- */
+.sheet{list-style:none;margin:0;padding:0}
+.sheet li{display:grid;grid-template-columns:5.5rem 1fr auto;gap:.1rem .8rem;padding:.6rem 1rem;border-bottom:1px solid var(--line);align-items:baseline}
+.sheet li:last-child{border-bottom:0}
+.sheet .tm{font-weight:700;font-variant-numeric:tabular-nums}
+.sheet .tm s{display:block;font-weight:400;color:var(--ink3);font-size:.78rem}
+.sheet .what{font-weight:700}
+.sheet .what small{display:block;font-weight:400;color:var(--ink2);font-size:.82rem}
+.sheet .cd{font-family:var(--display);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.sheet li.live{background:var(--go-soft)}
+.sheet li.done{color:var(--ink3)} .sheet li.done .cd{display:none}
+.sheet li.k-show .what{font-size:1.1rem}
+.kind{display:inline-block;font-size:.72rem;font-weight:700;padding:0 .35rem;border-radius:3px;background:var(--surface2);color:var(--ink2);margin-right:.35rem;vertical-align:1px}
+.kind.k-show{background:var(--accent-soft);color:var(--accent)}
+.kind.k-soundcheck,.kind.k-linecheck{background:var(--standby-soft);color:var(--standby)}
+
+/* ---------- contacts ---------- */
+.contact{display:grid;grid-template-columns:1fr auto;gap:.1rem .6rem;padding:.6rem 1rem;border-bottom:1px solid var(--line)}
+.contact:last-child{border-bottom:0}
+.contact .r{color:var(--ink2);font-size:.82rem}
+.contact .c{font-size:.88rem;display:flex;gap:.8rem;flex-wrap:wrap}
+.contact .c a{color:var(--accent);text-decoration:none}
+.tel{font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ---------- filters ---------- */
+.filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center}
+.filters select,.filters input{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:.4rem .55rem;font-size:.9rem}
+
+/* ---------- on-stage display ---------- */
+.display{background:#05070C;color:#EEF1F7;border-radius:10px;padding:clamp(1rem,3vw,2.5rem);min-height:72vh;display:grid;grid-template-rows:auto 1fr auto;gap:1rem;position:relative;overflow:hidden}
+.display::before{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:var(--c)}
+.display .top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;font-family:var(--display)}
+.display .top .st{font-size:clamp(1.6rem,3vw,2.6rem);font-weight:700}
+.display .top .tod{font-size:clamp(2rem,5vw,4rem);font-weight:600;font-variant-numeric:tabular-nums}
+.display .mid{display:flex;flex-direction:column;justify-content:center;gap:.3rem}
+.display .lbl{font-size:clamp(1rem,2vw,1.6rem);color:#9AA6BD;font-weight:700}
+.display .lbl.on{color:#45C982}
+.display .dwho{font-family:var(--display);font-size:clamp(2.4rem,6vw,5.5rem);font-weight:700;line-height:1}
+.display .big{font-family:var(--display);font-size:clamp(5rem,20vw,17rem);font-weight:600;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.display .big.warn{color:#FFC94A} .display .big.over{color:#FF6E6B}
+.display .bot{display:flex;gap:2rem;flex-wrap:wrap;color:#9AA6BD;font-size:clamp(1rem,1.8vw,1.4rem)}
+.display .bot b{color:#EEF1F7}
+body.wallmode .ctxbar{display:none}
+body.wallmode .display{min-height:calc(100vh - 2rem)}
+
+.pill{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line);border-radius:999px;padding:.1rem .55rem .1rem .3rem;font-size:.82rem;background:var(--surface)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.3rem 1rem;font-size:.92rem}
+.kv dt{color:var(--ink2)} .kv dd{margin:0}
+</style>
+</head>
+<body>
+<header class="strip" id="strip">
+  <div class="brand"><i></i>showctrl</div>
+  <div class="ev" id="evname"><b>Loading…</b><span></span></div>
+  <div class="master"><span class="t" data-now>--:--:--</span><span class="sync" id="sync">Device time</span></div>
+  <div class="who" id="who"></div>
+</header>
+<nav class="ctxbar" id="ctx" aria-label="Festival HQ and stages"></nav>
+<div id="urgent"></div>
+<div id="previewbar"></div>
+<div class="shell">
+  <nav class="side" id="nav" aria-label="Sections"></nav>
+  <main id="main"><div class="loading">Connecting…</div></main>
+</div>
+<dialog id="dlg"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<button class="btn exitwall" data-act="exitWall">Exit full screen</button>
+<script>
+'use strict';
+/* =========================================================
+   showctrl v2 — Festival HQ + one workspace per stage.
+   ========================================================= */
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rid = () => Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-4);
+const pad = n => String(n).padStart(2, '0');
+const MIN = 60000, HOUR = 3600000;
+
+const ICONS = {
+  overview:'<path d="M3 4h18v12H3z"/><path d="M8 20h8M12 16v4"/>',
+  today:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  clocks:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
+  schedule:'<path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 4v4M15 10v4M11 16v4"/>',
+  runsheet:'<path d="M3 6h18M3 12h18M3 18h18"/><path d="M8 4v4M15 10v4M11 16v4"/>',
+  messages:'<path d="M4 5h16v11H9l-5 4z"/>',
+  artists:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>',
+  personnel:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.5-5.5 6.5-5.5s5.5 2 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.5.9 2.5 2.6 3 5.2"/>',
+  accommodation:'<path d="M3 20V9l9-5 9 5v11"/><path d="M8 20v-6h8v6"/>',
+  riders:'<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+  admin:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  setup:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  display:'<rect x="2" y="4" width="20" height="13" rx="1"/><path d="M8 21h8M12 17v4"/>',
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  wall:'<path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>',
+  full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>'
+};
+const ico = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+
+const TAPE = {red:'#D93A3A', blue:'#2F6FE0', yellow:'#E3B000', green:'#2E9E57', orange:'#EE7A1F', purple:'#8A4FD3', pink:'#DB4E95', teal:'#16999A', brown:'#8B5E3C', grey:'#6B7586', white:'#D9DEE6'};
+const tapeHex = t => TAPE[t] || TAPE.grey;
+
+/* Global permission keys (festival-wide). Stage access adds to these per stage. */
+const PK = [['show','Festival overview'],['schedule','Running order'],['artists','Artists'],['personnel','Personnel'],['clocks','Clocks'],['messages','Messages'],['accommodation','Accommodation'],['riders_tech','Technical riders'],['riders_hosp','Hospitality riders'],['admin','Admin']];
+const mkPerms = s => Object.fromEntries(PK.map(([k], i) => [k, +s[i]]));
+const DEFAULT_ROLES = {
+  admin:  {label:'Festival admin',      perms:mkPerms('2222222222'), contacts:true, locked:true},
+  pm:     {label:'Production manager',  perms:mkPerms('2222222221'), contacts:true},
+  liaison:{label:'Artist liaison',      perms:mkPerms('1121112220'), contacts:true},
+  hosp:   {label:'Hospitality',         perms:mkPerms('1111121020'), contacts:false},
+  tech:   {label:'Technical production',perms:mkPerms('1111221200'), contacts:false},
+  site:   {label:'Site & security',     perms:mkPerms('1111120000'), contacts:false},
+  none:   {label:'Stage access only',   perms:mkPerms('0000000000'), contacts:false, locked:true},
+};
+/* What a stage-level role adds, for that stage only */
+const STAGE_ROLES = {manager:'Stage manager', crew:'Stage crew'};
+const STAGE_LV = {
+  manager:{show:1, schedule:2, artists:2, personnel:2, clocks:2, messages:2, riders_tech:2, riders_hosp:2, accommodation:1, setup:2},
+  crew:{show:1, schedule:1, artists:1, personnel:1, clocks:1, messages:2, riders_tech:1}
+};
+const LEVELS = ['No access', 'View', 'Edit'];
+const ACCRED = ['AAA','Production','Stage','Backstage','Artist','Site','Day pass'];
+const TYPES = {
+  festival:  {label:'Music festival', terms:{performer:'Artist', performers:'Artists', stage:'Stage', stages:'Stages'}},
+  concert:   {label:'Concert / tour date', terms:{performer:'Artist', performers:'Artists', stage:'Stage', stages:'Stages'}},
+  conference:{label:'Conference', terms:{performer:'Speaker', performers:'Speakers', stage:'Room', stages:'Rooms'}},
+  theatre:   {label:'Theatre / performance', terms:{performer:'Company', performers:'Companies', stage:'Stage', stages:'Stages'}},
+  corporate: {label:'Corporate event', terms:{performer:'Presenter', performers:'Presenters', stage:'Room', stages:'Rooms'}},
+  sport:     {label:'Sports event', terms:{performer:'Team', performers:'Teams', stage:'Arena', stages:'Arenas'}},
+};
+const TZS = ['Europe/Oslo','Europe/Stockholm','Europe/Copenhagen','Europe/London','Europe/Berlin','Europe/Madrid','America/New_York','America/Chicago','America/Los_Angeles','Asia/Tokyo','Australia/Sydney','UTC'];
+/* Day sheet activity types. Track decides which timeline lane they sit in. */
+const KINDS = {
+  arrival:{l:'Arrival', tr:'dock'}, getin:{l:'Get in', tr:'dock'}, loadin:{l:'Load in', tr:'dock'},
+  access:{l:'Stage access', tr:'stage'}, soundcheck:{l:'Soundcheck', tr:'stage'}, linecheck:{l:'Line check', tr:'stage'},
+  changeover:{l:'Changeover', tr:'stage'}, show:{l:'Show', tr:'stage'}, loadout:{l:'Load out', tr:'dock'},
+  departure:{l:'Departure', tr:'dock'}, doors:{l:'Doors', tr:'stage'}, curfew:{l:'Curfew', tr:'stage'},
+  meeting:{l:'Meeting', tr:'dock'}, other:{l:'Other', tr:'stage'},
+  set:{l:'Show', tr:'stage'}, break:{l:'Break', tr:'stage'}
+};
+const TRACKS = {stage:'On stage', dock:'Dock & backstage'};
+const DEFAULT_TPL = {arrival:-240, getin:-180, loadin:-120, loadinDur:45, access:-45, changeover:30, loadoutAfter:15, loadoutDur:45, departure:150, soundcheckDur:45};
+const TPL_FIELDS = [['arrival','Arrival (min before show)'],['getin','Get in (min before show)'],['loadin','Load in starts (min before show)'],['loadinDur','Load in length (min)'],['access','Stage access (min before show)'],['changeover','Changeover length (min)'],['loadoutAfter','Load out starts (min after show)'],['loadoutDur','Load out length (min)'],['departure','Departure (min after show)'],['soundcheckDur','Soundcheck length (min)']];
+const ART_STATUS = ['confirmed','travelling','arrived','backstage','ready','on stage','done','cancelled'];
+const BOOK_STATUS = ['requested','held','confirmed','checked in','checked out','cancelled'];
+const RIDER_STATUS = ['requested','agreed','sourced','declined'];
+const CONTACT_ROLES = ['Tour manager','Production manager','FOH engineer','Monitor engineer','Lighting designer','Backline tech','Driver','Management','Agent','Other'];
+const COLS = ['clocks','stages','artists','ros','msgs','hotels','bookings','riders','members','requests','people','stageteam'];
+
+/* ---------------- state ---------------- */
+const S = {
+  mode:'local', db:null, user:null, me:null, isOwner:false, shareEdit:null, canWriteShared:true,
+  cfg:null, roles:null, col:Object.fromEntries(COLS.map(c => [c, {}])),
+  profiles:{}, ctx:'hq', view:'overview', arg:null, sub:{}, offset:0, sync:'device', preview:null, dirty:false, ready:false
+};
+const cfg = () => S.cfg || {};
+const TZ = () => cfg().tz || 'Europe/Oslo';
+const terms = () => ({...TYPES.festival.terms, ...(cfg().terms || {})});
+const now = () => Date.now() + S.offset;
+
+/* ---------------- time ---------------- */
+const fmtCache = {};
+function P(ms, tz = TZ()) {
+  const f = fmtCache[tz] || (fmtCache[tz] = new Intl.DateTimeFormat('en-GB', {timeZone:tz, hourCycle:'h23', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit'}));
+  const o = {}; for (const p of f.formatToParts(ms)) o[p.type] = p.value; if (o.hour === '24') o.hour = '00'; return o;
+}
+function tzOff(ms, tz) { const p = P(ms, tz); return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second) - Math.floor(ms / 1000) * 1000; }
+function fromLocal(str, tz = TZ()) {
+  if (!str) return null;
+  const [d, t = '00:00'] = str.split('T'); const [Y, M, D] = d.split('-').map(Number); const [h, m] = t.split(':').map(Number);
+  const g = Date.UTC(Y, M - 1, D, h, m); let ms = g - tzOff(g, tz); ms = g - tzOff(ms, tz); return ms;
+}
+function toLocal(ms, tz = TZ()) { if (ms == null || ms === '') return ''; const p = P(ms, tz); return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`; }
+const fmtT = (ms, sec, tz) => { const p = P(ms, tz); return `${p.hour}:${p.minute}` + (sec ? `:${p.second}` : ''); };
+const dayKey = (ms, tz) => { const p = P(ms, tz); return `${p.year}-${p.month}-${p.day}`; };
+const festDay = ms => dayKey(ms - 6 * HOUR);
+function addDays(k, n) { const [y, m, d] = k.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10); }
+function dayLabel(k, long) { const [y, m, d] = k.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-GB', {weekday:long ? 'long' : 'short', day:'numeric', month:'short', timeZone:'UTC'}); }
+function eventDays() { const c = cfg(); const out = []; if (!c.start) return out; let k = c.start; for (let i = 0; i < 21 && k <= (c.end || c.start); i++) { out.push(k); k = addDays(k, 1); } return out; }
+function nightsBetween(a, b) { const out = []; let k = a; for (let i = 0; i < 60 && k < b; i++) { out.push(k); k = addDays(k, 1); } return out; }
+function fmtCd(ms) { const neg = ms < 0; const s = Math.floor(Math.abs(ms) / 1000); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (neg ? '+' : '') + (h ? `${h}:${pad(m)}:${pad(x)}` : `${pad(m)}:${pad(x)}`); }
+function rel(ms) { const d = ms - now(), a = Math.abs(d); const v = a < MIN ? 'now' : a < HOUR ? `${Math.round(a / MIN)} min` : a < 48 * HOUR ? `${Math.round(a / HOUR * 10) / 10} h` : `${Math.round(a / (24 * HOUR))} days`; return v === 'now' ? 'just now' : d > 0 ? `in ${v}` : `${v} ago`; }
+const cdState = (ms, warnMin = 5) => ms < 0 ? 'over' : ms < warnMin * MIN ? 'warn' : '';
+function curDay() { const days = eventDays(); let d = S.sub.day; if (!days.includes(d)) d = days.includes(festDay(now())) ? festDay(now()) : days[0]; S.sub.day = d; return d; }
+
+/* ---------------- access ---------------- */
+function member(id = S.me) { return S.col.members[id]; }
+function realRole() { if (S.mode === 'live' && S.isOwner) return 'admin'; return member()?.role || 'none'; }
+function role() { return S.preview?.type === 'role' ? S.preview.role : S.preview ? 'none' : realRole(); }
+function roleDef(r = role()) { return (S.roles || DEFAULT_ROLES)[r] || DEFAULT_ROLES.none; }
+function perm(k) { if (role() === 'admin') return 2; return roleDef().perms?.[k] ?? 0; }
+/* stage-level role for a person: manager (set by admin) or crew (added by a stage manager) */
+function stageRoleOf(uid, sid) {
+  if (S.col.members[uid]?.stages?.[sid] === 'manager') return 'manager';
+  if (S.col.stageteam[sid]?.crew?.[uid]) return 'crew';
+  return null;
+}
+function stageRole(sid) {
+  if (!sid) return null;
+  if (S.preview?.type === 'stage') return S.preview.sid === sid ? S.preview.level : null;
+  if (S.preview?.type === 'role') return null;
+  return stageRoleOf(S.me, sid);
+}
+function lv(k, sid) { let g = perm(k); const sr = stageRole(sid); if (sr) g = Math.max(g, STAGE_LV[sr][k] || 0); return g; }
+function canW(k, sid) { return lv(k, sid) >= 2 && S.canWriteShared; }
+function myStages() { return stagesSorted().filter(s => stageRole(s.id)); }
+function visibleStages() { return perm('schedule') >= 1 || perm('show') >= 1 ? stagesSorted() : myStages(); }
+function canSeeStage(sid) { return visibleStages().some(s => s.id === sid); }
+function anyLv(k) { return Math.max(perm(k), ...myStages().map(s => STAGE_LV[stageRole(s.id)][k] || 0), 0); }
+function artistContacts(a) { return role() === 'admin' || roleDef().contacts || stageRole(a?.stage) === 'manager'; }
+function myDepts() { return member()?.depts || []; }
+function modOn(id) { return cfg().modules?.[id] !== false; }
+const SENS = '<span class="lock">' + ico('lock') + 'Hidden for your role</span>';
+
+/* ---------------- names ---------------- */
+function personName(id) {
+  if (!id) return 'Someone';
+  const mb = S.col.members[id];
+  if (mb?.person && S.col.people[mb.person]) return S.col.people[mb.person].name;
+  if (mb?.name) return mb.name;
+  const p = S.profiles[id]; if (p?.name) return p.name;
+  if (id === S.me) return 'You';
+  return 'Someone';
+}
+function personColor(id) { return S.profiles[id]?.color || ['#2F6FE0','#8A4FD3','#16999A','#DB4E95','#EE7A1F','#2E9E57'][[...String(id)].reduce((a, c) => a + c.charCodeAt(0), 0) % 6]; }
+function initials(n) { return String(n || '?').split(/\s+/).map(x => x[0]).join('').slice(0, 2).toUpperCase(); }
+function avatar(id, name) {
+  const p = S.profiles[id]; const n = name || personName(id);
+  return `<span class="av" style="--c:${personColor(id || n)}">${p?.avatarUrl && !name ? `<img alt="" src="${esc(p.avatarUrl)}">` : esc(initials(n))}</span>`;
+}
+let profTimer = null;
+function wantProfiles() {
+  if (S.mode !== 'live' || !S.user) return;
+  clearTimeout(profTimer);
+  profTimer = setTimeout(async () => {
+    const ids = new Set([S.me, ...Object.keys(S.col.members), ...Object.keys(S.col.requests)]);
+    Object.values(S.col.stageteam).forEach(t => Object.keys(t.crew || {}).forEach(u => ids.add(u)));
+    Object.values(S.col.msgs).forEach(m => { ids.add(m.from); if (m.to?.t === 'user') ids.add(m.to.id); });
+    const need = [...ids].filter(Boolean); if (!need.length) return;
+    try { const ps = await S.user.profiles(need); let ch = false; for (const [k, v] of Object.entries(ps)) { if (S.profiles[k]?.name !== v.name) ch = true; S.profiles[k] = v; } if (ch) render(); } catch {}
+  }, 150);
+}
+
+/* ---------------- lookups ---------------- */
+const dept = id => (cfg().depts || []).find(d => d.id === id);
+const deptName = id => dept(id)?.name || '—';
+const deptTape = id => tapeHex(dept(id)?.tape);
+const stagesSorted = () => Object.values(S.col.stages).sort((a, b) => (a.order ?? 0) - (b.order ?? 0) || a.name.localeCompare(b.name));
+const stageName = sid => S.col.stages[sid]?.name || '';
+const artistsSorted = () => Object.values(S.col.artists).sort((a, b) => a.name.localeCompare(b.name));
+const artistName = id => S.col.artists[id]?.name || '';
+const eff = it => ({s:it.start + (it.delay || 0), e:(it.end ?? it.start) + (it.delay || 0)});
+const track = it => KINDS[it.kind]?.tr || 'stage';
+function itemsFor(sid, day, tr) { return Object.values(S.col.ros).filter(i => i.stage === sid && (!day || festDay(i.start) === day) && (!tr || track(i) === tr)).sort((a, b) => a.start - b.start || (a.end - b.end)); }
+function itemsForArtist(aid) { return Object.values(S.col.ros).filter(i => i.artist === aid).sort((a, b) => a.start - b.start); }
+function showsFor(aid) { return itemsForArtist(aid).filter(i => i.kind === 'show'); }
+function nowNext(sid) {
+  const t = now(); const items = itemsFor(sid, null, 'stage').filter(i => i.kind !== 'access' && i.kind !== 'curfew').sort((a, b) => eff(a).s - eff(b).s);
+  const cur = items.find(i => i.status === 'live') || items.find(i => i.status !== 'done' && eff(i).s <= t && eff(i).e > t);
+  const next = items.find(i => i.kind === 'show' && i !== cur && i.status !== 'done' && eff(i).s > (cur ? eff(cur).s : t - MIN));
+  return {cur, next};
+}
+function stageManagers(sid) { return Object.entries(S.col.members).filter(([, m]) => m.stages?.[sid] === 'manager').map(([id]) => id); }
+function stageCrewUsers(sid) { return Object.keys(S.col.stageteam[sid]?.crew || {}); }
+function peopleFor(sid) { return Object.values(S.col.people).filter(p => !sid || (p.stages || []).includes(sid)).sort((a, b) => (a.lead === b.lead ? 0 : a.lead ? -1 : 1) || a.name.localeCompare(b.name)); }
+function linkedPerson(uid) { const pid = S.col.members[uid]?.person; return pid ? S.col.people[pid] : null; }
+function personUser(pid) { return Object.keys(S.col.members).find(u => S.col.members[u].person === pid); }
+function stageLead(sid) { const m = stageManagers(sid).map(linkedPerson).find(Boolean); return m || peopleFor(sid).find(p => /stage manager/i.test(p.title || '') && !/assistant/i.test(p.title)) || peopleFor(sid).find(p => p.lead) || null; }
+
+/* ---------------- persistence ---------------- */
+function saveLocal() { if (S.mode !== 'local') return; clearTimeout(saveLocal.t); saveLocal.t = setTimeout(() => { try { localStorage.setItem('showctrl-demo-v2', JSON.stringify({cfg:S.cfg, roles:S.roles, col:S.col})); } catch {} }, 400); }
+function failed(e) {
+  const code = e?.code;
+  if (code === 'invalid_argument') toast('That change was refused. Your sharing level on this page may be too low for it — ask the owner for Contributor or Editor access.');
+  else if (code === 'quota_exceeded') toast('Storage is full: ' + (e.message || 'delete old messages or items to make room.'));
+  else if (code === 'resource_exhausted') toast('Too many changes at once. Wait a moment and try again.');
+  else toast('Could not save that change. Check your connection and try again.');
+  console.warn(e);
+}
+const strip = o => { const b = {...o}; delete b.id; return b; };
+async function put(col, id, obj) {
+  if (S.mode === 'live') { try { await S.db.collection(col).doc(id).set(strip(obj)); return true; } catch (e) { failed(e); return false; } }
+  S.col[col][id] = {id, ...strip(obj)}; changed(); return true;
+}
+function deepMerge(a, b) { const o = {...a}; for (const [k, v] of Object.entries(b)) o[k] = v && typeof v === 'object' && !Array.isArray(v) && a?.[k] && typeof a[k] === 'object' ? deepMerge(a[k], v) : v; return o; }
+async function patch(col, id, obj) {
+  if (S.mode === 'live') { try { await S.db.collection(col).doc(id).update(obj); return true; } catch (e) { failed(e); return false; } }
+  if (!S.col[col][id]) return false; S.col[col][id] = deepMerge(S.col[col][id], obj); changed(); return true;
+}
+async function del(col, id) {
+  if (S.mode === 'live') { try { await S.db.collection(col).doc(id).delete(); return true; } catch (e) { failed(e); return false; } }
+  delete S.col[col][id]; changed(); return true;
+}
+async function putCfg(which, obj) {
+  if (S.mode === 'live') { try { await S.db.doc('config/' + which).set(obj); return true; } catch (e) { failed(e); return false; } }
+  if (which === 'event') S.cfg = obj; else S.roles = obj.roles; changed(); return true;
+}
+async function inChunks(tasks, n = 8, onProgress) { for (let i = 0; i < tasks.length; i += n) { await Promise.all(tasks.slice(i, i + n).map(f => f())); onProgress?.(Math.min(i + n, tasks.length), tasks.length); } }
+async function putMany(col, objs) {
+  if (S.mode === 'live') { try { await inChunks(objs.map(o => () => S.db.collection(col).doc(o.id).set(strip(o)))); return true; } catch (e) { failed(e); return false; } }
+  objs.forEach(o => S.col[col][o.id] = {...o}); changed(); return true;
+}
+function changed() { saveLocal(); render(); }
+
+/* ---------------- render loop ---------------- */
+let rq = 0;
+function render() { if (rq) return; rq = requestAnimationFrame(() => { rq = 0; doRender(); }); }
+function typingInMain() { const a = document.activeElement; return a && $('#main').contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && a.type !== 'checkbox'; }
+function doRender() {
+  renderStrip(); renderCtx(); renderNav(); renderUrgent();
+  if (typingInMain()) { S.dirty = true; return; }
+  S.dirty = false;
+  const sy = window.scrollY; const key = S.ctx + S.view + (S.sub.day || '');
+  const keep = [...document.querySelectorAll('#main .lanes')].map(el => el.scrollLeft);
+  $('#main').innerHTML = renderMain(); window.scrollTo(0, sy);
+  document.querySelectorAll('#main .lanes').forEach((el, i) => {
+    if (S.laneKey === key && keep[i] != null) el.scrollLeft = keep[i];
+    else { const nl = el.querySelector('.nowline'); el.scrollLeft = nl ? Math.max(0, nl.offsetLeft - el.clientWidth / 3) : 0; }
+  });
+  S.laneKey = key; tick();
+}
+document.addEventListener('focusout', () => setTimeout(() => { if (S.dirty && !typingInMain()) render(); }, 0));
+
+function renderStrip() {
+  const c = cfg(); const days = eventDays(); const today = festDay(now()); const di = days.indexOf(today);
+  $('#evname').innerHTML = `<b>${esc(c.name || 'Untitled event')}</b><span>${di >= 0 ? `Day ${di + 1} of ${days.length} · ${esc(dayLabel(today, true))}` : days.length ? `${esc(dayLabel(days[0]))} – ${esc(dayLabel(days[days.length - 1]))}` : ''}</span>`;
+  const sy = $('#sync'); const city = TZ().split('/').pop().replace('_', ' ');
+  sy.textContent = S.sync === 'ok' ? `Synced · ${city}` : S.sync === 'corrected' ? `Corrected ${Math.round(S.offset / 1000)}s · ${city}` : `Device time · ${city}`;
+  sy.style.setProperty('--c', S.sync === 'device' ? '#8E9AB1' : S.sync === 'corrected' ? '#F1B734' : '#45C982');
+  const who = $('#who');
+  const myRoleLabel = () => { const st = myStages().map(s => `${STAGE_ROLES[stageRole(s.id)]}, ${s.name}`); return role() !== 'none' ? roleDef().label : st[0] || roleDef().label; };
+  if (S.mode === 'local') {
+    who.innerHTML = `${avatar(S.me)}<label style="display:flex;align-items:center;gap:.3rem"><span class="role">Demo · view as</span><select data-chg="persona" aria-label="View as demo person">${Object.entries(S.col.members).sort((a, b) => personName(a[0]).localeCompare(personName(b[0]))).map(([id]) => `<option value="${esc(id)}" ${id === S.me ? 'selected' : ''}>${esc(personName(id))} — ${esc(personTag(id))}</option>`).join('')}</select></label>`;
+  } else {
+    who.innerHTML = `<span>${esc(personName(S.me))} <span class="role">· ${esc(myRoleLabel())}</span></span>${avatar(S.me)}`;
+  }
+  $('#previewbar').innerHTML = S.preview ? `<div class="preview">Previewing as <b>${esc(previewLabel())}</b> — this is what they see. <button data-act="endPreview">Stop preview</button></div>` : '';
+}
+function personTag(uid) {
+  const m = S.col.members[uid]; const r = m?.role && m.role !== 'none' ? roleDef(m.role).label : '';
+  const st = stagesSorted().map(s => [s, stageRoleOf(uid, s.id)]).filter(x => x[1]);
+  return r || (st[0] ? `${STAGE_ROLES[st[0][1]]}, ${st[0][0].name}` : 'No access');
+}
+function previewLabel() { const p = S.preview; if (!p) return ''; return p.type === 'role' ? roleDef(p.role).label : `${STAGE_ROLES[p.level]}, ${stageName(p.sid)}`; }
+function renderCtx() {
+  const showHQ = hqVisible();
+  const ss = visibleStages();
+  $('#ctx').innerHTML = (showHQ ? `<a href="#/hq/overview" aria-current="${S.ctx === 'hq'}" style="--c:#3E63FF">Festival HQ</a>` : '') +
+    ss.map(s => { const {cur} = nowNext(s.id); const sr = stageRole(s.id);
+      return `<a href="#/s/${esc(s.id)}/today" aria-current="${S.ctx === s.id}" style="--c:${tapeHex(s.tape)}"><span class="tape" style="--c:${tapeHex(s.tape)}"></span>${esc(s.name)}${cur?.kind === 'show' ? '<span class="live" title="Show running"></span>' : ''}${sr === 'manager' ? '<span class="role">SM</span>' : ''}</a>`; }).join('');
+}
+function hqVisible() { return perm('show') >= 1 || perm('admin') >= 1 || perm('accommodation') >= 1 || perm('personnel') >= 1; }
+
+/* ---------------- navigation ---------------- */
+const HQ_NAV = [
+  {v:'overview', l:'Overview', ok:() => perm('show') >= 1},
+  {v:'schedule', l:'Running order', ok:() => perm('schedule') >= 1},
+  {v:'artists', l:() => terms().performers, ok:() => perm('artists') >= 1},
+  {v:'personnel', l:'Personnel', ok:() => perm('personnel') >= 1},
+  {v:'clocks', l:'Clocks', ok:() => perm('clocks') >= 1},
+  {v:'messages', l:'Messages', ok:() => anyLv('messages') >= 1},
+  {v:'accommodation', l:'Accommodation', ok:() => modOn('accommodation') && perm('accommodation') >= 1},
+  {v:'riders', l:'Riders', ok:() => modOn('riders') && (perm('riders_tech') >= 1 || perm('riders_hosp') >= 1)},
+  {v:'admin', l:'Admin', ok:() => perm('admin') >= 1, sep:true},
+];
+const STAGE_NAV = [
+  {v:'today', l:'Today', ok:sid => lv('schedule', sid) >= 1},
+  {v:'runsheet', l:'Run sheet', ok:sid => lv('schedule', sid) >= 1},
+  {v:'artists', l:() => terms().performers, ok:sid => lv('artists', sid) >= 1},
+  {v:'personnel', l:'Crew & contacts', ok:sid => lv('personnel', sid) >= 1},
+  {v:'clocks', l:'Clocks', ok:sid => lv('clocks', sid) >= 1},
+  {v:'messages', l:'Messages', ok:sid => lv('messages', sid) >= 1},
+  {v:'riders', l:'Riders', ok:sid => modOn('riders') && (lv('riders_tech', sid) >= 1 || lv('riders_hosp', sid) >= 1)},
+  {v:'display', l:'Stage display', ok:sid => lv('clocks', sid) >= 1, sep:true},
+  {v:'setup', l:'Stage setup', ok:sid => lv('setup', sid) >= 2 || perm('admin') >= 2},
+];
+const NAV_ICON = {today:'today', runsheet:'runsheet', overview:'overview', schedule:'schedule', artists:'artists', personnel:'personnel', clocks:'clocks', messages:'messages', accommodation:'accommodation', riders:'riders', admin:'admin', display:'display', setup:'setup'};
+function navItems() { return S.ctx === 'hq' ? HQ_NAV.filter(n => n.ok()) : STAGE_NAV.filter(n => n.ok(S.ctx)); }
+function href(view, arg, ctx = S.ctx) { return ctx === 'hq' ? `#/hq/${view}${arg ? '/' + arg : ''}` : `#/s/${ctx}/${view}${arg ? '/' + arg : ''}`; }
+function renderNav() {
+  const ur = unreadCount();
+  const st = S.col.stages[S.ctx];
+  const head = S.ctx === 'hq' ? `<div class="ctxhead"><span class="tape" style="--c:#3E63FF"></span>Festival HQ</div>` : st ? `<div class="ctxhead"><span class="tape" style="--c:${tapeHex(st.tape)}"></span>${esc(st.name)}</div>` : '';
+  $('#nav').innerHTML = head + navItems().map(n => `${n.sep ? '<div class="sep"></div>' : ''}<a href="${href(n.v)}" ${S.view === n.v || (S.view === 'artist' && n.v === 'artists') ? 'aria-current="page"' : ''}>${ico(NAV_ICON[n.v])}<span>${esc(typeof n.l === 'function' ? n.l() : n.l)}</span>${n.v === 'messages' && ur && S.view !== 'messages' ? `<span class="badge">${ur}</span>` : ''}</a>`).join('');
+}
+function myUrgent() {
+  return visibleMsgs(true).filter(m => m.pri === 'urgent' && m.from !== S.me && !(m.acks && m.acks[S.me]) && now() - m.at < 12 * HOUR);
+}
+function renderUrgent() {
+  const u = myUrgent()[0];
+  $('#urgent').innerHTML = u ? `<div class="urgent" role="alert"><b>Urgent · ${esc(personName(u.from))} → ${esc(toLabel(u.to))}</b><span class="msg">${esc(u.text)}</span><span class="small">${esc(fmtT(u.at))}</span><button data-act="ack" data-id="${esc(u.id)}">Acknowledge</button></div>` : '';
+}
+function renderMain() {
+  if (!S.ready) return '<div class="loading">Connecting…</div>';
+  if (!S.cfg || S.cfg.schema !== 2) return renderSetup();
+  if (S.ctx !== 'hq' && !S.col.stages[S.ctx]) return noAccess('This stage no longer exists.');
+  if (S.ctx !== 'hq' && !canSeeStage(S.ctx)) return noAccess("You don't have access to this stage.");
+  if (S.ctx === 'hq' && !hqVisible()) return noAccess();
+  if (S.view === 'artist') return lv('artists', S.col.artists[S.arg]?.stage) >= 1 ? viewArtist(S.arg) : noAccess();
+  const n = navItems().find(x => x.v === S.view);
+  if (!n) return noAccess();
+  return VIEWS[S.view](S.ctx === 'hq' ? null : S.ctx);
+}
+function homeHref() {
+  if (hqVisible()) return '#/hq/overview';
+  const st = myStages()[0]; return st ? `#/s/${st.id}/today` : '#/hq/overview';
+}
+function noAccess(msg) {
+  const nothing = !hqVisible() && !myStages().length;
+  return `<div class="setup"><div class="panel"><h2>${esc(msg || (nothing ? "You don't have access yet" : 'Your access does not include this page'))}</h2><p class="muted" style="margin:.5rem 0 1rem">${nothing ? 'Ask the festival admin or your stage manager to add you.' : 'Ask the festival admin if you need it.'}</p>${nothing && S.mode === 'live' && !S.col.requests[S.me] ? `<button class="btn primary" data-act="requestAccess">Ask for access</button>` : S.col.requests[S.me] ? '<p class="chip sb">Request sent</p>' : `<a class="btn primary" href="${homeHref()}">Go to my start page</a>`}</div></div>`;
+}
+
+/* ---------------- tick ---------------- */
+function tick() {
+  const t = now();
+  document.querySelectorAll('[data-now]').forEach(el => el.textContent = fmtT(t, el.dataset.now !== 'm'));
+  document.querySelectorAll('[data-cd]').forEach(el => { const ms = +el.dataset.cd - t; el.textContent = fmtCd(ms); el.classList.toggle('warn', cdState(ms, +(el.dataset.w || 5)) === 'warn'); el.classList.toggle('over', ms < 0); });
+  document.querySelectorAll('[data-clock]').forEach(el => {
+    const c = S.col.clocks[el.dataset.clock]; if (!c) return; const v = clockValue(c, t);
+    el.textContent = v.text; el.className = 'val ' + (v.state || '');
+    const sub = el.parentElement.querySelector('.sub'); if (sub) sub.textContent = v.sub || '';
+  });
+  if (S.view === 'display') updateDisplay();
+}
+setInterval(tick, 250);
+setInterval(() => { if (!typingInMain() && !$('#dlg').open) render(); }, 30000);
+
+/* =========================================================
+   VIEWS
+   ========================================================= */
+const VIEWS = {};
+function head(title, sub, actions = '') { return `<div class="head"><div><h1>${esc(title)}</h1>${sub ? `<p>${sub}</p>` : ''}</div>${actions ? `<div class="actions">${actions}</div>` : ''}</div>`; }
+function daySeg() { const days = eventDays(); const day = curDay(); return `<div class="seg" role="group" aria-label="Day">${days.map((d, i) => `<button aria-pressed="${d === day}" data-act="day" data-day="${d}">Day ${i + 1} · ${esc(dayLabel(d))}</button>`).join('')}</div>`; }
+function statusChip(s) { const cls = {'on stage':'go', ready:'go', backstage:'ac', arrived:'ac', travelling:'sb', cancelled:'st'}[s] ?? ''; return `<span class="chip ${cls}">${esc(s || '—')}</span>`; }
+function telLink(p) { return p ? `<a class="tel" href="tel:${esc(String(p).replace(/[^+\d]/g, ''))}">${esc(p)}</a>` : ''; }
+function mailLink(e) { return e ? `<a href="mailto:${esc(e)}">${esc(e)}</a>` : ''; }
+function delayChip(sid) {
+  const {cur, next} = nowNext(sid); const d = (next?.delay || cur?.delay) || 0;
+  return d > 0 ? `<span class="chip st">${Math.round(d / MIN)} min behind</span>` : d < 0 ? `<span class="chip ac">${Math.round(-d / MIN)} min ahead</span>` : `<span class="chip go">On time</span>`;
+}
+function slotHTML(lbl, it, isNow) {
+  if (!it) return `<div class="slot"><span class="lbl">${lbl}</span><span class="ttl muted">${isNow ? 'Nothing on stage' : 'No more shows'}</span><span></span></div>`;
+  const e = eff(it); const target = isNow ? e.e : e.s; const a = S.col.artists[it.artist];
+  return `<div class="slot ${isNow ? 'now' : ''}"><span class="lbl">${lbl}</span><span class="ttl">${esc(it.title)}</span><span class="cd" data-cd="${target}"></span><span class="sub">${isNow ? `${esc(KINDS[it.kind]?.l || '')} ends ${fmtT(e.e)}` : `On stage ${fmtT(e.s)}`}${a ? ` · ${esc(a.status)}` : ''}</span></div>`;
+}
+
+/* ---------- HQ: overview ---------- */
+VIEWS.overview = () => {
+  const T = terms(); const t = now();
+  const cards = visibleStages().map(st => {
+    const {cur, next} = nowNext(st.id); const lead = stageLead(st.id);
+    const crew = peopleFor(st.id).length;
+    return `<section class="panel stagecard"><div class="sh"><span class="tape" style="--c:${tapeHex(st.tape)}"></span><h2><a href="#/s/${esc(st.id)}/today" style="color:inherit;text-decoration:none">${esc(st.name)}</a></h2>${delayChip(st.id)}</div>${slotHTML('Now', cur, true)}${slotHTML('Next', next, false)}
+    <div class="sc-meta">${lead ? `<span>SM <b>${esc(lead.name)}</b> ${telLink(lead.phone)}</span>` : '<span>No stage manager yet</span>'}${st.radio ? `<span>Radio <b>${esc(st.radio)}</b></span>` : ''}<span><b>${crew}</b> crew</span></div></section>`;
+  }).join('');
+  const blocks = [];
+  blocks.push(msgBlock(null));
+  const soon = Object.values(S.col.ros).filter(i => (i.kind === 'arrival' || i.kind === 'departure') && eff(i).s > t - 30 * MIN && eff(i).s < t + 4 * HOUR).sort((a, b) => eff(a).s - eff(b).s).slice(0, 10);
+  blocks.push(`<section class="panel"><div class="ph"><h3>Arrivals &amp; departures, next 4 hours</h3></div>${soon.length ? `<ul class="list">${soon.map(i => `<li><span class="num" style="min-width:3.2rem"><b>${fmtT(eff(i).s)}</b></span><span class="kind k-${i.kind}">${esc(KINDS[i.kind].l)}</span><span><a href="${href('artist', i.artist, 'hq')}">${esc(artistName(i.artist))}</a> <span class="muted small">· ${esc(stageName(i.stage))}</span></span></li>`).join('')}</ul>` : '<p class="empty">Nobody arriving or leaving in the next four hours.</p>'}</section>`);
+  if (modOn('accommodation') && perm('accommodation') >= 1) {
+    const today = dayKey(t);
+    const arr = Object.values(S.col.bookings).filter(b => b.checkIn === today && b.status !== 'cancelled');
+    blocks.push(`<section class="panel"><div class="ph"><h3>Hotel check-ins today</h3><div class="actions"><a class="btn sm" href="#/hq/accommodation">Open</a></div></div>${arr.length ? `<ul class="list">${arr.slice(0, 8).map(b => `<li><span>${esc(bookingGuest(b))}</span><span class="muted small" style="margin-left:auto">${esc(S.col.hotels[b.hotel]?.name || '')}</span></li>`).join('')}</ul>` : '<p class="empty">No check-ins today.</p>'}</section>`);
+  }
+  return head('Festival overview', `Every ${esc(T.stage.toLowerCase())} at a glance. Open a ${esc(T.stage.toLowerCase())} for its own run sheet, crew and display.`) +
+    `<div class="grid g3" style="margin-bottom:1rem">${cards || `<div class="panel"><p class="empty">No ${esc(T.stages.toLowerCase())} yet. ${perm('admin') >= 2 ? 'Add them in <a href="#/hq/admin">Admin</a>.' : ''}</p></div>`}</div><div class="grid g2">${blocks.join('')}</div>`;
+};
+function msgBlock(sid) {
+  if (lv('messages', sid) < 1) return '';
+  const ms = visibleMsgs().filter(m => !sid || m.to?.t === 'all' || (m.to?.t === 'stage' && m.to.id === sid) || (m.to?.t === 'user' && m.to.id === S.me)).slice(0, 5);
+  return `<section class="panel"><div class="ph"><h3>${sid ? 'Messages for this stage' : 'Latest messages'}</h3><div class="actions"><a class="btn sm" href="${href('messages')}">Open</a></div></div>${ms.length ? `<ul class="list">${ms.map(m => `<li>${avatar(m.from)}<div class="stack" style="min-width:0"><span class="small muted"><b style="color:var(--ink)">${esc(personName(m.from))}</b> → ${esc(toLabel(m.to))} · ${esc(rel(m.at))}${m.pri === 'urgent' ? ' <span class="chip st">Urgent</span>' : ''}</span><span style="overflow-wrap:anywhere">${esc(m.text)}</span></div></li>`).join('')}</ul>` : '<p class="empty">No messages yet.</p>'}</section>`;
+}
+
+/* ---------- Stage: today ---------- */
+VIEWS.today = sid => {
+  const st = S.col.stages[sid]; const t = now(); const {cur, next} = nowNext(sid);
+  const upcoming = itemsFor(sid).filter(i => i.status !== 'done' && eff(i).e > t).sort((a, b) => eff(a).s - eff(b).s).slice(0, 10);
+  const lead = stageLead(sid); const team = peopleFor(sid).slice(0, 8);
+  return head(st.name, `${st.location ? esc(st.location) + ' · ' : ''}${st.radio ? 'Radio ' + esc(st.radio) + ' · ' : ''}${lead ? 'Stage manager ' + esc(lead.name) : 'No stage manager assigned'}`, `${delayChip(sid)}<a class="btn" href="${href('display')}">${ico('display')}Stage display</a>`) +
+  `<div class="grid g2" style="margin-bottom:1rem">
+    <section class="panel stagecard"><div class="sh"><span class="tape" style="--c:${tapeHex(st.tape)}"></span><h2>On stage</h2></div>${slotHTML('Now', cur, true)}${slotHTML('Next', next, false)}</section>
+    <section class="panel"><div class="ph"><h3>Coming up</h3><div class="actions"><a class="btn sm" href="${href('runsheet')}">Full run sheet</a></div></div>${upcoming.length ? `<ul class="sheet">${upcoming.map(i => sheetRow(i, true)).join('')}</ul>` : '<p class="empty">Nothing more scheduled.</p>'}</section>
+  </div>
+  <div class="grid g2">
+    <section class="panel"><div class="ph"><h3>Key contacts</h3><div class="actions"><a class="btn sm" href="${href('personnel')}">All crew</a></div></div>${team.length ? team.map(p => `<div class="contact"><div><b>${esc(p.name)}</b> <span class="r">${esc(p.title || '')}</span></div><span class="c">${telLink(p.phone)}</span></div>`).join('') : '<p class="empty">No crew listed yet.</p>'}</section>
+    ${msgBlock(sid)}
+  </div>`;
+};
+function sheetRow(i, showArtist) {
+  const e = eff(i); const t = now(); const live = i.status === 'live';
+  const running = !live && i.status !== 'done' && e.s <= t && e.e > t && e.e - e.s >= 5 * MIN;
+  const past = !live && i.status !== 'done' && e.e <= t && e.s < t;
+  const label = showArtist && i.artist ? artistName(i.artist) : (i.artist && i.title === artistName(i.artist) ? '' : i.title);
+  const right = i.status === 'done' ? '<span class="chip">Done</span>' : running ? '<span class="chip go">Now</span>' : past ? '<span class="chip">Passed</span>' : `<span class="cd" data-cd="${live ? e.e : e.s}" title="${live ? 'Ends in' : 'Starts in'}"></span>`;
+  return `<li class="${i.status || ''} ${running ? 'live' : ''} k-${i.kind}"><span class="tm">${i.delay ? `<s>${fmtT(i.start)}</s>` : ''}${fmtT(e.s)}${e.e - e.s >= 5 * MIN ? `–${fmtT(e.e)}` : ''}</span><span class="what"><span class="kind k-${i.kind}">${esc(KINDS[i.kind]?.l || i.kind)}</span>${esc(label)}${i.notes ? `<small>${esc(i.notes)}</small>` : ''}</span>${right}</li>`;
+}
+
+/* ---------- Lanes (timeline) ---------- */
+function packRows(items) {
+  const rows = []; const out = [];
+  for (const i of items.sort((a, b) => eff(a).s - eff(b).s)) {
+    const e = eff(i); let r = rows.findIndex(end => end <= e.s);
+    if (r < 0) { r = rows.length; rows.push(0); } rows[r] = Math.max(e.e, e.s + 10 * MIN); out.push([i, r]);
+  }
+  return {out, n:Math.max(1, rows.length)};
+}
+function lanesHTML(lanes, day, editable) {
+  const all = lanes.flatMap(l => l.items);
+  let lo, hi;
+  if (all.length) { lo = Math.min(...all.map(i => eff(i).s)); hi = Math.max(...all.map(i => eff(i).e)); } else { lo = fromLocal(day + 'T12:00'); hi = lo + 12 * HOUR; }
+  lo = Math.floor((lo - 30 * MIN) / HOUR) * HOUR; hi = Math.ceil((hi + 30 * MIN) / HOUR) * HOUR; if (hi - lo < 6 * HOUR) hi = lo + 6 * HOUR;
+  const span = hi - lo; const pct = ms => ((ms - lo) / span * 100).toFixed(3); const t = now();
+  const hours = []; for (let h = lo; h <= hi; h += HOUR) hours.push(h);
+  const step = 1;
+  return `<div class="panel lanes" style="margin-bottom:1rem"><div class="lanes-inner" style="--hw:${(HOUR / span * 100).toFixed(3)}%;min-width:${Math.max(820, span / HOUR * 130)}px">
+    <div class="hours">${hours.filter((h, i) => i % step === 0).map(h => `<span style="left:${pct(h)}%">${fmtT(h)}</span>`).join('')}</div>
+    ${lanes.map((ln, li) => { const {out, n} = packRows(ln.items.filter(i => eff(i).e - eff(i).s >= 5 * MIN)); const marks = ln.items.filter(i => eff(i).e - eff(i).s < 5 * MIN && i.kind !== 'access');
+      return `<div class="lane"><div class="ln">${ln.tape ? `<span class="tape" style="--c:${ln.tape}"></span>` : ''}<span>${esc(ln.label)}${ln.sub ? `<small>${esc(ln.sub)}</small>` : ''}</span></div><div class="lt" style="--lh:${n * 28 + 10}px">
+      ${out.map(([i, r]) => { const e = eff(i); const tag = editable ? 'button' : 'div';
+        return `<${tag} class="blk k-${i.kind} ${i.status || ''}" style="left:${pct(e.s)}%;width:max(30px,calc(${((e.e - e.s) / span * 100).toFixed(3)}% - 2px));top:${5 + r * 28}px;--c:${ln.tape || 'var(--accent)'}" ${editable ? `data-act="itemEdit" data-id="${esc(i.id)}"` : ''} title="${esc(KINDS[i.kind]?.l)}: ${esc(i.title)} ${fmtT(e.s)}–${fmtT(e.e)}"><b>${esc(ln.short ? (i.kind === 'show' ? i.title : KINDS[i.kind]?.l) : `${KINDS[i.kind]?.l} · ${artistName(i.artist) || i.title}`)}</b></${tag}>`; }).join('')}
+      ${marks.map(i => `<div class="mark" style="left:${pct(eff(i).s)}%" title="${esc(KINDS[i.kind]?.l)}: ${esc(i.title)} ${fmtT(eff(i).s)}">${i.kind === 'curfew' || i.kind === 'doors' ? `<span>${esc(KINDS[i.kind].l)} ${fmtT(eff(i).s)}</span>` : ''}</div>`).join('')}
+      ${t >= lo && t <= hi ? `<div class="nowline" style="left:${pct(t)}%" ${li === 0 ? `data-l="${fmtT(t)}"` : ''}></div>` : ''}
+    </div></div>`; }).join('')}
+  </div></div>`;
+}
+
+/* ---------- HQ: running order across stages ---------- */
+VIEWS.schedule = () => {
+  const day = curDay(); const T = terms();
+  const ss = visibleStages();
+  const lanes = ss.map(s => ({label:s.name, tape:tapeHex(s.tape), short:true, items:itemsFor(s.id, day, 'stage').filter(i => i.kind !== 'access')}));
+  return head('Running order', `All ${esc(T.stages.toLowerCase())}, on-stage activity only. Open a ${esc(T.stage.toLowerCase())}'s run sheet for get in, load in and load out.`, daySeg()) +
+    (ss.length ? lanesHTML(lanes, day, false) : '') +
+    `<div class="grid g3">${ss.map(s => { const shows = itemsFor(s.id, day).filter(i => i.kind === 'show');
+      return `<section class="panel tapeL" style="--c:${tapeHex(s.tape)}"><div class="ph"><h3>${esc(s.name)}</h3>${delayChip(s.id)}<div class="actions"><a class="btn sm" href="#/s/${esc(s.id)}/runsheet">Run sheet</a></div></div>${shows.length ? `<ul class="sheet">${shows.map(i => sheetRow(i, true)).join('')}</ul>` : '<p class="empty">No shows this day.</p>'}</section>`; }).join('')}</div>`;
+};
+
+/* ---------- Stage: run sheet ---------- */
+VIEWS.runsheet = sid => {
+  const day = curDay(); const w = canW('schedule', sid); const st = S.col.stages[sid];
+  const lanes = [{label:TRACKS.stage, items:itemsFor(sid, day, 'stage'), tape:tapeHex(st.tape), short:true}, {label:TRACKS.dock, items:itemsFor(sid, day, 'dock'), tape:'var(--ink3)'}];
+  const its = itemsFor(sid, day);
+  const fil = S.sub.rsf || 'all';
+  const hide = S.sub.hideDone !== false;
+  const list = its.filter(i => (!hide || i.status !== 'done') && (fil === 'all' || (fil === 'stage' ? track(i) === 'stage' : fil === 'dock' ? track(i) === 'dock' : i.artist === fil)));
+  const arts = [...new Set(its.map(i => i.artist).filter(Boolean))];
+  return head(`Run sheet · ${st.name}`, 'Everything from get in to load out. A delay pushes everything after it and updates every clock and display.', `${daySeg()}${w ? `<button class="btn" data-act="itemAdd">${ico('plus')}Add item</button><button class="btn primary" data-act="artistAdd">${ico('plus')}Add ${esc(terms().performer.toLowerCase())} with day sheet</button>` : ''}`) +
+  lanesHTML(lanes, day, w) +
+  `<div class="filters"><label class="small muted">Show</label><select data-chg="rsf" aria-label="Filter"><option value="all">Everything</option><option value="stage" ${fil === 'stage' ? 'selected' : ''}>On stage only</option><option value="dock" ${fil === 'dock' ? 'selected' : ''}>Dock &amp; backstage only</option>${arts.map(a => `<option value="${esc(a)}" ${fil === a ? 'selected' : ''}>${esc(artistName(a))}</option>`).join('')}</select><label class="row small"><input type="checkbox" data-chg="hideDone" ${hide ? 'checked' : ''}> Hide finished</label>${w && its.some(i => i.delay) ? `<button class="btn sm" data-act="resetDelay">Back on planned times</button>` : ''}</div>
+  <section class="panel">${list.length ? `<div class="tbl-wrap"><table class="ro"><thead><tr><th>Time</th><th>Activity</th><th></th><th></th></tr></thead><tbody>${list.map(i => { const e = eff(i);
+    return `<tr class="${i.status || ''}"><td class="t">${i.delay ? `<s>${fmtT(i.start)}</s>` : ''}<b>${fmtT(e.s)}</b>${e.e - e.s >= 5 * MIN ? `–${fmtT(e.e)}` : ''}</td><td><span class="kind k-${i.kind}">${esc(KINDS[i.kind]?.l)}</span><b>${i.artist ? `<a href="${href('artist', i.artist)}" style="color:inherit">${esc(i.title)}</a>` : esc(i.title)}</b><div class="small muted">${esc(TRACKS[track(i)])}${i.notes ? ` · ${esc(i.notes)}` : ''}${i.delayNote ? ` · Delay: ${esc(i.delayNote)}` : ''}</div></td>
+    <td>${i.status === 'live' ? '<span class="chip go">Live</span>' : i.status === 'done' ? '<span class="chip">Done</span>' : ''}</td>
+    <td>${w ? `<div class="acts">${i.status === 'live' ? `<button class="btn sm" data-act="itemDone" data-id="${esc(i.id)}">Done</button>` : i.status !== 'done' ? `<button class="btn sm go" data-act="itemLive" data-id="${esc(i.id)}">${i.kind === 'show' ? 'On stage' : 'Start'}</button>` : ''}${i.status !== 'done' ? `<button class="btn sm" data-act="delay" data-id="${esc(i.id)}">Delay</button>` : ''}<button class="btn sm" data-act="itemEdit" data-id="${esc(i.id)}" aria-label="Edit">${ico('edit')}</button></div>` : ''}</td></tr>`; }).join('')}</tbody></table></div>` : `<p class="empty">Nothing scheduled this day.${w ? ` Add a ${esc(terms().performer.toLowerCase())} to generate their day sheet.` : ''}</p>`}</section>`;
+};
+function itemForm(i) {
+  const sid = i.stage || (S.ctx !== 'hq' ? S.ctx : stagesSorted()[0]?.id);
+  const day = curDay();
+  const start = i.start ?? fromLocal(day + 'T18:00');
+  openForm({
+    title:i.id ? 'Edit run sheet item' : 'Add to run sheet',
+    fields:[
+      {k:'kind', label:'Activity', type:'select', options:Object.entries(KINDS).map(([k, v]) => [k, `${v.l} (${TRACKS[v.tr].toLowerCase()})`])},
+      {k:'artist', label:terms().performer, type:'select', options:[['', 'None'], ...artistsSorted().filter(a => a.stage === sid).map(a => [a.id, a.name])]},
+      {k:'title', label:'Title (empty uses the artist name)', full:true},
+      {k:'start', label:'Planned start', type:'datetime'}, {k:'end', label:'Planned end', type:'datetime'},
+      {k:'stage', label:terms().stage, type:'select', options:stagesSorted().filter(s => canW('schedule', s.id)).map(s => [s.id, s.name])},
+      {k:'notes', label:'Notes', type:'textarea', full:true, placeholder:'e.g. Dock 2, two trucks, forklift needed'},
+    ],
+    values:{kind:'show', ...i, stage:sid, start, end:i.end ?? start + HOUR},
+    onSave:async v => {
+      const title = v.title.trim() || artistName(v.artist) || KINDS[v.kind].l;
+      if (v.end < v.start) return 'The end must be after the start.';
+      return put('ros', i.id || rid(), {title, kind:v.kind, stage:v.stage, start:v.start, end:v.end, artist:v.artist || null, notes:v.notes || '', status:i.status || 'pending', delay:i.delay || 0, delayNote:i.delayNote || ''});
+    },
+    onDelete:i.id ? () => del('ros', i.id) : null,
+  });
+}
+async function shiftFrom(item, deltaMs, note, dockToo = true) {
+  const later = itemsFor(item.stage, festDay(item.start)).filter(x => x.start >= item.start && x.status !== 'done' && (dockToo || track(x) === 'stage'));
+  for (const x of later) await patch('ros', x.id, {delay:(x.delay || 0) + deltaMs, ...(x.id === item.id && note ? {delayNote:note} : {})});
+}
+/* Builds a full artist day from the stage's template */
+function buildDaySheet(stage, artist, showStart, showEnd, soundcheck) {
+  const tp = {...DEFAULT_TPL, ...(stage.template || {})}; const m = n => n * MIN; const nm = artist.name;
+  const mk = (kind, s, e, title) => ({id:rid(), stage:stage.id, artist:artist.id, kind, title:title || nm, start:s, end:e, status:'pending', delay:0, notes:''});
+  const out = [
+    mk('arrival', showStart + m(tp.arrival), showStart + m(tp.arrival) + m(15)),
+    mk('getin', showStart + m(tp.getin), showStart + m(tp.getin) + m(15)),
+    mk('loadin', showStart + m(tp.loadin), showStart + m(tp.loadin) + m(tp.loadinDur)),
+    mk('access', showStart + m(tp.access), showStart + m(tp.access)),
+    mk('changeover', showStart - m(tp.changeover), showStart, `Changeover → ${nm}`),
+    mk('show', showStart, showEnd),
+    mk('loadout', showEnd + m(tp.loadoutAfter), showEnd + m(tp.loadoutAfter) + m(tp.loadoutDur)),
+    mk('departure', showEnd + m(tp.departure), showEnd + m(tp.departure) + m(15)),
+  ];
+  if (soundcheck) out.push(mk('soundcheck', soundcheck, soundcheck + m(tp.soundcheckDur)));
+  return out;
+}
+function daySheetForm(a) {
+  const st = S.col.stages[a.stage]; if (!st) { toast(`Give ${a.name} a ${terms().stage.toLowerCase()} first.`); return; }
+  const show = showsFor(a.id)[0];
+  openForm({title:`Day sheet · ${a.name}`, fields:[
+    {k:'start', label:'On stage', type:'datetime'}, {k:'len', label:'Show length (minutes)', type:'number'},
+    {k:'sc', label:'Soundcheck (optional)', type:'datetime'},
+    {k:'replace', label:'Replace', type:'checks', full:true, options:[['yes', 'Replace this artist\'s existing items that day']]},
+    {k:'info', label:'', type:'note', full:true, text:`Uses ${st.name}'s template: arrival, get in, load in, stage access, changeover, show, load out and departure. You can adjust each item afterwards.`}],
+    values:{start:show ? show.start : fromLocal(curDay() + 'T20:00'), len:show ? Math.round((show.end - show.start) / MIN) : 60, sc:'', replace:show ? ['yes'] : []}, saveLabel:'Create day sheet',
+    onSave:async v => {
+      if (!v.start || !+v.len) return 'Set the on-stage time and show length.';
+      const items = buildDaySheet(st, a, v.start, v.start + +v.len * MIN, v.sc || null);
+      if ((v.replace || []).length) for (const x of itemsForArtist(a.id).filter(x => festDay(x.start) === festDay(v.start))) await del('ros', x.id);
+      await putMany('ros', items); toast(`Day sheet created for ${a.name}: ${items.length} items.`);
+    }});
+}
+
+/* ---------- Clocks ---------- */
+function clockValue(c, t) {
+  if (c.kind === 'tod') { const tz = c.tz || TZ(); return {text:fmtT(t, true, tz), sub:`${tz.split('/').pop().replace('_', ' ')} · ${dayLabel(dayKey(t, tz))}`}; }
+  if (c.kind === 'countdown') { const ms = (c.target || 0) - t; return {text:fmtCd(ms), state:cdState(ms, c.warn ?? 5), sub:ms < 0 ? `Passed ${fmtT(c.target)}` : `At ${fmtT(c.target)} · ${dayLabel(dayKey(c.target))}`}; }
+  if (c.kind === 'timer') {
+    const el = (c.accum || 0) + (c.runningSince ? t - c.runningSince : 0);
+    if (c.duration) { const ms = c.duration - el; return {text:fmtCd(ms), state:c.runningSince ? cdState(ms, c.warn ?? 2) : '', sub:`${c.runningSince ? 'Running' : el ? 'Paused' : 'Ready'} · ${Math.round(c.duration / MIN)} min`}; }
+    return {text:fmtCd(el).replace('+', ''), sub:c.runningSince ? 'Running' : el ? 'Paused' : 'Ready'};
+  }
+  if (c.kind === 'stage') {
+    if (!S.col.stages[c.stage]) return {text:'--:--', sub:'Stage removed'};
+    const {cur, next} = nowNext(c.stage);
+    if (cur) { const ms = eff(cur).e - t; return {text:fmtCd(ms), state:cdState(ms, c.warn ?? 5), sub:`${cur.title} ends ${fmtT(eff(cur).e)}`}; }
+    if (next) { const ms = eff(next).s - t; return {text:fmtCd(ms), state:cdState(ms, c.warn ?? 5), sub:`${next.title} at ${fmtT(eff(next).s)}`}; }
+    return {text:'--:--', sub:'Nothing scheduled'};
+  }
+  return {text:'--:--'};
+}
+const CLOCK_KINDS = {tod:'Time of day', countdown:'Countdown to a time', timer:'Timer (start/stop)', stage:'Follows a stage'};
+VIEWS.clocks = sid => {
+  const cs = Object.values(S.col.clocks).filter(c => sid ? (!c.scope || c.scope === sid) : (!c.scope || canSeeStage(c.scope))).sort((a, b) => (a.scope ? 1 : 0) - (b.scope ? 1 : 0) || (a.order ?? 0) - (b.order ?? 0));
+  const w = canW('clocks', sid);
+  return head('Clocks', sid ? `Festival-wide clocks plus ${esc(stageName(sid))}'s own. Everyone sees the same time, corrected to the server.` : 'Shared by every department, corrected to server time. Stage clocks live in each stage.', `${w ? `<button class="btn" data-act="clockAdd">${ico('plus')}Add clock</button>` : ''}<button class="btn primary" data-act="wall">${ico('wall')}Wall mode</button>`) +
+  `<div class="wallclock"><span class="t" data-now></span><span class="e">${esc(sid ? stageName(sid) : cfg().name || '')}</span></div>
+  ${cs.length ? `<div class="wall">${cs.map(c => { const v = clockValue(c, now()); const label = c.label || CLOCK_KINDS[c.kind]; const cw = canW('clocks', c.scope || null) || (sid && c.scope === sid && w);
+    return `<article class="tile" style="--c:${c.kind === 'stage' ? tapeHex(S.col.stages[c.stage]?.tape) : c.scope ? tapeHex(S.col.stages[c.scope]?.tape) : c.dept ? deptTape(c.dept) : '#3E63FF'}"><div class="lab">${esc(label)}<span>${c.scope ? esc(stageName(c.scope)) : 'Festival'}</span></div><div class="val ${v.state || ''}" data-clock="${esc(c.id)}">${esc(v.text)}</div><div class="sub">${esc(v.sub || '')}</div>
+    ${cw && c.kind === 'timer' ? `<div class="ctl">${c.runningSince ? `<button data-act="timer" data-op="pause" data-id="${esc(c.id)}">Pause</button>` : `<button data-act="timer" data-op="start" data-id="${esc(c.id)}">${c.accum ? 'Resume' : 'Start'}</button>`}<button data-act="timer" data-op="reset" data-id="${esc(c.id)}">Reset</button>${c.duration ? `<button data-act="timer" data-op="plus" data-id="${esc(c.id)}">+1 min</button>` : ''}</div>` : ''}
+    ${cw ? `<button class="edit" data-act="clockEdit" data-id="${esc(c.id)}" aria-label="Edit ${esc(label)}">${ico('edit')}</button>` : ''}</article>`; }).join('')}</div>` : `<div class="panel"><p class="empty">No clocks yet.</p></div>`}`;
+};
+function clockForm(c) {
+  const sid = S.ctx !== 'hq' ? S.ctx : null;
+  c = c || {kind:sid ? 'stage' : 'countdown', warn:5, stage:sid, scope:sid};
+  openForm({title:c.id ? 'Edit clock' : 'Add clock', fields:[
+    {k:'label', label:'Name', full:true, placeholder:'e.g. Curfew, Changeover, Artist home time'},
+    {k:'kind', label:'Type', type:'select', options:Object.entries(CLOCK_KINDS)},
+    {k:'scope', label:'Belongs to', type:'select', options:[...(perm('clocks') >= 2 ? [['', 'Whole festival']] : []), ...stagesSorted().filter(s => canW('clocks', s.id)).map(s => [s.id, s.name])]},
+    {k:'target', label:'Counts down to', type:'datetime', show:v => v.kind === 'countdown'},
+    {k:'tz', label:'Time zone', type:'select', options:TZS.map(z => [z, z]), show:v => v.kind === 'tod'},
+    {k:'stage', label:'Follows', type:'select', options:stagesSorted().map(s => [s.id, s.name]), show:v => v.kind === 'stage'},
+    {k:'durationMin', label:'Length in minutes (empty counts up)', type:'number', show:v => v.kind === 'timer'},
+    {k:'warn', label:'Warn when under (minutes)', type:'number', show:v => v.kind !== 'tod'},
+    {k:'order', label:'Position', type:'number'}],
+    values:{...c, scope:c.scope || '', tz:c.tz || TZ(), durationMin:c.duration ? c.duration / MIN : '', target:c.target ?? now() + HOUR},
+    onSave:v => {
+      const o = {label:v.label.trim(), kind:v.kind, scope:v.scope || null, warn:v.warn === '' ? null : +v.warn, order:v.order === '' ? 0 : +v.order};
+      if (v.kind === 'countdown') o.target = v.target; if (v.kind === 'tod') o.tz = v.tz; if (v.kind === 'stage') o.stage = v.stage;
+      if (v.kind === 'timer') { o.duration = v.durationMin ? +v.durationMin * MIN : null; o.accum = c.accum || 0; o.runningSince = c.runningSince || null; }
+      return put('clocks', c.id || rid(), o);
+    },
+    onDelete:c.id ? () => del('clocks', c.id) : null});
+}
+
+/* ---------- Stage: on-stage display ---------- */
+VIEWS.display = sid => {
+  const st = S.col.stages[sid];
+  return `<div class="head"><div><h1>Stage display</h1><p>Put this on the stage monitor or a tablet side stage. It follows the run sheet, including delays.</p></div><div class="actions"><button class="btn primary" data-act="wall">${ico('full')}Full screen</button></div></div>
+  <div class="display" id="disp" style="--c:${tapeHex(st.tape)}"><div class="top"><span class="st">${esc(st.name)}</span><span class="tod" data-now></span></div><div class="mid" id="dmid"></div><div class="bot" id="dbot"></div></div>`;
+};
+function updateDisplay() {
+  const mid = $('#dmid'); if (!mid) return; const sid = S.ctx; const t = now();
+  const {cur, next} = nowNext(sid);
+  let lbl, who, target, warn = 5, on = false;
+  if (cur) { on = cur.kind === 'show'; lbl = on ? 'On stage — time left' : `${KINDS[cur.kind].l} — time left`; who = cur.kind === 'changeover' && next ? `Next: ${next.title}` : cur.title; target = eff(cur).e; warn = on ? 10 : 5; }
+  else if (next) { lbl = 'Next on stage in'; who = next.title; target = eff(next).s; }
+  else { lbl = 'No more shows today'; who = ''; target = null; }
+  const ms = target ? target - t : null;
+  const key = `${lbl}|${who}`;
+  if (mid.dataset.k !== key) { mid.dataset.k = key; mid.innerHTML = `<span class="lbl ${on ? 'on' : ''}">${esc(lbl)}</span><span class="dwho">${esc(who)}</span><span class="big" id="dbig"></span>`; }
+  const big = $('#dbig'); if (big) { big.textContent = ms == null ? '' : fmtCd(ms); big.className = 'big ' + (ms == null ? '' : cdState(ms, warn)); }
+  const bot = $('#dbot'); const k2 = `${cur?.id}|${next?.id}|${cur?.delay}|${next?.delay}`;
+  if (bot.dataset.k !== k2) { bot.dataset.k = k2; bot.innerHTML = `${cur ? `<span>Ends <b>${fmtT(eff(cur).e)}</b></span>` : ''}${next ? `<span>Next <b>${esc(next.title)}</b> at <b>${fmtT(eff(next).s)}</b></span>` : ''}${(cur || next)?.delay ? `<span>Running <b>${Math.round((cur || next).delay / MIN)} min</b> ${(cur || next).delay > 0 ? 'late' : 'early'}</span>` : ''}`; }
+}
+
+/* ---------- Messages ---------- */
+function toLabel(to) {
+  if (!to || to.t === 'all') return 'Everyone';
+  if (to.t === 'dept') return deptName(to.id);
+  if (to.t === 'stage') return stageName(to.id) || 'Stage';
+  if (to.t === 'user') return to.id === S.me ? 'you' : personName(to.id);
+  return '—';
+}
+function visibleMsgs(addressedOnly) {
+  const depts = myDepts(); const all = !addressedOnly && perm('admin') >= 2;
+  return Object.values(S.col.msgs).filter(m => all || m.from === S.me && !addressedOnly || !m.to || m.to.t === 'all' || (m.to.t === 'dept' && depts.includes(m.to.id)) || (m.to.t === 'stage' && (stageRole(m.to.id) || (!addressedOnly && perm('messages') >= 1))) || (m.to.t === 'user' && m.to.id === S.me)).sort((a, b) => b.at - a.at);
+}
+function unreadCount() {
+  if (anyLv('messages') < 1) return 0;
+  let last = 0; try { last = +localStorage.getItem('showctrl-lastread-' + (S.me || '')) || 0; } catch {}
+  return visibleMsgs(true).filter(m => m.at > last && m.from !== S.me).length;
+}
+VIEWS.messages = sid => {
+  try { localStorage.setItem('showctrl-lastread-' + (S.me || ''), String(now())); } catch {}
+  const all = visibleMsgs();
+  const chans = [['inbox', 'Everything for you'], ['all', 'Everyone'],
+    ...stagesSorted().filter(s => stageRole(s.id) || perm('messages') >= 1).map(s => ['stage:' + s.id, s.name, s.tape]),
+    ...((perm('admin') >= 2 ? (cfg().depts || []).map(d => d.id) : myDepts()).map(id => ['dept:' + id, deptName(id), dept(id)?.tape])),
+    ['direct', 'Direct messages'], ['urgent', 'Urgent']];
+  let ch = S.sub.chan || (sid ? 'stage:' + sid : 'inbox');
+  if (!chans.some(c => c[0] === ch)) ch = 'inbox';
+  const [ct, cid] = ch.split(':');
+  const filt = m => ch === 'inbox' ? true : ch === 'all' ? (!m.to || m.to.t === 'all') : ch === 'direct' ? m.to?.t === 'user' : ch === 'urgent' ? m.pri === 'urgent' : (m.to?.t === ct && m.to.id === cid);
+  const list = all.filter(filt);
+  const w = canW('messages', sid) || myStages().some(s => canW('messages', s.id)) || canW('messages');
+  const people = Object.keys(S.col.members).filter(u => u !== S.me);
+  const sendStages = stagesSorted().filter(s => canW('messages', s.id));
+  const defTo = ct === 'stage' || ct === 'dept' ? ch : sid ? 'stage:' + sid : 'all';
+  return head('Messages', 'Send to everyone, a stage team, a department or one person. Urgent messages flash on the screens of everyone they\'re for until each person acknowledges.') +
+  `<div class="msgs"><nav class="panel chan" aria-label="Channels">${chans.map(([id, l, tp]) => `<button aria-pressed="${id === ch}" data-act="chan" data-chan="${esc(id)}">${tp ? `<span class="tape" style="--c:${tapeHex(tp)}"></span>` : ''}${esc(l)}${id === 'urgent' && myUrgent().length ? `<span class="badge">${myUrgent().length}</span>` : ''}</button>`).join('')}</nav>
+  <section class="panel">
+    ${w ? `<div class="compose"><label class="fld"><span>Message</span><textarea id="mtext" placeholder="Type a message…" maxlength="1200"></textarea></label>
+      <div class="row"><label class="row small"><span class="muted">To</span><select id="mto">${perm('messages') >= 2 ? '<option value="all">Everyone</option>' : ''}${sendStages.length ? `<optgroup label="Stage teams">${sendStages.map(s => `<option value="stage:${esc(s.id)}" ${defTo === 'stage:' + s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</optgroup>` : ''}<optgroup label="Departments">${(cfg().depts || []).map(d => `<option value="dept:${esc(d.id)}" ${defTo === 'dept:' + d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</optgroup>${people.length ? `<optgroup label="People">${people.map(p => `<option value="user:${esc(p)}">${esc(personName(p))}</option>`).join('')}</optgroup>` : ''}</select></label>
+      <label class="row small"><input type="checkbox" id="murg"> Urgent</label><button class="btn primary" style="margin-left:auto" data-act="send">Send</button></div></div>` : ''}
+    ${list.length ? list.map(m => { const acks = Object.keys(m.acks || {}); const forMe = m.from !== S.me && !(m.acks || {})[S.me];
+      return `<article class="m ${m.pri === 'urgent' ? 'urg' : ''}">${avatar(m.from)}<div class="meta"><b>${esc(personName(m.from))}</b><span>→ ${esc(toLabel(m.to))}</span><span>${fmtT(m.at)} · ${esc(rel(m.at))}</span>${m.pri === 'urgent' ? '<span class="chip st">Urgent</span>' : ''}</div><div class="txt">${esc(m.text)}</div>
+      <div class="ack">${acks.length ? `Seen by ${acks.slice(0, 4).map(a => esc(personName(a))).join(', ')}${acks.length > 4 ? ` +${acks.length - 4}` : ''}` : m.pri === 'urgent' ? 'Not acknowledged yet' : ''}${forMe ? `<button class="btn sm" data-act="ack" data-id="${esc(m.id)}">${m.pri === 'urgent' ? 'Acknowledge' : 'Mark seen'}</button>` : ''}${m.from === S.me || perm('admin') >= 2 ? `<button class="btn sm danger" data-act="msgDel" data-id="${esc(m.id)}">Delete</button>` : ''}</div></article>`; }).join('') : '<p class="empty">No messages here yet.</p>'}
+  </section></div>`;
+};
+
+/* ---------- Artists ---------- */
+VIEWS.artists = sid => {
+  const T = terms(); const q = (S.sub.q || '').toLowerCase();
+  const list = artistsSorted().filter(a => (sid ? a.stage === sid : canSeeStage(a.stage) || !a.stage) && (!q || a.name.toLowerCase().includes(q)));
+  const w = canW('artists', sid) || (!sid && stagesSorted().some(s => canW('artists', s.id)));
+  return head(sid ? `${T.performers} · ${stageName(sid)}` : T.performers, 'Status, show times, contacts and the full day sheet for each act. Contact details show only for roles allowed to see them.', `<input class="inline-sel" style="padding:.45rem .6rem" type="search" placeholder="Search" aria-label="Search" value="${esc(S.sub.q || '')}" data-input="q">${w ? `<button class="btn primary" data-act="artistAdd">${ico('plus')}Add ${esc(T.performer.toLowerCase())}</button>` : ''}`) +
+  `<div class="panel tbl-wrap"><table><thead><tr><th>${esc(T.performer)}</th>${sid ? '' : `<th>${esc(T.stage)}</th>`}<th>On stage</th><th>Next activity</th><th>Status</th><th>Party</th><th>Main contact</th></tr></thead><tbody>
+  ${list.map(a => { const sh = showsFor(a.id); const nx = itemsForArtist(a.id).find(i => i.status !== 'done' && eff(i).e > now()); const c = (a.contacts || [])[0]; const cw = canW('artists', a.stage);
+    return `<tr class="click" data-act="go" data-to="${href('artist', a.id)}"><td><b>${esc(a.name)}</b>${a.genre ? `<div class="small muted">${esc(a.genre)}</div>` : ''}</td>${sid ? '' : `<td>${a.stage ? `<span class="row"><span class="tape" style="--c:${tapeHex(S.col.stages[a.stage]?.tape)}"></span>${esc(stageName(a.stage))}</span>` : '—'}</td>`}
+    <td class="num small">${sh.length ? sh.map(s => `${esc(dayLabel(festDay(s.start)))} <b>${fmtT(eff(s).s)}</b>`).join('<br>') : '<span class="muted">Not scheduled</span>'}</td>
+    <td class="small">${nx ? `<span class="kind k-${nx.kind}">${esc(KINDS[nx.kind].l)}</span>${fmtT(eff(nx).s)} <span class="muted">${esc(rel(eff(nx).s))}</span>` : '<span class="muted">—</span>'}</td>
+    <td data-stop>${cw ? `<select data-chg="artistStatus" data-id="${esc(a.id)}" aria-label="Status">${ART_STATUS.map(s => `<option ${s === a.status ? 'selected' : ''}>${s}</option>`).join('')}</select>` : statusChip(a.status)}</td>
+    <td class="num">${a.party || '—'}</td><td class="small">${c ? (artistContacts(a) ? `${esc(c.name)} ${telLink(c.phone)}` : SENS) : '—'}</td></tr>`; }).join('') || `<tr><td colspan="7" class="empty">No ${esc(T.performers.toLowerCase())} yet.</td></tr>`}
+  </tbody></table></div>`;
+};
+function artistForm(a) {
+  const T = terms(); const isNew = !a?.id;
+  a = a || {status:'confirmed', stage:S.ctx !== 'hq' ? S.ctx : stagesSorted().find(s => canW('artists', s.id))?.id, contacts:[]};
+  openForm({title:isNew ? `Add ${T.performer.toLowerCase()}` : `Edit ${a.name}`, fields:[
+    {k:'name', label:'Name', full:true},
+    {k:'stage', label:T.stage, type:'select', options:stagesSorted().filter(s => canW('artists', s.id) || s.id === a.stage).map(s => [s.id, s.name])},
+    {k:'status', label:'Status', type:'select', options:ART_STATUS.map(s => [s, s])},
+    {k:'genre', label:'Genre / description'}, {k:'party', label:'Travelling party (people)', type:'number'},
+    {k:'home', label:'Home time zone', type:'select', options:[['', '—'], ...TZS.map(z => [z, z])]},
+    {k:'vehicles', label:'Vehicles at dock', placeholder:'e.g. 1 truck, 1 sleeper bus'},
+    ...(isNew ? [{k:'cname', label:'Tour manager name'}, {k:'cphone', label:'Tour manager phone'}, {k:'cemail', label:'Tour manager email', full:true},
+      {k:'start', label:'On stage (creates a day sheet)', type:'datetime'}, {k:'len', label:'Show length (minutes)', type:'number'}, {k:'sc', label:'Soundcheck (optional)', type:'datetime'}] : []),
+    {k:'notes', label:'Production notes', type:'textarea', full:true}],
+    values:{...a, len:60, start:''},
+    onSave:async v => {
+      if (!v.name.trim()) return 'Enter a name.';
+      const id = a.id || rid();
+      const o = {...a, name:v.name.trim(), stage:v.stage, status:v.status, genre:v.genre, party:v.party === '' ? null : +v.party, home:v.home, vehicles:v.vehicles, notes:v.notes};
+      if (isNew && (v.cname || v.cphone || v.cemail)) o.contacts = [{id:rid(), role:'Tour manager', name:v.cname || 'Tour manager', phone:v.cphone || '', email:v.cemail || ''}];
+      if (!(await put('artists', id, o))) return false;
+      if (isNew && v.start) { const st = S.col.stages[v.stage]; await putMany('ros', buildDaySheet(st, {id, name:o.name}, v.start, v.start + (+v.len || 60) * MIN, v.sc || null)); }
+      if (isNew) location.hash = href('artist', id);
+    },
+    onDelete:a.id ? async () => { for (const x of itemsForArtist(a.id)) await del('ros', x.id); await del('artists', a.id); location.hash = href('artists'); } : null});
+}
+function contactForm(a, c = {}) {
+  openForm({title:c.id ? 'Edit contact' : `Add contact · ${a.name}`, fields:[
+    {k:'role', label:'Role', type:'select', options:CONTACT_ROLES.map(r => [r, r])}, {k:'name', label:'Name'},
+    {k:'phone', label:'Phone'}, {k:'email', label:'Email'}, {k:'note', label:'Note', full:true}],
+    values:{role:'Tour manager', ...c},
+    onSave:v => { if (!v.name.trim() && !v.phone.trim()) return 'Enter at least a name or phone number.'; const list = [...(a.contacts || [])]; const i = list.findIndex(x => x.id === c.id); const o = {id:c.id || rid(), ...v}; if (i >= 0) list[i] = o; else list.push(o); return patch('artists', a.id, {contacts:list}); },
+    onDelete:c.id ? () => patch('artists', a.id, {contacts:(a.contacts || []).filter(x => x.id !== c.id)}) : null});
+}
+function viewArtist(id) {
+  const a = S.col.artists[id]; const T = terms();
+  if (!a) return `<div class="panel"><p class="empty">This ${esc(T.performer.toLowerCase())} was removed. <a href="${href('artists')}">Back</a></p></div>`;
+  const w = canW('artists', a.stage); const ws = canW('schedule', a.stage); const sens = artistContacts(a);
+  const items = itemsForArtist(id); const days = [...new Set(items.map(i => festDay(i.start)))];
+  const bks = Object.values(S.col.bookings).filter(b => b.artist === id);
+  const st = S.col.stages[a.stage];
+  const homeNow = a.home ? `${fmtT(now(), false, a.home)} at home in ${a.home.split('/').pop().replace('_', ' ')}` : '';
+  return `<div class="head"><div><p class="small"><a href="${href('artists')}">← ${esc(T.performers)}</a></p><h1>${esc(a.name)}</h1><p>${st ? `<span class="row" style="display:inline-flex"><span class="tape" style="--c:${tapeHex(st.tape)}"></span><a href="#/s/${esc(st.id)}/today">${esc(st.name)}</a></span>` : ''}${a.genre ? ' · ' + esc(a.genre) : ''}${homeNow ? ' · ' + esc(homeNow) : ''}</p></div><div class="actions">${statusChip(a.status)}${w ? `<button class="btn" data-act="artistEdit" data-id="${esc(id)}">${ico('edit')}Edit</button>` : ''}</div></div>
+  <div class="grid g2">
+    <section class="panel"><div class="ph"><h3>Day sheet</h3><div class="actions">${ws ? `<button class="btn sm" data-act="itemAddFor" data-artist="${esc(id)}">${ico('plus')}Item</button><button class="btn sm primary" data-act="daysheet" data-id="${esc(id)}">${items.length ? 'Regenerate' : 'Create day sheet'}</button>` : ''}</div></div>
+      ${items.length ? days.map(d => `<div class="small muted" style="padding:.5rem 1rem 0;font-weight:700">${esc(dayLabel(d, true))}</div><ul class="sheet">${items.filter(i => festDay(i.start) === d).map(i => sheetRow(i, false).replace('<li ', ws ? `<li data-act="itemEdit" data-id="${esc(i.id)}" style="cursor:pointer" ` : '<li ')).join('')}</ul>`).join('') : `<p class="empty">No day sheet yet.${ws ? ' Create one from the stage template: arrival, get in, load in, stage access, changeover, show, load out and departure.' : ''}</p>`}
+    </section>
+    <div class="grid" style="align-content:start">
+      <section class="panel"><div class="ph"><h3>Contacts</h3>${w && sens ? `<div class="actions"><button class="btn sm" data-act="contactAdd" data-id="${esc(id)}">${ico('plus')}Add</button></div>` : ''}</div>${sens ? ((a.contacts || []).map(c => `<div class="contact" ${w ? `data-act="contactEdit" data-id="${esc(id)}" data-c="${esc(c.id)}" style="cursor:pointer"` : ''}><div><b>${esc(c.name)}</b> <span class="r">${esc(c.role)}</span></div><span></span><span class="c">${telLink(c.phone)}${mailLink(c.email)}</span>${c.note ? `<span class="r" style="grid-column:1/-1">${esc(c.note)}</span>` : ''}</div>`).join('') || '<p class="empty">No contacts yet.</p>') : `<p class="empty">${SENS}</p>`}</section>
+      <section class="panel"><div class="ph"><h3>Production</h3></div><div class="pb"><dl class="kv"><dt>Travelling party</dt><dd>${a.party || '—'}</dd><dt>Vehicles</dt><dd>${esc(a.vehicles || '—')}</dd>${a.notes ? `<dt>Notes</dt><dd style="white-space:pre-wrap">${esc(a.notes)}</dd>` : ''}</dl></div></section>
+      ${modOn('accommodation') && lv('accommodation', a.stage) >= 1 ? `<section class="panel"><div class="ph"><h3>Accommodation</h3>${canW('accommodation') ? `<div class="actions"><button class="btn sm" data-act="bookAdd" data-artist="${esc(id)}">${ico('plus')}Book</button></div>` : ''}</div>${bks.length ? `<ul class="list">${bks.map(b => `<li><div class="stack"><b>${esc(S.col.hotels[b.hotel]?.name || 'Hotel')}</b><span class="small muted">${esc(dayLabel(b.checkIn))} → ${esc(dayLabel(b.checkOut))} · ${b.rooms || 1} × ${esc(b.roomType || 'room')}${sens && b.conf ? ` · Ref ${esc(b.conf)}` : ''}</span></div><span class="chip ${b.status === 'confirmed' || b.status === 'checked in' ? 'go' : 'sb'}" style="margin-left:auto">${esc(b.status)}</span></li>`).join('')}</ul>` : '<p class="empty">No rooms booked.</p>'}</section>` : ''}
+    </div>
+    ${modOn('riders') ? ['tech', 'hosp'].filter(k => lv(k === 'tech' ? 'riders_tech' : 'riders_hosp', a.stage) >= 1).map(k => riderPanel(S.col.riders[`${id}_${k}`], id, k)).join('') : ''}
+  </div>`;
+}
+
+/* ---------- Personnel ---------- */
+VIEWS.personnel = sid => {
+  const q = (S.sub.pq || '').toLowerCase(); const fd = S.sub.pd || ''; const fs = sid || S.sub.ps || '';
+  const w = sid ? canW('personnel', sid) : canW('personnel');
+  const list = Object.values(S.col.people).filter(p => (!fs || (p.stages || []).includes(fs)) && (sid || perm('personnel') >= 1) && (!fd || p.dept === fd) && (!q || [p.name, p.title, p.company, p.phone, p.email].join(' ').toLowerCase().includes(q)))
+    .sort((a, b) => (b.lead ? 1 : 0) - (a.lead ? 1 : 0) || deptName(a.dept).localeCompare(deptName(b.dept)) || a.name.localeCompare(b.name));
+  return head(sid ? `Crew & contacts · ${stageName(sid)}` : 'Personnel', sid ? 'Everyone working on this stage, with how to reach them.' : 'The festival-wide contact list. Filter by stage or department, or paste a crew list straight from a spreadsheet.',
+    `${w ? `<button class="btn" data-act="personImport">Paste list</button><button class="btn primary" data-act="personAdd">${ico('plus')}Add person</button>` : ''}`) +
+  `<div class="filters"><input type="search" placeholder="Search name, phone, company…" aria-label="Search personnel" value="${esc(S.sub.pq || '')}" data-input="pq">${sid ? '' : `<select data-chg="ps" aria-label="Stage"><option value="">All stages and HQ</option>${stagesSorted().map(s => `<option value="${esc(s.id)}" ${fs === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`}<select data-chg="pd" aria-label="Department"><option value="">All departments</option>${(cfg().depts || []).map(d => `<option value="${esc(d.id)}" ${fd === d.id ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select><span class="small muted">${list.length} ${list.length === 1 ? 'person' : 'people'}</span></div>
+  <div class="panel tbl-wrap"><table><thead><tr><th>Name</th><th>Role</th><th>Department</th>${sid ? '' : '<th>Stages</th>'}<th>Phone</th><th>Email</th><th>Accreditation</th><th></th></tr></thead><tbody>
+  ${list.map(p => { const u = personUser(p.id); const pw = canW('personnel', (p.stages || [])[0]) || w;
+    return `<tr><td><div class="row">${avatar(u || p.id, p.name)}<div class="stack"><b>${esc(p.name)}</b>${p.company ? `<span class="small muted">${esc(p.company)}</span>` : ''}</div></div></td><td>${esc(p.title || '')}${p.lead ? ' <span class="chip ac">Lead</span>' : ''}</td><td>${p.dept ? `<span class="row"><span class="tape" style="--c:${deptTape(p.dept)};width:10px"></span>${esc(deptName(p.dept))}</span>` : '—'}</td>
+    ${sid ? '' : `<td class="small">${(p.stages || []).map(s => esc(stageName(s))).join(', ') || 'HQ'}</td>`}<td>${telLink(p.phone) || '—'}</td><td class="small">${mailLink(p.email) || '—'}</td><td>${p.accred ? `<span class="chip ac">${esc(p.accred)}</span>` : '—'}${u ? ' <span class="chip go" title="Has access to showctrl">App</span>' : ''}</td>
+    <td>${pw ? `<button class="btn sm" data-act="personEdit" data-id="${esc(p.id)}" aria-label="Edit">${ico('edit')}</button>` : ''}</td></tr>`; }).join('') || `<tr><td colspan="8" class="empty">Nobody listed yet.</td></tr>`}
+  </tbody></table></div>`;
+};
+function personForm(p) {
+  const sid = S.ctx !== 'hq' ? S.ctx : null;
+  p = p || {stages:sid ? [sid] : [], accred:sid ? 'Stage' : ''};
+  const stageOpts = stagesSorted().filter(s => canW('personnel', s.id) || (p.stages || []).includes(s.id)).map(s => [s.id, s.name]);
+  openForm({title:p.id ? `Edit ${p.name}` : 'Add person', fields:[
+    {k:'name', label:'Name'}, {k:'title', label:'Job title', placeholder:'e.g. Stage manager, Backline tech'},
+    {k:'phone', label:'Phone'}, {k:'email', label:'Email'},
+    {k:'company', label:'Company / supplier'}, {k:'dept', label:'Department', type:'select', options:[['', '—'], ...(cfg().depts || []).map(d => [d.id, d.name])]},
+    {k:'accred', label:'Accreditation', type:'select', options:[['', 'None'], ...ACCRED.map(a => [a, a])]},
+    {k:'lead', label:'Key contact', type:'checks', options:[['yes', 'Show as a key contact']]},
+    {k:'stages', label:'Works on', type:'checks', full:true, options:stageOpts},
+    {k:'notes', label:'Notes', type:'textarea', full:true, placeholder:'Shifts, radio call sign, dietary needs…'}],
+    values:{...p, lead:p.lead ? ['yes'] : []},
+    onSave:v => { if (!v.name.trim()) return 'Enter a name.'; const keep = (p.stages || []).filter(s => !stageOpts.some(o => o[0] === s)); return put('people', p.id || rid(), {name:v.name.trim(), title:v.title, phone:v.phone, email:v.email, company:v.company, dept:v.dept || null, accred:v.accred, lead:(v.lead || []).length > 0, stages:[...keep, ...(v.stages || [])], notes:v.notes}); },
+    onDelete:p.id ? () => del('people', p.id) : null});
+}
+function personImportForm() {
+  const sid = S.ctx !== 'hq' ? S.ctx : null;
+  openForm({title:'Paste a crew list', fields:[
+    {k:'text', label:'One person per line: name, job title, phone, email', type:'textarea', full:true, placeholder:'Kari Nordmann, Stagehand, +47 900 00 000, kari@example.com\nOla Hansen\tRigger\t+47 911 11 111'},
+    {k:'dept', label:'Department', type:'select', options:[['', '—'], ...(cfg().depts || []).map(d => [d.id, d.name])]},
+    {k:'stage', label:'Works on', type:'select', options:[...(sid ? [] : [['', 'HQ / no stage']]), ...stagesSorted().filter(s => canW('personnel', s.id)).map(s => [s.id, s.name])]}],
+    values:{stage:sid || ''}, saveLabel:'Add people',
+    onSave:async v => {
+      const rows = v.text.split('\n').map(l => l.split(/\t|;|,(?=\s*\S)/).map(x => x.trim())).filter(r => r[0]);
+      if (!rows.length) return 'Paste at least one line.';
+      const objs = rows.map(r => { const phone = r.find(x => /^\+?[\d\s()-]{6,}$/.test(x)) || ''; const email = r.find(x => /@/.test(x)) || ''; const rest = r.slice(1).filter(x => x !== phone && x !== email);
+        return {id:rid(), name:r[0], title:rest[0] || '', company:rest[1] || '', phone, email, dept:v.dept || null, stages:v.stage ? [v.stage] : [], accred:v.stage ? 'Stage' : '', lead:false, notes:''}; });
+      await putMany('people', objs); toast(`Added ${objs.length} ${objs.length === 1 ? 'person' : 'people'}.`);
+    }});
+}
+
+/* ---------- Accommodation (HQ) ---------- */
+function bookingGuest(b) { return b.artist ? artistName(b.artist) || 'Removed' : (b.guest || 'Guest'); }
+VIEWS.accommodation = () => {
+  const w = canW('accommodation'); const sens = role() === 'admin' || roleDef().contacts;
+  const fs = S.sub.as || '';
+  const hotels = Object.values(S.col.hotels).sort((a, b) => a.name.localeCompare(b.name));
+  const bks = Object.values(S.col.bookings).filter(b => b.status !== 'cancelled' && (!fs || S.col.artists[b.artist]?.stage === fs)).sort((a, b) => a.checkIn.localeCompare(b.checkIn) || bookingGuest(a).localeCompare(bookingGuest(b)));
+  const days = eventDays(); const from = addDays(days[0] || dayKey(now()), -1); const to = addDays(days[days.length - 1] || dayKey(now()), 1);
+  const nights = nightsBetween(from, to); const today = dayKey(now());
+  const allB = Object.values(S.col.bookings).filter(b => b.status !== 'cancelled');
+  const used = (h, n) => allB.filter(b => b.hotel === h && b.checkIn <= n && b.checkOut > n).reduce((s, b) => s + (+b.rooms || 1), 0);
+  return head('Accommodation', `Hotels, room blocks and the rooming list for ${esc(terms().performers.toLowerCase())}, crew and guests.`, w ? `<button class="btn" data-act="hotelAdd">${ico('plus')}Add hotel</button><button class="btn primary" data-act="bookAdd">${ico('plus')}Add booking</button>` : '') +
+  `<div class="grid g3" style="margin-bottom:1rem">${hotels.map(h => `<section class="panel"><div class="ph"><h3>${esc(h.name)}</h3>${w ? `<div class="actions"><button class="btn sm" data-act="hotelEdit" data-id="${esc(h.id)}" aria-label="Edit hotel">${ico('edit')}</button></div>` : ''}</div><div class="pb stack small">${sens ? `<span>${esc(h.address || '')}</span><span class="muted">${esc(h.contact || '')} ${telLink(h.phone)}</span>` : SENS}<span>Block: <b>${h.block || 0}</b> rooms per night</span>${h.notes ? `<span class="muted">${esc(h.notes)}</span>` : ''}</div></section>`).join('') || `<div class="panel"><p class="empty">No hotels yet.</p></div>`}</div>
+  ${hotels.length ? `<section class="panel" style="margin-bottom:1rem"><div class="ph"><h3>Rooms used per night</h3></div><div class="tbl-wrap"><table class="nights"><thead><tr><th>Hotel</th>${nights.map(n => `<th class="n" ${n === today ? 'style="color:var(--accent)"' : ''}>${esc(dayLabel(n))}</th>`).join('')}</tr></thead><tbody>${hotels.map(h => `<tr><td><b>${esc(h.name)}</b></td>${nights.map(n => { const u = used(h.id, n); return `<td class="n num ${h.block && u > h.block ? 'over' : ''}">${u ? `${u}/${h.block || '–'}` : '<span class="muted">·</span>'}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div></section>` : ''}
+  <div class="filters"><select data-chg="as" aria-label="Stage"><option value="">Everyone</option>${stagesSorted().map(s => `<option value="${esc(s.id)}" ${fs === s.id ? 'selected' : ''}>${esc(s.name)} ${esc(terms().performers.toLowerCase())}</option>`).join('')}</select></div>
+  <section class="panel"><div class="ph"><h3>Rooming list</h3></div><div class="tbl-wrap"><table class="nights"><thead><tr><th>Guest</th><th>Hotel</th><th>Rooms</th><th>Status</th>${nights.map(n => `<th class="n">${esc(dayLabel(n))}</th>`).join('')}${sens ? '<th>Ref</th>' : ''}</tr></thead><tbody>
+  ${bks.map(b => `<tr class="${w ? 'click' : ''}" ${w ? `data-act="bookEdit" data-id="${esc(b.id)}"` : ''}><td><b>${esc(bookingGuest(b))}</b><div class="small muted">${b.artist ? esc(stageName(S.col.artists[b.artist]?.stage)) : esc(b.guestRole || '')}</div></td><td>${esc(S.col.hotels[b.hotel]?.name || '—')}</td><td class="num">${b.rooms || 1} × ${esc(b.roomType || 'room')}</td><td><span class="chip ${b.status === 'confirmed' || b.status === 'checked in' ? 'go' : b.status === 'requested' ? 'sb' : ''}">${esc(b.status)}</span></td>
+  ${nights.map(n => `<td class="n">${b.checkIn <= n && b.checkOut > n ? `<i class="${b.status === 'requested' || b.status === 'held' ? 'req' : b.status === 'checked in' ? 'in' : ''}"></i>` : ''}</td>`).join('')}${sens ? `<td class="small">${esc(b.conf || '—')}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${5 + nights.length}" class="empty">No bookings.</td></tr>`}
+  </tbody></table></div></section>`;
+};
+function hotelForm(h = {}) {
+  openForm({title:h.id ? 'Edit hotel' : 'Add hotel', fields:[{k:'name', label:'Name', full:true}, {k:'address', label:'Address', full:true}, {k:'contact', label:'Contact person'}, {k:'phone', label:'Phone'}, {k:'block', label:'Rooms held per night', type:'number'}, {k:'notes', label:'Notes', type:'textarea', full:true}], values:h,
+    onSave:v => v.name.trim() ? put('hotels', h.id || rid(), {...v, name:v.name.trim(), block:+v.block || 0}) : 'Enter a name.', onDelete:h.id ? () => del('hotels', h.id) : null});
+}
+function bookForm(b = {}) {
+  const T = terms(); const sh = b.artist ? showsFor(b.artist)[0] : null;
+  const ci = b.checkIn || (sh ? festDay(sh.start) : eventDays()[0]) || dayKey(now());
+  openForm({title:b.id ? 'Edit booking' : 'Add booking', fields:[
+    {k:'artist', label:T.performer, type:'select', options:[['', `Not a ${T.performer.toLowerCase()}`], ...artistsSorted().map(a => [a.id, a.name])]},
+    {k:'guest', label:'Guest name', show:v => !v.artist}, {k:'guestRole', label:'Guest is', show:v => !v.artist, placeholder:'e.g. Crew, Press, VIP'},
+    {k:'hotel', label:'Hotel', type:'select', options:Object.values(S.col.hotels).map(h => [h.id, h.name])},
+    {k:'status', label:'Status', type:'select', options:BOOK_STATUS.map(s => [s, s])},
+    {k:'checkIn', label:'Check-in', type:'date'}, {k:'checkOut', label:'Check-out', type:'date'},
+    {k:'rooms', label:'Rooms', type:'number'}, {k:'roomType', label:'Room type', placeholder:'Single, double, suite'},
+    {k:'conf', label:'Confirmation number'}, {k:'notes', label:'Notes', type:'textarea', full:true}],
+    values:{status:'requested', rooms:1, roomType:'double', ...b, checkIn:ci, checkOut:b.checkOut || addDays(ci, 1)},
+    onSave:v => { if (!Object.keys(S.col.hotels).length) return 'Add a hotel first.'; if (!v.artist && !(v.guest || '').trim()) return 'Choose who the booking is for.'; if (v.checkOut <= v.checkIn) return 'Check-out must be after check-in.'; return put('bookings', b.id || rid(), {...b, ...v, rooms:+v.rooms || 1}); },
+    onDelete:b.id ? () => del('bookings', b.id) : null});
+}
+
+/* ---------- Riders ---------- */
+function riderPanel(r, artistId, kind) {
+  const a = S.col.artists[artistId]; const key = kind === 'tech' ? 'riders_tech' : 'riders_hosp'; const w = canW(key, a?.stage);
+  const items = r?.items || []; const ok = items.filter(x => x.status === 'sourced' || x.status === 'declined').length;
+  const depts = cfg().depts || [];
+  return `<section class="panel rider"><div class="ph"><span class="chip ${kind === 'tech' ? 'ac' : 'go'}">${kind === 'tech' ? 'Technical' : 'Hospitality'}</span><h3>${esc(artistName(artistId))}</h3>${items.length ? `<div class="row"><div class="bar"><i style="width:${Math.round(ok / items.length * 100)}%"></i></div><span class="small num">${ok}/${items.length}</span></div>` : ''}<div class="actions">${w ? `<button class="btn sm" data-act="riderAdd" data-artist="${esc(artistId)}" data-kind="${kind}">${ico('plus')}Add items</button>` : ''}</div></div>
+  ${items.length ? `<ul class="items">${items.map(it => `<li class="${esc(it.status)}"><span class="tx">${esc(it.text)}</span>
+    ${w ? `<select class="inline-sel" data-chg="riderDept" data-rider="${esc(artistId + '_' + kind)}" data-item="${esc(it.id)}" aria-label="Department"><option value="">Unassigned</option>${depts.map(d => `<option value="${esc(d.id)}" ${d.id === it.dept ? 'selected' : ''}>${esc(d.name)}</option>`).join('')}</select>
+    <select class="inline-sel" data-chg="riderStatus" data-rider="${esc(artistId + '_' + kind)}" data-item="${esc(it.id)}" aria-label="Status">${RIDER_STATUS.map(s => `<option ${s === it.status ? 'selected' : ''}>${s}</option>`).join('')}</select>`
+    : `<span class="small">${it.dept ? esc(deptName(it.dept)) : ''}</span><span class="chip ${it.status === 'sourced' ? 'go' : it.status === 'declined' ? 'st' : it.status === 'agreed' ? 'ac' : 'sb'}">${esc(it.status)}</span>`}</li>`).join('')}</ul>` : `<p class="empty">No ${kind === 'tech' ? 'technical' : 'hospitality'} rider items yet.</p>`}</section>`;
+}
+VIEWS.riders = sid => {
+  const kinds = ['tech', 'hosp'].filter(k => lv(k === 'tech' ? 'riders_tech' : 'riders_hosp', sid) >= 1);
+  let kind = S.sub.rkind; if (!kinds.includes(kind)) kind = kinds[0]; S.sub.rkind = kind;
+  const fs = sid || S.sub.rs || '';
+  const arts = artistsSorted().filter(a => (!fs || a.stage === fs) && (sid || canSeeStage(a.stage)));
+  const open = arts.reduce((n, a) => n + (S.col.riders[`${a.id}_${kind}`]?.items || []).filter(i => i.status === 'requested' || i.status === 'agreed').length, 0);
+  return head(sid ? `Riders · ${stageName(sid)}` : 'Riders', 'Paste a rider in line by line, then assign each item to the department that sources it.', sid ? '' : `<select class="inline-sel" data-chg="rs" aria-label="Stage"><option value="">All stages</option>${stagesSorted().map(s => `<option value="${esc(s.id)}" ${fs === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>`) +
+  `<div class="tabs" role="tablist">${kinds.map(k => `<button role="tab" aria-selected="${k === kind}" data-act="rkind" data-kind="${k}">${k === 'tech' ? 'Technical riders' : 'Hospitality riders'}</button>`).join('')}<span class="small muted" style="margin-left:auto;align-self:center">${open} open item${open === 1 ? '' : 's'}</span></div>
+  <div class="grid g2">${arts.map(a => riderPanel(S.col.riders[`${a.id}_${kind}`], a.id, kind)).join('') || `<div class="panel"><p class="empty">No ${esc(terms().performers.toLowerCase())} here yet.</p></div>`}</div>`;
+};
+function riderAddForm(artistId, kind) {
+  openForm({title:`Add ${kind === 'tech' ? 'technical' : 'hospitality'} items · ${artistName(artistId)}`, fields:[
+    {k:'lines', label:'One item per line', type:'textarea', full:true, placeholder:kind === 'tech' ? 'Drum riser 8×8 ft, 60 cm high\n4 × wedge monitors on separate mixes' : 'Hot meal for 8 (1 vegan)\n12 × still water'},
+    {k:'dept', label:'Department', type:'select', options:[['', 'Unassigned'], ...(cfg().depts || []).map(d => [d.id, d.name])]}],
+    values:{dept:kind === 'hosp' ? 'hosp' : ''}, saveLabel:'Add items',
+    onSave:async v => {
+      const lines = v.lines.split('\n').map(s => s.replace(/^[-*•\d.)\s]+/, '').trim()).filter(Boolean);
+      if (!lines.length) return 'Add at least one line.';
+      const id = `${artistId}_${kind}`; const r = S.col.riders[id];
+      const items = [...(r?.items || []), ...lines.map(text => ({id:rid(), text, status:'requested', dept:v.dept || null}))];
+      return r ? patch('riders', id, {items, updated:now()}) : put('riders', id, {artist:artistId, kind, items, updated:now()});
+    }});
+}
+async function riderItemChange(riderId, itemId, field, value) {
+  const r = S.col.riders[riderId]; if (!r) return;
+  await patch('riders', riderId, {items:(r.items || []).map(i => i.id === itemId ? {...i, [field]:value || null} : i), updated:now()});
+}
+
+/* ---------- Stage setup (stage managers) ---------- */
+VIEWS.setup = sid => {
+  const st = S.col.stages[sid]; const tp = {...DEFAULT_TPL, ...(st.template || {})};
+  const mgrs = stageManagers(sid); const crew = stageCrewUsers(sid);
+  const reqs = Object.values(S.col.requests).filter(r => r.stage === sid && !stageRoleOf(r.id, sid) && !(S.col.members[r.id]?.role && S.col.members[r.id].role !== 'none'));
+  return head(`Stage setup · ${st.name}`, 'Stage details, who can use this stage in showctrl, and the template every new day sheet is built from.', `<button class="btn" data-act="stageEdit" data-id="${esc(sid)}">${ico('edit')}Edit details</button>`) +
+  `<div class="grid g2">
+    <section class="panel"><div class="ph"><h3>Details</h3></div><div class="pb"><dl class="kv"><dt>Location</dt><dd>${esc(st.location || '—')}</dd><dt>Radio channel</dt><dd>${esc(st.radio || '—')}</dd><dt>Capacity</dt><dd>${st.capacity ? Number(st.capacity).toLocaleString('en-GB') : '—'}</dd><dt>Colour</dt><dd><span class="tape" style="--c:${tapeHex(st.tape)}"></span> ${esc(st.tape)}</dd></dl></div></section>
+    <section class="panel"><div class="ph"><h3>Day sheet template</h3><div class="actions"><button class="btn sm" data-act="tplEdit">${ico('edit')}Edit</button></div></div><div class="pb"><dl class="kv">${TPL_FIELDS.map(([k, l]) => `<dt>${esc(l)}</dt><dd class="num">${Math.abs(tp[k])} min</dd>`).join('')}</dl></div></section>
+    <section class="panel"><div class="ph"><h3>Stage team in showctrl</h3><div class="actions">${S.mode === 'live' ? `<button class="btn sm primary" data-act="crewAdd">${ico('plus')}Add from organisation</button>` : `<button class="btn sm primary" data-act="crewAddDemo">${ico('plus')}Add</button>`}</div></div>
+      ${reqs.length ? `<div class="pb" style="border-bottom:1px solid var(--line)"><b>Asking to join</b>${reqs.map(r => `<div class="row" style="margin-top:.5rem">${avatar(r.id)}<span>${esc(personName(r.id))}<span class="small muted"> · ${esc(r.note || '')}</span></span><button class="btn sm go" style="margin-left:auto" data-act="crewApprove" data-id="${esc(r.id)}">Add to team</button></div>`).join('')}</div>` : ''}
+      <ul class="list">${mgrs.map(u => `<li>${avatar(u)}<span><b>${esc(personName(u))}</b><span class="small muted"> · Stage manager (set by festival admin)</span></span></li>`).join('')}${crew.map(u => `<li>${avatar(u)}<span><b>${esc(personName(u))}</b><span class="small muted"> · Stage crew</span></span><button class="btn sm danger" style="margin-left:auto" data-act="crewRemove" data-id="${esc(u)}">Remove</button></li>`).join('') || (mgrs.length ? '' : '<li class="muted">Nobody yet.</li>')}</ul>
+      <p class="small muted" style="padding:0 1rem 1rem">Stage crew can see this stage's run sheet, ${esc(terms().performers.toLowerCase())}, crew list and display, and send messages. Only stage managers change things.</p></section>
+  </div>`;
+};
+function stageForm(s = {}) {
+  openForm({title:s.id ? `Edit ${s.name}` : `Add ${terms().stage.toLowerCase()}`, fields:[{k:'name', label:'Name', full:true}, {k:'tape', label:'Colour', type:'select', options:Object.keys(TAPE).map(t => [t, t])}, {k:'order', label:'Order', type:'number'}, {k:'location', label:'Location on site', placeholder:'e.g. North field, gate C'}, {k:'radio', label:'Radio channel'}, {k:'capacity', label:'Capacity', type:'number'}], values:{tape:'blue', order:Object.keys(S.col.stages).length, ...s},
+    onSave:v => v.name.trim() ? put('stages', s.id || rid(), {...s, name:v.name.trim(), tape:v.tape, order:+v.order || 0, location:v.location, radio:v.radio, capacity:+v.capacity || null}) : 'Enter a name.',
+    onDelete:s.id && perm('admin') >= 2 ? () => del('stages', s.id) : null});
+}
+function tplForm() {
+  const st = S.col.stages[S.ctx]; const tp = {...DEFAULT_TPL, ...(st.template || {})};
+  openForm({title:`Day sheet template · ${st.name}`, fields:TPL_FIELDS.map(([k, l]) => ({k, label:l, type:'number'})), values:Object.fromEntries(TPL_FIELDS.map(([k]) => [k, Math.abs(tp[k])])),
+    onSave:v => { const neg = ['arrival', 'getin', 'loadin', 'access']; const t = Object.fromEntries(TPL_FIELDS.map(([k]) => [k, (neg.includes(k) ? -1 : 1) * Math.abs(+v[k] || 0)])); return patch('stages', st.id, {template:t}); }});
+}
+
+/* ---------- Admin (HQ) ---------- */
+VIEWS.admin = () => {
+  const tab = S.sub.atab || 'stages'; const w = perm('admin') >= 2 && (S.mode === 'local' || S.shareEdit !== false);
+  const tabs = [['stages', `${terms().stages} & managers`], ['access', 'People with access'], ['roles', 'Roles'], ['event', 'Event'], ['depts', 'Departments']];
+  let body = '';
+  if (tab === 'stages') body = `<div class="row" style="margin-bottom:1rem;justify-content:flex-end">${w ? `<button class="btn primary" data-act="stageAdd">${ico('plus')}Add ${esc(terms().stage.toLowerCase())}</button>` : ''}</div><div class="grid g3">${stagesSorted().map(s => { const mg = stageManagers(s.id);
+    return `<section class="panel tapeL" style="--c:${tapeHex(s.tape)}"><div class="ph"><h3>${esc(s.name)}</h3><div class="actions">${w ? `<button class="btn sm" data-act="stageEdit" data-id="${esc(s.id)}" aria-label="Edit">${ico('edit')}</button>` : ''}</div></div><div class="pb stack small"><span class="muted">${esc(s.location || '')}${s.radio ? ' · Radio ' + esc(s.radio) : ''}${s.capacity ? ' · ' + Number(s.capacity).toLocaleString('en-GB') + ' capacity' : ''}</span><span><b>Stage managers</b></span>${mg.map(u => `<span class="row">${avatar(u)}${esc(personName(u))}${w ? `<button class="btn sm danger" style="margin-left:auto" data-act="mgrRemove" data-uid="${esc(u)}" data-sid="${esc(s.id)}">Remove</button>` : ''}</span>`).join('') || '<span class="muted">None yet</span>'}${w ? `<button class="btn sm" data-act="mgrAdd" data-sid="${esc(s.id)}">${ico('plus')}Appoint stage manager</button>` : ''}<span class="muted">${stageCrewUsers(s.id).length} crew with app access · ${peopleFor(s.id).length} in personnel list</span></div></section>`; }).join('')}</div>`;
+  if (tab === 'access') {
+    const reqs = Object.values(S.col.requests).filter(r => !S.col.members[r.id] && !stagesSorted().some(s => stageRoleOf(r.id, s.id)));
+    const users = [...new Set([...Object.keys(S.col.members), ...Object.values(S.col.stageteam).flatMap(t => Object.keys(t.crew || {}))])];
+    body = `${reqs.length && w ? `<section class="panel" style="margin-bottom:1rem"><div class="ph"><h3>Waiting for access</h3><span class="badge">${reqs.length}</span></div><ul class="list">${reqs.map(r => `<li>${avatar(r.id)}<div class="stack"><b>${esc(personName(r.id))}</b><span class="small muted">${esc(r.note || '')}${r.stage ? ' · wants ' + esc(stageName(r.stage)) : ''} · ${esc(rel(r.at))}</span></div><div class="row" style="margin-left:auto"><button class="btn sm go" data-act="accessEdit" data-id="${esc(r.id)}">Give access</button><button class="btn sm danger" data-act="reject" data-id="${esc(r.id)}">Decline</button></div></li>`).join('')}</ul></section>` : ''}
+    <section class="panel"><div class="ph"><h3>People with access</h3>${w ? `<div class="actions"><button class="btn sm primary" data-act="accessAdd">${ico('plus')}Give someone access</button></div>` : ''}</div><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Festival role</th><th>Stages</th><th>Linked personnel entry</th><th></th></tr></thead><tbody>
+    ${S.mode === 'live' && S.isOwner && !S.col.members[S.me] ? `<tr><td><div class="row">${avatar(S.me)}<b>${esc(personName(S.me))}</b></div></td><td><span class="chip ac">Festival admin (owner)</span></td><td colspan="3" class="small muted">Owners are always admins.</td></tr>` : ''}
+    ${users.sort((a, b) => personName(a).localeCompare(personName(b))).map(u => { const m = S.col.members[u] || {}; const st = stagesSorted().map(s => [s, stageRoleOf(u, s.id)]).filter(x => x[1]);
+      return `<tr><td><div class="row">${avatar(u)}<b>${esc(personName(u))}</b></div></td><td>${esc(roleDef(m.role || 'none').label)}</td><td>${st.map(([s, r]) => `<span class="chip"><span class="tape" style="--c:${tapeHex(s.tape)};width:10px"></span>${esc(s.name)} · ${r === 'manager' ? 'SM' : 'crew'}</span>`).join(' ') || '—'}</td><td class="small">${m.person && S.col.people[m.person] ? esc(S.col.people[m.person].name) : '<span class="muted">—</span>'}</td><td>${w ? `<button class="btn sm" data-act="accessEdit" data-id="${esc(u)}" aria-label="Edit">${ico('edit')}</button>` : ''}</td></tr>`; }).join('')}
+    </tbody></table></div></section>`;
+  }
+  if (tab === 'roles') { const roles = S.roles || DEFAULT_ROLES;
+    body = `<p class="muted" style="margin-bottom:1rem;max-width:70ch">Festival roles apply everywhere. On top of that, a <b>stage manager</b> can edit everything on their own stage (run sheet, ${esc(terms().performers.toLowerCase())}, contacts, crew list, clocks, riders), and <b>stage crew</b> can view their stage and send messages.</p>
+    <section class="panel"><div class="ph"><h3>Festival roles</h3>${w ? `<div class="actions"><button class="btn sm" data-act="roleAdd">${ico('plus')}Add role</button></div>` : ''}</div><div class="tbl-wrap"><table class="matrix"><thead><tr><th>Role</th>${PK.map(([, l]) => `<th>${esc(l)}</th>`).join('')}<th>Artist contacts</th></tr></thead><tbody>
+    ${Object.entries(roles).map(([rk, r]) => `<tr><td><b>${esc(r.label)}</b>${w && !DEFAULT_ROLES[rk] ? ` <button class="btn sm danger" data-act="roleDel" data-role="${esc(rk)}">Remove</button>` : ''}</td>${PK.map(([k]) => { const v = rk === 'admin' ? 2 : r.perms?.[k] ?? 0;
+      return `<td>${w && !r.locked ? `<select data-chg="perm" data-role="${esc(rk)}" data-key="${k}" aria-label="${esc(r.label)} ${k}">${LEVELS.map((l, i) => `<option value="${i}" ${i === v ? 'selected' : ''}>${l}</option>`).join('')}</select>` : `<span class="lv${v}">${LEVELS[v]}</span>`}</td>`; }).join('')}
+    <td>${w && !r.locked ? `<input type="checkbox" data-chg="contacts" data-role="${esc(rk)}" ${r.contacts ? 'checked' : ''} aria-label="${esc(r.label)} sees artist contacts">` : r.contacts || rk === 'admin' ? 'Yes' : 'No'}</td></tr>`).join('')}
+    </tbody></table></div></section>
+    <div class="row" style="margin-top:1rem"><label class="row small">Preview the app as <select class="inline-sel" data-chg="preview"><option value="">—</option><optgroup label="Festival roles">${Object.entries(roles).map(([k, r]) => `<option value="role:${esc(k)}">${esc(r.label)}</option>`).join('')}</optgroup>${stagesSorted().map(s => `<optgroup label="${esc(s.name)}"><option value="stage:manager:${esc(s.id)}">Stage manager</option><option value="stage:crew:${esc(s.id)}">Stage crew</option></optgroup>`).join('')}</select></label></div>`;
+  }
+  if (tab === 'event') { const c = cfg(); const T = terms();
+    body = `<div class="grid g2"><section class="panel"><div class="ph"><h3>${esc(c.name || 'Event')}</h3>${w ? `<div class="actions"><button class="btn sm" data-act="eventEdit">${ico('edit')}Edit</button></div>` : ''}</div><div class="pb"><dl class="kv"><dt>Type</dt><dd>${esc(TYPES[c.type]?.label || '')}</dd><dt>Dates</dt><dd>${eventDays().length ? `${esc(dayLabel(eventDays()[0], true))} – ${esc(dayLabel(eventDays().slice(-1)[0], true))}` : ''}</dd><dt>Time zone</dt><dd>${esc(TZ())}</dd><dt>Expected visitors</dt><dd>${c.visitors ? Number(c.visitors).toLocaleString('en-GB') : '—'}</dd><dt>Vocabulary</dt><dd>${esc(T.performer)} / ${esc(T.stage)}</dd></dl></div></section>
+    <section class="panel"><div class="ph"><h3>Modules</h3></div><ul class="list">${[['accommodation', 'Accommodation'], ['riders', 'Riders']].map(([k, l]) => `<li><label class="row"><input type="checkbox" data-chg="module" data-id="${k}" ${modOn(k) ? 'checked' : ''} ${w ? '' : 'disabled'}> <b>${l}</b></label></li>`).join('')}<li class="small muted">Run sheets, clocks, personnel and messages are always on.</li></ul></section>
+    ${S.mode === 'local' ? `<section class="panel"><div class="ph"><h3>Demo data</h3></div><div class="pb stack"><p class="muted">Demo mode keeps data in this browser only. On the published page everything is shared live with your team.</p><div class="row"><button class="btn" data-act="resetDemo">Reload sample festival</button></div></div></section>` : ''}</div>`; }
+  if (tab === 'depts') body = `<section class="panel" style="max-width:640px"><div class="ph"><h3>Departments</h3>${w ? `<div class="actions"><button class="btn sm" data-act="deptAdd">${ico('plus')}Add</button></div>` : ''}</div><ul class="list">${(cfg().depts || []).map(d => `<li><span class="tape" style="--c:${tapeHex(d.tape)};margin-top:.45rem"></span><span>${esc(d.name)}</span>${w ? `<button class="btn sm" style="margin-left:auto" data-act="deptEdit" data-id="${esc(d.id)}" aria-label="Edit">${ico('edit')}</button>` : ''}</li>`).join('')}</ul></section>`;
+  return head('Admin', 'Create the event, add stages, and hand each stage to its stage manager. They take it from there.') +
+    `${S.mode === 'live' && perm('admin') >= 2 && S.shareEdit === false ? `<div class="panel pb" style="margin-bottom:1rem"><p>Changing access needs Editor rights on this page. Ask the owner to make you an Editor in the share menu.</p></div>` : ''}
+    <div class="tabs" role="tablist">${tabs.map(([k, l]) => `<button role="tab" aria-selected="${k === tab}" data-act="atab" data-tab="${k}">${esc(l)}</button>`).join('')}</div>${body}`;
+};
+function accessForm(uid) {
+  const m = S.col.members[uid] || {}; const roles = S.roles || DEFAULT_ROLES; const rq = S.col.requests[uid];
+  openForm({title:`Access · ${personName(uid)}`, fields:[
+    ...(S.mode === 'local' ? [{k:'name', label:'Name', full:true}] : []),
+    {k:'role', label:'Festival role', type:'select', options:Object.entries(roles).map(([k, r]) => [k, r.label])},
+    {k:'person', label:'Personnel entry', type:'select', options:[['', '— Not linked —'], ...Object.values(S.col.people).sort((a, b) => a.name.localeCompare(b.name)).map(p => [p.id, `${p.name}${p.title ? ' · ' + p.title : ''}`])]},
+    {k:'mgr', label:'Stage manager for', type:'checks', full:true, options:stagesSorted().map(s => [s.id, s.name])},
+    {k:'crew', label:'Stage crew on', type:'checks', full:true, options:stagesSorted().map(s => [s.id, s.name])},
+    {k:'depts', label:'Departments (for department messages)', type:'checks', full:true, options:(cfg().depts || []).map(d => [d.id, d.name])}],
+    values:{role:m.role || 'none', person:m.person || '', name:m.name || '', depts:m.depts || [], mgr:Object.keys(m.stages || {}).filter(s => m.stages[s] === 'manager'), crew:stagesSorted().filter(s => S.col.stageteam[s.id]?.crew?.[uid]).map(s => s.id).concat(rq?.stage && !m.role ? [rq.stage] : [])},
+    onSave:async v => {
+      const stages = Object.fromEntries((v.mgr || []).map(s => [s, 'manager']));
+      const o = {role:v.role, person:v.person || null, depts:v.depts || [], stages}; if (S.mode === 'local') o.name = v.name || m.name || 'Person';
+      if (!(await put('members', uid, o))) return false;
+      for (const s of stagesSorted()) { const has = !!S.col.stageteam[s.id]?.crew?.[uid]; const want = (v.crew || []).includes(s.id); if (has !== want) await setCrew(s.id, uid, want); }
+      if (S.col.requests[uid]) await del('requests', uid);
+    },
+    onDelete:S.col.members[uid] && uid !== S.me ? async () => { for (const s of stagesSorted()) if (S.col.stageteam[s.id]?.crew?.[uid]) await setCrew(s.id, uid, false); await del('members', uid); } : null});
+}
+async function setCrew(sid, uid, on) {
+  const crew = {...(S.col.stageteam[sid]?.crew || {})}; if (on) crew[uid] = true; else delete crew[uid];
+  return put('stageteam', sid, {crew});
+}
+function userPicker(title, onPick) {
+  const dlg = $('#dlg');
+  dlg.innerHTML = `<form method="dialog"><div class="dh"><h2>${esc(title)}</h2><button value="x" aria-label="Close">×</button></div><div class="db"><label class="fld full"><span>Search your organisation</span><input id="psq" autocomplete="off" placeholder="Start typing a name"></label><ul class="pick" id="psr"><li class="muted">Type to search</li></ul><p class="small muted fld full">People also show up for you to approve when they open the page and ask for access.</p></div></form>`;
+  dlg.showModal();
+  const run = async q => { try { const res = await S.user.search(q); $('#psr').innerHTML = res.map(p => { S.profiles[p.id] = p; return `<li data-act="pickUser" data-id="${esc(p.id)}">${avatar(p.id)}<span>${esc(p.name || 'Unnamed')}</span></li>`; }).join('') || '<li class="muted">Nobody found</li>'; } catch { $('#psr').innerHTML = '<li class="muted">Search is not available here</li>'; } };
+  const inp = $('#psq'); let t; inp.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => run(inp.value), 200); }); run(''); inp.focus();
+  PICK = onPick;
+}
+let PICK = null;
+function demoUserForm(sid, asManager) {
+  openForm({title:asManager ? `Appoint stage manager · ${stageName(sid)}` : `Add to ${stageName(sid)} team`, fields:[{k:'name', label:'Name', full:true}, {k:'person', label:'Personnel entry', type:'select', options:[['', '—'], ...peopleFor(sid).map(p => [p.id, p.name])]}],
+    values:{}, onSave:async v => { const p = S.col.people[v.person]; const name = v.name.trim() || p?.name; if (!name) return 'Enter a name.'; const uid = 'demo-' + rid();
+      await put('members', uid, {name, role:'none', person:v.person || null, depts:p?.dept ? [p.dept] : [], stages:asManager ? {[sid]:'manager'} : {}}); if (!asManager) await setCrew(sid, uid, true); }});
+}
+function eventForm() {
+  const c = cfg();
+  openForm({title:'Edit event', fields:[
+    {k:'name', label:'Event name', full:true}, {k:'type', label:'Event type', type:'select', options:Object.entries(TYPES).map(([k, v]) => [k, v.label])},
+    {k:'tz', label:'Time zone', type:'select', options:TZS.map(z => [z, z])}, {k:'start', label:'First day', type:'date'}, {k:'end', label:'Last day', type:'date'},
+    {k:'visitors', label:'Expected visitors', type:'number'}],
+    values:c,
+    onSave:v => { if (v.end < v.start) return 'The last day must be after the first day.'; return putCfg('event', {...c, name:v.name.trim() || 'Untitled event', type:v.type, tz:v.tz, start:v.start, end:v.end, visitors:+v.visitors || null, terms:TYPES[v.type].terms}); }});
+}
+function deptForm(d = {}) {
+  const c = cfg();
+  openForm({title:d.id ? 'Edit department' : 'Add department', fields:[{k:'name', label:'Name', full:true}, {k:'tape', label:'Spike tape colour', type:'select', options:Object.keys(TAPE).map(t => [t, t])}], values:{tape:'grey', ...d},
+    onSave:v => { if (!v.name.trim()) return 'Enter a name.'; const depts = [...(c.depts || [])]; const i = depts.findIndex(x => x.id === d.id); const o = {id:d.id || rid(), name:v.name.trim(), tape:v.tape}; if (i >= 0) depts[i] = o; else depts.push(o); return putCfg('event', {...c, depts}); },
+    onDelete:d.id ? () => putCfg('event', {...c, depts:(c.depts || []).filter(x => x.id !== d.id)}) : null});
+}
+
+/* ---------- Setup (empty event) ---------- */
+function renderSetup() {
+  const admin = S.mode === 'local' || S.isOwner || S.shareEdit;
+  const old = S.cfg && S.cfg.schema !== 2;
+  if (old && admin) return `<div class="setup"><div class="panel"><h1>Upgrade this event</h1><p class="muted" style="margin:.5rem 0 1.25rem">This page holds data from the first version of showctrl. The new version organises everything per stage, so the old data needs to be replaced. Choose a fresh sample festival or a blank event.</p><div class="row"><button class="btn primary" data-act="seed">Replace with sample festival</button><button class="btn" data-act="blank">Replace with blank event</button></div><p class="small muted" id="seedp" style="margin-top:1rem"></p></div></div>`;
+  if (old) return `<div class="setup"><div class="panel"><h2>This event is being upgraded</h2><p class="muted" style="margin-top:.5rem">The festival admin needs to finish the upgrade. Check back shortly.</p></div></div>`;
+  if (!admin) return `<div class="setup"><div class="panel"><h2>This event isn't set up yet</h2><p class="muted" style="margin-top:.5rem">The festival admin needs to create it first. Check back shortly.</p></div></div>`;
+  return `<div class="setup"><div class="panel"><h1>Create your event</h1><p class="muted" style="margin:.5rem 0 1.25rem">Load a sample five-stage festival to try everything, or start blank: name the event, add stages and appoint a stage manager for each.</p><div class="row"><button class="btn primary" data-act="seed">Load sample festival</button><button class="btn" data-act="blank">Start blank</button></div><p class="small muted" id="seedp" style="margin-top:1rem"></p></div></div>`;
+}
+
+/* =========================================================
+   GENERIC FORM DIALOG
+   ========================================================= */
+let FORM = null;
+function openForm(def) {
+  FORM = def; const dlg = $('#dlg'); const v = {...def.values};
+  const field = f => {
+    if (f.type === 'note') return `<p class="fld full small muted">${esc(f.text)}</p>`;
+    const val = v[f.k] ?? ''; let input;
+    if (f.type === 'select') input = `<select name="${f.k}">${f.options.map(([k, l]) => `<option value="${esc(k)}" ${String(k) === String(val) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+    else if (f.type === 'textarea') input = `<textarea name="${f.k}" placeholder="${esc(f.placeholder || '')}">${esc(val)}</textarea>`;
+    else if (f.type === 'datetime') input = `<input type="datetime-local" name="${f.k}" value="${esc(toLocal(val === '' ? null : val))}">`;
+    else if (f.type === 'checks') input = `<div class="checks">${f.options.map(([k, l]) => `<label><input type="checkbox" name="${f.k}" value="${esc(k)}" ${(val || []).includes(k) ? 'checked' : ''}>${esc(l)}</label>`).join('') || '<span class="muted small">None defined</span>'}</div>`;
+    else input = `<input type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}" name="${f.k}" value="${esc(val)}" placeholder="${esc(f.placeholder || '')}" ${f.type === 'number' ? 'step="any"' : ''}>`;
+    return `<label class="fld ${f.full ? 'full' : ''}" data-f="${f.k}" ${f.show && !f.show(v) ? 'hidden' : ''}><span>${esc(f.label)}</span>${input}</label>`;
+  };
+  dlg.innerHTML = `<form method="dialog" id="fform"><div class="dh"><h2>${esc(def.title)}</h2><button type="button" data-act="closeDlg" aria-label="Close">×</button></div><div class="db">${def.fields.map(field).join('')}<p class="fld full small" id="ferr" style="color:var(--stop)" role="alert"></p></div><div class="df">${def.onDelete ? '<button type="button" class="btn danger" data-act="formDel">Delete</button>' : ''}<div class="r"><button type="button" class="btn" data-act="closeDlg">Cancel</button><button class="btn primary" type="submit">${esc(def.saveLabel || 'Save')}</button></div></div></form>`;
+  dlg.showModal();
+  const form = $('#fform');
+  form.addEventListener('change', () => { const cur = readForm(); def.fields.forEach(f => { if (f.show) form.querySelector(`[data-f="${f.k}"]`).hidden = !f.show(cur); }); });
+  form.addEventListener('submit', async e => {
+    e.preventDefault(); const btn = form.querySelector('[type=submit]'); btn.disabled = true;
+    try { const out = await def.onSave(readForm()); if (typeof out === 'string') { $('#ferr').textContent = out; return; } if (out !== false) dlg.close(); } finally { btn.disabled = false; }
+  });
+  setTimeout(() => form.querySelector('input:not([type=checkbox]),select,textarea')?.focus(), 30);
+}
+function readForm() {
+  const form = $('#fform'); const o = {};
+  for (const f of FORM.fields) {
+    if (f.type === 'note') continue;
+    if (f.type === 'checks') { o[f.k] = [...form.querySelectorAll(`input[name="${f.k}"]:checked`)].map(x => x.value); continue; }
+    const el = form.elements[f.k]; if (!el) continue;
+    o[f.k] = f.type === 'datetime' ? fromLocal(el.value) : el.value;
+  }
+  return o;
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+function toast(text, action) {
+  const box = $('#toast'); const d = document.createElement('div');
+  d.innerHTML = `<span>${esc(text)}</span>${action ? `<button>${esc(action.label)}</button>` : ''}`;
+  if (action) d.querySelector('button').onclick = () => { action.run(); d.remove(); };
+  box.appendChild(d); setTimeout(() => d.remove(), action ? 9000 : 4500);
+}
+const ACT = {
+  go:d => { location.hash = d.to; },
+  closeDlg:() => $('#dlg').close(),
+  formDel:async () => { if (!confirm('Delete this? It is removed for everyone.')) return; await FORM.onDelete(); $('#dlg').close(); },
+  endPreview:() => { S.preview = null; location.hash = homeHref(); render(); },
+  wall:() => { document.body.classList.add('wallmode'); try { document.documentElement.requestFullscreen?.().catch(() => {}); } catch {} },
+  exitWall:() => { document.body.classList.remove('wallmode'); try { document.fullscreenElement && document.exitFullscreen(); } catch {} },
+  clockAdd:() => clockForm(), clockEdit:d => clockForm(S.col.clocks[d.id]),
+  timer:async d => { const c = S.col.clocks[d.id]; if (!c) return; const t = now();
+    if (d.op === 'start') await patch('clocks', c.id, {runningSince:t});
+    if (d.op === 'pause') await patch('clocks', c.id, {runningSince:null, accum:(c.accum || 0) + (t - c.runningSince)});
+    if (d.op === 'reset') await patch('clocks', c.id, {runningSince:null, accum:0});
+    if (d.op === 'plus') await patch('clocks', c.id, {duration:(c.duration || 0) + MIN}); },
+  day:d => { S.sub.day = d.day; render(); },
+  itemAdd:() => itemForm({}), itemAddFor:d => { const a = S.col.artists[d.artist]; itemForm({artist:a.id, stage:a.stage, kind:'other', start:showsFor(a.id)[0]?.start}); },
+  itemEdit:d => itemForm(S.col.ros[d.id]),
+  itemLive:async d => { const it = S.col.ros[d.id]; if (!it) return;
+    if (track(it) === 'stage') for (const x of itemsFor(it.stage, null, 'stage').filter(x => x.status === 'live' && x.id !== it.id)) await patch('ros', x.id, {status:'done'});
+    await patch('ros', it.id, {status:'live', actual:now()});
+    if (it.kind === 'show' && it.artist) await patch('artists', it.artist, {status:'on stage'});
+    const diff = now() - eff(it).s;
+    if (it.kind === 'show' && Math.abs(diff) >= 2 * MIN) toast(`${it.title} went on ${Math.round(Math.abs(diff) / MIN)} min ${diff > 0 ? 'late' : 'early'}.`, {label:`Shift the rest ${diff > 0 ? '+' : '−'}${Math.round(Math.abs(diff) / MIN)} min`, run:() => shiftFrom(S.col.ros[it.id], Math.round(diff / MIN) * MIN, diff > 0 ? 'Started late' : 'Started early')}); },
+  itemDone:async d => { const it = S.col.ros[d.id]; await patch('ros', d.id, {status:'done', actualEnd:now()}); if (it.kind === 'show' && it.artist) await patch('artists', it.artist, {status:'done'});
+    const diff = now() - eff(it).e; if (it.kind === 'show' && diff >= 2 * MIN) toast(`${it.title} overran by ${Math.round(diff / MIN)} min.`, {label:`Shift the rest +${Math.round(diff / MIN)} min`, run:() => { const nx = itemsFor(it.stage, festDay(it.start)).find(x => x.start > it.start && x.status !== 'done'); if (nx) shiftFrom(nx, Math.round(diff / MIN) * MIN, `${it.title} overran`); }}); },
+  delay:d => { const it = S.col.ros[d.id]; openForm({title:`Delay from ${KINDS[it.kind].l.toLowerCase()}: ${it.title}`, fields:[{k:'min', label:'Minutes (negative pulls earlier)', type:'number'}, {k:'note', label:'Reason', placeholder:'e.g. Late arrival, power issue, weather'}, {k:'dock', label:'Also move', type:'checks', full:true, options:[['yes', 'Dock and backstage items (load in, load out, departures)']]}], values:{min:5, dock:['yes']}, saveLabel:'Apply delay',
+    onSave:async v => { const m = Math.round(+v.min); if (!m) return 'Enter a number of minutes.'; await shiftFrom(it, m * MIN, v.note, (v.dock || []).length > 0); toast(`Everything on ${stageName(it.stage)} from ${fmtT(eff(it).s)} moved ${m > 0 ? '+' : ''}${m} min.`); }}); },
+  resetDelay:async () => { if (!confirm('Put this day back on the planned times?')) return; for (const x of itemsFor(S.ctx, curDay())) if (x.delay) await patch('ros', x.id, {delay:0, delayNote:''}); },
+  chan:d => { S.sub.chan = d.chan; render(); },
+  send:async () => {
+    const text = $('#mtext').value.trim(); if (!text) { $('#mtext').focus(); return; }
+    const v = $('#mto').value; const i = v.indexOf(':'); const t = i < 0 ? v : v.slice(0, i); const id = i < 0 ? null : v.slice(i + 1);
+    const ok = await put('msgs', rid(), {from:S.me, to:t === 'all' ? {t:'all'} : {t, id}, text, pri:$('#murg').checked ? 'urgent' : 'normal', at:now(), acks:{}});
+    if (ok) { $('#mtext').value = ''; $('#murg').checked = false; $('#mtext').blur(); render(); }
+  },
+  ack:d => patch('msgs', d.id, {acks:{[S.me]:now()}}),
+  msgDel:async d => { if (confirm('Delete this message for everyone?')) await del('msgs', d.id); },
+  artistAdd:() => artistForm(), artistEdit:d => artistForm(S.col.artists[d.id]), daysheet:d => daySheetForm(S.col.artists[d.id]),
+  contactAdd:d => contactForm(S.col.artists[d.id]), contactEdit:d => { const a = S.col.artists[d.id]; contactForm(a, (a.contacts || []).find(c => c.id === d.c)); },
+  personAdd:() => personForm(), personEdit:d => personForm(S.col.people[d.id]), personImport:() => personImportForm(),
+  hotelAdd:() => hotelForm(), hotelEdit:d => hotelForm(S.col.hotels[d.id]),
+  bookAdd:d => bookForm(d.artist ? {artist:d.artist} : {}), bookEdit:d => bookForm(S.col.bookings[d.id]),
+  rkind:d => { S.sub.rkind = d.kind; render(); },
+  riderAdd:d => riderAddForm(d.artist, d.kind),
+  atab:d => { S.sub.atab = d.tab; render(); },
+  stageAdd:() => stageForm(), stageEdit:d => stageForm(S.col.stages[d.id]), tplEdit:() => tplForm(),
+  mgrAdd:d => S.mode === 'live' ? userPicker(`Appoint stage manager · ${stageName(d.sid)}`, async uid => { const m = S.col.members[uid] || {role:'none', depts:[]}; await put('members', uid, {...m, stages:{...(m.stages || {}), [d.sid]:'manager'}}); }) : demoUserForm(d.sid, true),
+  mgrRemove:async d => { const m = S.col.members[d.uid]; const stages = {...(m.stages || {})}; delete stages[d.sid]; await put('members', d.uid, {...m, stages}); },
+  crewAdd:() => userPicker(`Add to ${stageName(S.ctx)} team`, uid => setCrew(S.ctx, uid, true)),
+  crewAddDemo:() => demoUserForm(S.ctx, false),
+  crewApprove:d => setCrew(S.ctx, d.id, true),
+  crewRemove:d => setCrew(S.ctx, d.id, false),
+  pickUser:async d => { $('#dlg').close(); if (PICK) await PICK(d.id); PICK = null; },
+  accessAdd:() => S.mode === 'live' ? userPicker('Give someone access', uid => accessForm(uid)) : accessForm('demo-' + rid()),
+  accessEdit:d => accessForm(d.id),
+  reject:d => del('requests', d.id),
+  roleAdd:() => openForm({title:'Add role', fields:[{k:'label', label:'Role name', full:true, placeholder:'e.g. Medical coordinator'}, {k:'copy', label:'Start from', type:'select', options:Object.entries(S.roles || DEFAULT_ROLES).map(([k, r]) => [k, r.label])}], values:{copy:'site'}, onSave:v => { if (!v.label.trim()) return 'Enter a name.'; const roles = {...(S.roles || DEFAULT_ROLES)}; const src = roles[v.copy]; roles['r' + rid()] = {label:v.label.trim(), perms:{...src.perms}, contacts:!!src.contacts}; return putCfg('roles', {roles}); }}),
+  roleDel:async d => { if (Object.values(S.col.members).some(m => m.role === d.role)) { toast('Move everyone off this role first.'); return; } const roles = {...S.roles}; delete roles[d.role]; await putCfg('roles', {roles}); },
+  eventEdit:() => eventForm(), deptAdd:() => deptForm(), deptEdit:d => deptForm((cfg().depts || []).find(x => x.id === d.id)),
+  seed:() => seedSample(),
+  blank:async () => { if (S.mode === 'live' && S.cfg) { try { await wipeLive(); } catch (e) { failed(e); return; } } if (await putCfg('event', blankCfg())) await putCfg('roles', {roles:DEFAULT_ROLES}); location.hash = '#/hq/admin'; },
+  resetDemo:() => { if (confirm('Replace the demo data with a fresh sample festival?')) { loadLocal(buildSample()); render(); } },
+  requestAccess:() => {
+    openForm({title:'Ask for access', fields:[{k:'note', label:'Your job title', full:true, placeholder:'e.g. Backline tech'}, {k:'stage', label:'Which stage do you work on?', type:'select', options:[['', 'Festival-wide / not sure'], ...stagesSorted().map(s => [s.id, s.name])]}], values:{}, saveLabel:'Send request',
+      onSave:async v => { if (await put('requests', S.me, {at:now(), note:v.note || '', stage:v.stage || null})) toast('Request sent. Your stage manager or the festival admin will add you.'); }});
+  },
+};
+const CHG = {
+  persona:el => { S.me = el.value; S.preview = null; try { localStorage.setItem('showctrl-demo-me2', S.me); } catch {} location.hash = homeHref(); route(); },
+  preview:el => { const v = el.value; if (!v) { S.preview = null; } else if (v.startsWith('role:')) S.preview = {type:'role', role:v.slice(5)}; else { const [, level, sid] = v.split(':'); S.preview = {type:'stage', level, sid}; } location.hash = homeHref(); route(); },
+  artistStatus:el => patch('artists', el.dataset.id, {status:el.value}),
+  riderStatus:el => riderItemChange(el.dataset.rider, el.dataset.item, 'status', el.value),
+  riderDept:el => riderItemChange(el.dataset.rider, el.dataset.item, 'dept', el.value),
+  rsf:el => { S.sub.rsf = el.value; render(); }, hideDone:el => { S.sub.hideDone = el.checked; render(); }, ps:el => { S.sub.ps = el.value; render(); }, pd:el => { S.sub.pd = el.value; render(); },
+  as:el => { S.sub.as = el.value; render(); }, rs:el => { S.sub.rs = el.value; render(); },
+  perm:el => { const roles = structuredClone(S.roles || DEFAULT_ROLES); roles[el.dataset.role].perms[el.dataset.key] = +el.value; putCfg('roles', {roles}); },
+  contacts:el => { const roles = structuredClone(S.roles || DEFAULT_ROLES); roles[el.dataset.role].contacts = el.checked; putCfg('roles', {roles}); },
+  module:el => putCfg('event', {...cfg(), modules:{...(cfg().modules || {}), [el.dataset.id]:el.checked}}),
+};
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-act]'); if (!a) return;
+  if (e.target.closest('[data-stop]') && a.tagName === 'TR') return;
+  if (e.target.closest('a[href]') && a.tagName !== 'A') return;
+  const f = ACT[a.dataset.act]; if (!f) return; e.preventDefault(); f(a.dataset, a, e);
+});
+document.addEventListener('change', e => { const el = e.target.closest('[data-chg]'); if (el && CHG[el.dataset.chg]) CHG[el.dataset.chg](el); });
+document.addEventListener('input', e => { const el = e.target.closest('[data-input]'); if (!el) return; S.sub[el.dataset.input] = el.value; clearTimeout(el._t); el._t = setTimeout(() => { const pos = el.selectionStart; S.dirty = false; $('#main').innerHTML = renderMain(); const n = $(`[data-input="${el.dataset.input}"]`); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch {} } tick(); }, 180); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('wallmode')) ACT.exitWall(); if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && e.target.id === 'mtext') ACT.send(); });
+function route() {
+  const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (parts[0] === 's' && parts[1]) { if (S.ctx !== parts[1]) { S.sub.chan = null; S.sub.rsf = 'all'; } S.ctx = parts[1]; S.view = parts[2] || 'today'; S.arg = parts[3] || null; }
+  else if (parts[0] === 'hq') { if (S.ctx !== 'hq') S.sub.chan = null; S.ctx = 'hq'; S.view = parts[1] || 'overview'; S.arg = parts[2] || null; }
+  else if (S.ready && S.cfg) { location.replace(homeHref()); return; }
+  if (S.view !== 'clocks' && S.view !== 'display') document.body.classList.remove('wallmode');
+  render(); window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+/* =========================================================
+   SAMPLE DATA — a five-stage festival
+   ========================================================= */
+function DEFAULT_DEPTS() {
+  return [['prod','Production','blue'],['stage','Stage','red'],['audio','Audio','yellow'],['light','Lighting','purple'],['video','Video','teal'],['backline','Backline','orange'],['al','Artist liaison','pink'],['hosp','Hospitality','green'],['transport','Transport','brown'],['security','Security','grey'],['site','Site','white']].map(([id, name, tape]) => ({id, name, tape}));
+}
+function blankCfg() { const d = dayKey(now(), 'Europe/Oslo'); return {schema:2, name:'New festival', type:'festival', tz:'Europe/Oslo', start:d, end:addDays(d, 2), terms:TYPES.festival.terms, modules:{accommodation:true, riders:true}, depts:DEFAULT_DEPTS()}; }
+function buildSample() {
+  const tz = 'Europe/Oslo'; const t = Date.now(); const d0 = festDay(t);
+  const c = {schema:2, name:'Nordlys Open Air 2026', type:'festival', tz, start:d0, end:addDays(d0, 2), visitors:200000, terms:TYPES.festival.terms, modules:{accommodation:true, riders:true}, depts:DEFAULT_DEPTS()};
+  const col = Object.fromEntries(COLS.map(k => [k, {}]));
+  const STG = [
+    {id:'main', name:'Main Stage', tape:'red', order:0, location:'Festival field, south', radio:'Ch 2', capacity:60000, lens:[60, 75, 90], co:45, base:['18:00'], off:105},
+    {id:'fjord', name:'Fjord Stage', tape:'blue', order:1, location:'Waterfront', radio:'Ch 3', capacity:25000, lens:[60, 60, 75], co:30, base:['17:00'], off:65},
+    {id:'tent', name:'The Tent', tape:'yellow', order:2, location:'North field', radio:'Ch 4', capacity:8000, lens:[45, 60, 60], co:30, base:['16:30'], off:30},
+    {id:'club', name:'Harbour Club', tape:'purple', order:3, location:'Old warehouse, pier 3', radio:'Ch 5', capacity:2500, lens:[60, 60, 90], co:30, base:['21:00'], off:140},
+    {id:'forest', name:'Forest Stage', tape:'green', order:4, location:'Birch grove', radio:'Ch 6', capacity:5000, lens:[45, 45, 60], co:20, base:['15:00'], off:10},
+  ];
+  STG.forEach(s => col.stages[s.id] = {id:s.id, name:s.name, tape:s.tape, order:s.order, location:s.location, radio:s.radio, capacity:s.capacity, template:{...DEFAULT_TPL, changeover:s.co}});
+  const names = ['The Velvet Arcs','Mira Solberg','Kollaps Kollektiv','Hollow Pines','DJ Saltvann','Aune & the Tides','Bråk','Signe Vale Trio','Northbound Static','Lua Ferreira','Glass Harbour','Grålys','Ola Rein Band','Kestrel Line','Neon Fjord','Halvard & Hjertene','Paper Satellites','Iris Kalmar','The Low Orbit','Sølvmåke','Ruby Akintola','Frost Assembly','Midnight Ferry','Vestkant Soundsystem','Copper Lanterns','Elin Myhre','The Quiet Engines','Bølgeblikk','Saffron Riot','Tidevann','Jonah Okafor','Wild Gulls','Nattsvermer','Electric Moss','Hanna Lyse','The Iron Rivers','Polar Disco','Stille Storm','Marta Quint','Ghost Orchard','Fyrlykt','Sunniva Bakke','Low Tide Choir','Pixel Saints','Granitt'];
+  const genres = ['Indie rock','Singer-songwriter','Punk','Folk','House','Pop','Hardcore','Jazz','Post-rock','Electronica','Dream pop','Shoegaze','Americana','Alt rock','Synthwave','Viser','Indie pop','Electronic','Space rock','Pop'];
+  const homes = ['Europe/London','Europe/Oslo','Europe/Oslo','Europe/Stockholm','Europe/Berlin','America/New_York','Europe/Copenhagen','America/Los_Angeles'];
+  const FN = ['Hanne','Mark','Lise','Petter','Johan','Eva','Siri','Lars','Emma','Noah','Ida','Jakob','Nora','Sander','Thea','Marius','Ingrid','Henrik','Sofie','Magnus','Leah','Tobias','Maja','Even'];
+  const LN = ['Aas','Kim','Moe','Lie','Berg','Dahl','Holm','Vik','Strand','Bakke','Lund','Haugen','Nilsen','Larsen','Brekke','Solheim'];
+  let pc = 0; const phone = () => `+47 9${String(10000000 + (pc++ * 7349251) % 89999999).slice(0, 2)} ${String(10000 + (pc * 4231) % 89999).slice(0, 2)} ${String(100 + (pc * 37) % 899)}`;
+  const round = ms => Math.round(ms / (15 * MIN)) * 15 * MIN;
+  let ai = 0;
+  [0, 1, 2].forEach(dn => {
+    const day = addDays(d0, dn);
+    STG.forEach(s => {
+      let cur = dn === 0 ? round(t - s.off * MIN) : fromLocal(`${day}T${s.base[0]}`, tz);
+      if (s.id === 'main') { const id = `dr${dn}`; col.ros[id] = {id, stage:'main', title:'Gates open', kind:'doors', start:cur - 60 * MIN, end:cur - 60 * MIN, status:'pending', delay:0}; }
+      const n = s.lens.length;
+      for (let k = 0; k < n; k++) {
+        const len = s.lens[k]; const aid = 'a' + ai; const nm = names[ai % names.length]; ai++;
+        col.artists[aid] = {id:aid, name:nm, stage:s.id, genre:genres[ai % genres.length], status:'confirmed', party:4 + (ai * 7) % 12, home:homes[ai % homes.length], vehicles:k === n - 1 ? '2 trucks, 2 sleeper buses' : ai % 3 ? '1 splitter van' : '1 truck, 1 sleeper bus', notes:'',
+          contacts:[{id:'c1', role:'Tour manager', name:`${FN[ai % FN.length]} ${LN[(ai * 3) % LN.length]}`, phone:phone(), email:`tm@${nm.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12) || 'band'}.example`},
+            ...(ai % 2 ? [{id:'c2', role:'FOH engineer', name:`${FN[(ai + 5) % FN.length]} ${LN[(ai * 5) % LN.length]}`, phone:phone(), email:''}] : []),
+            ...(k === n - 1 ? [{id:'c3', role:'Production manager', name:`${FN[(ai + 9) % FN.length]} ${LN[(ai * 7) % LN.length]}`, phone:phone(), email:`prod@${nm.toLowerCase().replace(/[^a-z]/g, '').slice(0, 12)}.example`}] : [])]};
+        const sc = k === n - 1 ? cur - (dn === 0 ? 5 * HOUR : 4 * HOUR) : null;
+        buildDaySheet(col.stages[s.id], col.artists[aid], cur, cur + len * MIN, sc).forEach((it, j) => { it.id = `${aid}_${j}`; col.ros[it.id] = it; });
+        cur += len * MIN + s.co * MIN;
+      }
+      if (s.id === 'main') { const id = `cf${dn}`; const e = cur - s.co * MIN + 15 * MIN; col.ros[id] = {id, stage:'main', title:'Curfew', kind:'curfew', start:e, end:e, status:'pending', delay:0}; }
+    });
+  });
+  // day 0: statuses relative to now, The Tent running late
+  const tentLate = Object.values(col.ros).filter(r => r.stage === 'tent' && festDay(r.start) === d0 && r.start > t - 15 * MIN).sort((a, b) => a.start - b.start);
+  tentLate.forEach((r, i) => { r.delay = 10 * MIN; if (i === 0) r.delayNote = 'Late arrival from airport'; });
+  Object.values(col.ros).forEach(r => {
+    if (festDay(r.start) !== d0) return; const e = eff(r);
+    if (e.e < t) r.status = 'done'; else if (e.s <= t && e.e > t && KINDS[r.kind].tr === 'stage' && r.kind !== 'access') r.status = 'live';
+    if (r.kind === 'show') { const a = col.artists[r.artist]; a.status = r.status === 'done' ? 'done' : r.status === 'live' ? 'on stage' : e.s - t < 60 * MIN ? 'ready' : e.s - t < 4 * HOUR ? 'backstage' : 'arrived'; }
+  });
+  Object.values(col.ros).forEach(r => { if (r.kind === 'show' && festDay(r.start) === addDays(d0, 1)) col.artists[r.artist].status = 'travelling'; });
+  // personnel per stage + HQ
+  const STAFF = [['Stage manager', 'stage', 'Stage', true], ['Assistant stage manager', 'stage', 'Stage', false], ['Production runner', 'prod', 'Stage', false], ['Audio crew chief', 'audio', 'Stage', true], ['Monitor tech', 'audio', 'Stage', false], ['Lighting crew chief', 'light', 'Stage', false], ['Backline tech', 'backline', 'Stage', false], ['Stagehand lead', 'stage', 'Stage', false], ['Security lead', 'security', 'Site', true], ['Artist liaison', 'al', 'Backstage', false]];
+  const COMP = {audio:'Nordic Sound AS', light:'LysTeknikk AS', backline:'Backline Bergen', security:'Vakt & Sikring', stage:'', prod:'', al:''};
+  let pi = 0;
+  const person = (title, d, acc, lead, stages) => { const fn = FN[pi % FN.length], ln = LN[(pi * 7 + Math.floor(pi / FN.length) + 3) % LN.length]; const id = 'p' + pi++; col.people[id] = {id, name:`${fn} ${ln}`, title, dept:d, accred:acc, lead, stages, phone:phone(), email:`${fn.toLowerCase()}.${ln.toLowerCase()}@nordlys.example`, company:COMP[d] || '', notes:''}; return id; };
+  const stagePeople = {};
+  STG.forEach(s => { stagePeople[s.id] = STAFF.map(([title, d, acc, lead]) => person(title, d, acc, lead, [s.id])); });
+  const HQ = [['Festival director', 'prod', 'AAA'], ['Head of production', 'prod', 'AAA'], ['Head of artist liaison', 'al', 'AAA'], ['Hospitality manager', 'hosp', 'Backstage'], ['Transport coordinator', 'transport', 'Production'], ['Site manager', 'site', 'AAA'], ['Head of security', 'security', 'AAA'], ['Medical coordinator', 'site', 'Production'], ['Accreditation office', 'prod', 'Production']];
+  const hqPeople = HQ.map(([title, d, acc]) => person(title, d, acc, true, []));
+  // app users (demo personas)
+  const m = (id, name, role, person, extra = {}) => col.members[id] = {id, name, role, person, depts:[col.people[person]?.dept].filter(Boolean), stages:{}, ...extra};
+  m('demo-admin', col.people[hqPeople[0]].name, 'admin', hqPeople[0]);
+  m('demo-pm', col.people[hqPeople[1]].name, 'pm', hqPeople[1]);
+  m('demo-al', col.people[hqPeople[2]].name, 'liaison', hqPeople[2]);
+  m('demo-hosp', col.people[hqPeople[3]].name, 'hosp', hqPeople[3]);
+  STG.forEach(s => { const pid = stagePeople[s.id][0]; m('demo-sm-' + s.id, col.people[pid].name, 'none', pid, {stages:{[s.id]:'manager'}}); });
+  ['main', 'tent'].forEach(sid => { [3, 6].forEach(k => { const pid = stagePeople[sid][k]; const uid = `demo-crew-${sid}-${k}`; m(uid, col.people[pid].name, 'none', pid); col.stageteam[sid] = col.stageteam[sid] || {id:sid, crew:{}}; col.stageteam[sid].crew[uid] = true; }); });
+  // hotels & bookings
+  col.hotels.h1 = {id:'h1', name:'Fjordhotellet', address:'Strandgata 12', contact:'Groups desk', phone:'+47 69 00 00 01', block:30, notes:'Late check-in until 04:00'};
+  col.hotels.h2 = {id:'h2', name:'Harbour Inn', address:'Brygga 3', contact:'Reception', phone:'+47 69 00 00 02', block:18, notes:'Crew breakfast from 06:30'};
+  col.hotels.h3 = {id:'h3', name:'Skogly Lodge', address:'Skogveien 40', contact:'Nina', phone:'+47 69 00 00 03', block:12, notes:'Shuttle to site every 30 min'};
+  Object.values(col.artists).forEach((a, i) => {
+    if (i % 4 === 3) return; const sh = Object.values(col.ros).find(r => r.artist === a.id && r.kind === 'show'); const night = festDay(sh.start);
+    col.bookings['b' + i] = {id:'b' + i, artist:a.id, hotel:['h1', 'h2', 'h3'][i % 3], checkIn:night, checkOut:addDays(night, 1), rooms:Math.max(1, Math.ceil(a.party / 3)), roomType:'double', status:night === d0 ? 'checked in' : i % 3 === 1 ? 'requested' : 'confirmed', conf:'NL' + (48211 + i * 37)};
+  });
+  // riders
+  const tech = [['Drum riser 8×8 ft, 60 cm high', 'stage'], ['6 wedges on 6 mixes', 'audio'], ['2 × wireless SM58', 'audio'], ['8 × DI boxes', 'audio'], ['Bass amp: Ampeg SVT + 8×10', 'backline'], ['Guitar amp: Fender Twin Reverb', 'backline'], ['Hazer, no pyro', 'light'], ['Keyboard stands × 2', 'backline'], ['IEM × 4, band brings transmitters', 'audio'], ['Own LD at FOH, 2 m desk space', 'light']];
+  const hosp = [['Hot meal for party, 1 vegan, 1 gluten-free', 'hosp'], ['24 × still water 0.5 l', 'hosp'], ['Fresh towels × 12', 'hosp'], ['Fruit platter', 'hosp'], ['Coffee machine in dressing room', 'hosp'], ['Local beer × 12', 'hosp'], ['Hot water, honey and lemon', 'hosp'], ['Lockable dressing room', 'site'], ['Runner with car from 14:00', 'transport']];
+  const st = ['sourced', 'agreed', 'requested', 'sourced', 'declined', 'requested', 'agreed'];
+  Object.keys(col.artists).filter((_, i) => i % 2 === 0).forEach((a, i) => {
+    const pick = (arr, n, off) => Array.from({length:n}, (_, j) => arr[(j + off) % arr.length]);
+    col.riders[a + '_tech'] = {id:a + '_tech', artist:a, kind:'tech', updated:t, items:pick(tech, 4 + i % 4, i * 2).map(([text, d], j) => ({id:`t${j}`, text, dept:d, status:st[(i + j) % st.length]}))};
+    col.riders[a + '_hosp'] = {id:a + '_hosp', artist:a, kind:'hosp', updated:t, items:pick(hosp, 3 + i % 4, i * 3).map(([text, d], j) => ({id:`h${j}`, text, dept:d, status:st[(i + j + 2) % st.length]}))};
+  });
+  // clocks: festival-wide + one per stage
+  const curfew = col.ros.cf0;
+  col.clocks.c1 = {id:'c1', label:'Local time', kind:'tod', tz, order:0};
+  col.clocks.c2 = {id:'c2', label:'Main Stage curfew', kind:'countdown', target:curfew.start, warn:15, order:1};
+  STG.forEach((s, i) => col.clocks['cs' + s.id] = {id:'cs' + s.id, label:s.name, kind:'stage', stage:s.id, scope:s.id, warn:5, order:i});
+  col.clocks.ct = {id:'ct', label:'Changeover timer', kind:'timer', scope:'main', duration:45 * MIN, accum:0, runningSince:null, warn:5, order:9};
+  // messages
+  col.msgs = {
+    m1:{id:'m1', from:'demo-pm', to:{t:'all'}, text:'Weather: rain from 21:00. Cover FOH and monitor world on all outdoor stages.', pri:'normal', at:t - 95 * MIN, acks:{'demo-sm-main':t - 90 * MIN}},
+    m2:{id:'m2', from:'demo-sm-main', to:{t:'stage', id:'main'}, text:'Line check for the next act in 10. Wedges patched please.', pri:'normal', at:t - 40 * MIN, acks:{}},
+    m3:{id:'m3', from:'demo-al', to:{t:'stage', id:'tent'}, text:'Next act on the Tent is stuck in traffic from the airport, ETA +25 min. Running order pushed 10 min, may need more.', pri:'urgent', at:t - 18 * MIN, acks:{'demo-pm':t - 15 * MIN}},
+    m4:{id:'m4', from:'demo-hosp', to:{t:'dept', id:'al'}, text:'Dressing rooms 3 and 4 at Fjord Stage are ready.', pri:'normal', at:t - 9 * MIN, acks:{}},
+    m5:{id:'m5', from:'demo-sm-fjord', to:{t:'dept', id:'transport'}, text:'Need a runner at the Fjord Stage dock for a truck at 20:30.', pri:'normal', at:t - 4 * MIN, acks:{}},
+  };
+  return {cfg:c, roles:structuredClone(DEFAULT_ROLES), col};
+}
+function loadLocal(d) { S.cfg = d.cfg; S.roles = d.roles; for (const k of COLS) S.col[k] = d.col[k] || {}; if (!S.col.members[S.me]) S.me = 'demo-admin'; saveLocal(); }
+async function wipeLive() {
+  const p = $('#seedp'); const tasks = [];
+  for (const k of COLS) for (const id of Object.keys(S.col[k])) if (!(k === 'members' && id === S.me)) tasks.push(() => S.db.collection(k).doc(id).delete());
+  if (tasks.length) await inChunks(tasks, 10, (n, of) => { if (p) p.textContent = `Removing old data… ${n} of ${of}`; });
+}
+async function seedSample() {
+  if (S.mode === 'local') { loadLocal(buildSample()); location.hash = homeHref(); render(); return; }
+  try { if (S.cfg) await wipeLive(); } catch (e) { failed(e); return; }
+  const d = buildSample();
+  // Real app users come from your organisation; keep personnel, drop demo app users.
+  const demoIds = Object.keys(d.col.members); delete d.col.members; d.col.stageteam = {};
+  Object.values(d.col.msgs).forEach(m => { if (demoIds.includes(m.from)) m.from = S.me; m.acks = {}; });
+  const tasks = []; for (const k of COLS) for (const [id, o] of Object.entries(d.col[k] || {})) tasks.push(() => S.db.collection(k).doc(id).set(strip(o)));
+  const p = $('#seedp');
+  try { await inChunks(tasks, 10, (n, of) => { if (p) p.textContent = `Loading sample festival… ${n} of ${of}`; }); await S.db.doc('config/roles').set({roles:d.roles}); await S.db.doc('config/event').set(d.cfg); toast('Sample festival loaded. Appoint stage managers under Admin.'); location.hash = '#/hq/overview'; }
+  catch (e) { failed(e); }
+}
+
+/* =========================================================
+   CLOCK SYNC + BOOT
+   ========================================================= */
+async function syncClock() {
+  try {
+    if (!/^https?:/.test(location.protocol)) throw 0;
+    const t0 = Date.now(); const r = await fetch(location.href, {method:'HEAD', cache:'no-store'}); const t1 = Date.now();
+    const h = r.headers.get('date'); if (!h) throw 0;
+    const off = Date.parse(h) + 500 - (t0 + t1) / 2;
+    if (Math.abs(off) > 1500) { S.offset = off; S.sync = 'corrected'; } else { S.offset = 0; S.sync = 'ok'; }
+  } catch { S.sync = 'device'; }
+  renderStrip();
+}
+async function boot() {
+  syncClock(); setInterval(syncClock, 10 * MIN);
+  let db = null, user = null;
+  try { if (window.claude && typeof window.claude.use === 'function') [db, user] = await Promise.all([window.claude.use('db'), window.claude.use('user')]); } catch {}
+  if (db && user) {
+    S.mode = 'live'; S.db = db; S.user = user;
+    try { S.me = await user.id(); } catch {}
+    try { S.isOwner = await user.isOwner(); } catch {}
+    try { S.shareEdit = await user.canEdit(); } catch {}
+    try { const w = await user.can('data.write'); S.canWriteShared = w !== false; } catch {}
+    try { const me = await user.me(); if (me?.id) S.profiles[me.id] = me; } catch {}
+    let gotCfg = false, gotRoles = false, first = true;
+    const done = () => { if (gotCfg && gotRoles && !S.ready) S.ready = true; if (S.ready && first) { first = false; route(); } else render(); };
+    db.doc('config/event').onSnapshot(s => { S.cfg = s.exists ? s.data() : null; gotCfg = true; done(); }, failed);
+    db.doc('config/roles').onSnapshot(s => { S.roles = s.exists ? {...DEFAULT_ROLES, ...s.data().roles} : DEFAULT_ROLES; gotRoles = true; done(); }, failed);
+    for (const k of COLS) {
+      const q = k === 'msgs' ? db.collection(k).orderBy('at', 'desc').limit(300) : db.collection(k);
+      q.onSnapshot(snap => { const o = {}; snap.docs.forEach(d => o[d.id] = {id:d.id, ...d.data()}); S.col[k] = o; wantProfiles(); render(); }, e => { if (e.code !== 'revoked') console.warn(k, e); });
+    }
+    setTimeout(() => { if (!S.ready) { S.ready = true; route(); } }, 6000);
+  } else {
+    S.mode = 'local';
+    let saved = null; try { saved = JSON.parse(localStorage.getItem('showctrl-demo-v2') || 'null'); } catch {}
+    try { S.me = localStorage.getItem('showctrl-demo-me2') || 'demo-admin'; } catch { S.me = 'demo-admin'; }
+    loadLocal(saved?.cfg ? saved : buildSample());
+    S.ready = true; route();
+  }
+}
+boot();
+
+</script>
+</body>
+</html>

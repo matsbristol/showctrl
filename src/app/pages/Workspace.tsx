@@ -10,6 +10,7 @@ import { ArtistDetail } from './ArtistPage'
 import { ArtistsPage } from './ArtistsPage'
 import { ClocksPage } from './ClocksPage'
 import { DisplayPage } from './DisplayPage'
+import { MessagesPage } from './MessagesPage'
 import { OverviewPage } from './OverviewPage'
 import { RunSheetPage } from './RunSheetPage'
 import { PersonnelPage } from './PersonnelPage'
@@ -40,6 +41,7 @@ export function HqPage() {
     case 'clocks': return <ClocksPage sid={null} />
     case 'artists': return <ArtistsPage sid={null} />
     case 'personnel': return <PersonnelPage sid={null} />
+    case 'messages': return <MessagesPage sid={null} />
     default: return <Placeholder meta={HQ_NAV[view]} />
   }
 }
@@ -72,6 +74,7 @@ export function StagePage() {
     case 'artists': return <ArtistsPage sid={sid} />
     case 'personnel': return <PersonnelPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
+    case 'messages': return <MessagesPage sid={sid} />
     default: return <Placeholder meta={STAGE_NAV[view]} sub={`${stages[sid].name} · ${STAGE_NAV[view].about(t)}`} />
   }
 }

@@ -146,7 +146,7 @@ Suggested porting order:
 4. ~~Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).~~ Done: `src/app/` (layout, demo persona switcher, preview, route guards). Pages are placeholders until their step.
 5. ~~Run sheet, day sheet generator and clocks.~~ Done: HQ overview and running order, stage Today, run sheet (lanes, on stage / done / delay, add item, add performer with day sheet), clocks with wall mode, stage display, server clock sync (`/time` JSON or the `Date` header).
 6. ~~Artists and personnel.~~ Done: artist list (inline status) and artist page (day sheet, contacts, production, bookings), personnel with paste-list import, Stage setup (details, template, stage team, access requests). In demo mode a stage manager can create crew users; live mode needs sign-in (step 2b) and the server must allow it, since `canWrite` keeps `members` admin-only.
-7. Messages.
+7. ~~Messages.~~ Done: channels, compose (Everyone needs festival-wide message rights), acknowledge / mark seen, delete, urgent banner on every page (also in wall mode), unread badge (last-read time is per browser in `localStorage`; move it to the server with sign-in).
 8. Accommodation and riders.
 
 Step 2b (after routing): the Cloudflare adapter and `worker/`.

@@ -321,3 +321,28 @@
 .sc .kv dt { color: var(--ink2) }
 .sc .kv dd { margin: 0 }
 .sc .pb.row { flex-wrap: wrap }
+
+/* ---------- messages ---------- */
+.sc .badge { background: var(--stop); color: #fff; border-radius: 999px; font-size: .7rem; font-weight: 700; padding: 0 .4rem; min-width: 1.2rem; text-align: center; line-height: 1.2rem }
+.sc nav.side .badge { margin-left: auto }
+@media (max-width: 860px) { .sc nav.side .badge { position: absolute; margin: 0; top: .1rem; right: .2rem } }
+.sc .urgent { background: #C3302E; color: #fff; display: flex; gap: 1rem; align-items: center; padding: .6rem 1rem; flex-wrap: wrap }
+.sc .urgent b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .02em }
+.sc .urgent .msg { flex: 1; min-width: 16ch }
+.sc .urgent button { background: #fff; color: #C3302E; border: 0; border-radius: var(--r); padding: .4rem .9rem; font-weight: 700; cursor: pointer }
+.sc.wallmode .urgent { position: fixed; left: 0; right: 0; top: 0; z-index: 40; font-size: 1.3rem }
+.sc .msgs { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 1rem; align-items: start }
+@media (max-width: 860px) { .sc .msgs { grid-template-columns: 1fr } .sc .chan { flex-direction: row !important; overflow-x: auto } }
+.sc .chan { display: flex; flex-direction: column; gap: 2px; padding: .4rem }
+.sc .chan button { display: flex; align-items: center; gap: .5rem; border: 0; background: none; padding: .45rem .6rem; border-radius: 4px; font-weight: 700; color: var(--ink2); cursor: pointer; text-align: left; font-size: .9rem; white-space: nowrap }
+.sc .chan button[aria-pressed="true"] { background: var(--surface2); color: var(--ink) }
+.sc .chan .badge { margin-left: auto }
+.sc .compose { display: grid; gap: .6rem; padding: 1rem; border-bottom: 1px solid var(--line) }
+.sc .compose textarea { width: 100%; min-height: 70px; resize: vertical; border: 1px solid var(--line); border-radius: var(--r); padding: .6rem; background: var(--bg) }
+.sc .compose .row select { border: 1px solid var(--line); border-radius: var(--r); padding: .35rem; background: var(--surface); max-width: 60vw }
+.sc .m { padding: .8rem 1rem; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: .2rem .75rem }
+.sc .m.urg { background: var(--stop-soft) }
+.sc .m .meta { font-size: .82rem; color: var(--ink2); display: flex; gap: .5rem; flex-wrap: wrap; align-items: center }
+.sc .m .meta b { color: var(--ink) }
+.sc .m .txt { grid-column: 2; white-space: pre-wrap; overflow-wrap: anywhere }
+.sc .m .ack { grid-column: 2; font-size: .8rem; color: var(--ink3); display: flex; gap: .5rem; align-items: center; flex-wrap: wrap }

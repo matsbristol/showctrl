@@ -23,18 +23,18 @@ function mount(path: string, me: string) {
   return store
 }
 
-const rowOf = (title: string) => screen.getAllByText(title, { selector: 'td b, td b a' })[0].closest('tr')!
+const rowOf = (id: string) => document.querySelector<HTMLElement>(`tr[data-id="${id}"]`)!
 
 describe('run sheet', () => {
   it('puts a show on stage and marks the artist on stage', async () => {
     const store = mount('/s/club/runsheet', 'demo-sm-club')
     const show = Object.values(store.peek('ros')).filter(r => r.stage === 'club' && r.kind === 'show' && r.status === 'pending').sort((a, b) => a.start - b.start)[0]
-    const row = rowOf(show.title)
+    const row = rowOf(show.id)
     await act(async () => { fireEvent.click(within(row).getByRole('button', { name: 'On stage' })) })
     expect(store.peek('ros')[show.id].status).toBe('live')
     expect(store.peek('ros')[show.id].actual).toBeTypeOf('number')
     expect(store.peek('artists')[show.artist!].status).toBe('on stage')
-    expect(within(rowOf(show.title)).getByRole('button', { name: 'Done' })).toBeTruthy()
+    expect(within(rowOf(show.id)).getByRole('button', { name: 'Done' })).toBeTruthy()
   })
 
   it('delays an item and everything after it that day', async () => {
@@ -43,7 +43,7 @@ describe('run sheet', () => {
     const first = ros[0]
     const targets = shiftTargets(store.peek('ros'), first, 'Europe/Oslo')
     const others = Object.values(store.peek('ros')).filter(r => !targets.includes(r))
-    await act(async () => { fireEvent.click(within(rowOf(first.title)).getByRole('button', { name: 'Delay' })) })
+    await act(async () => { fireEvent.click(within(rowOf(first.id)).getByRole('button', { name: 'Delay' })) })
     fireEvent.change(screen.getByLabelText('Minutes (negative pulls earlier)'), { target: { value: '15' } })
     fireEvent.change(screen.getByLabelText('Reason'), { target: { value: 'Power issue' } })
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Apply delay' })) })

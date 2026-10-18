@@ -131,9 +131,9 @@ export function createAccess(s: AccessState) {
   /** Whether the user can send messages anywhere. */
   const canSendMsgs = (): boolean => !s.readOnly && anyLv('messages') >= 2
 
-  /** Whether the user can send to a target. */
+  /** Whether the user can send to a target. "Everyone" needs festival-wide message rights. */
   const canSendTo = (to: Msg['to']): boolean =>
-    to.t === 'stage' ? canW('messages', to.id) : canSendMsgs()
+    to.t === 'stage' ? canW('messages', to.id) : to.t === 'all' ? canW('messages') : canSendMsgs()
 
   return {
     me: s.me, roles, member, realRole, role, roleDef, perm, stageRole, lv, canW,

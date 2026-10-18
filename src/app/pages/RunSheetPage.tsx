@@ -80,7 +80,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
                 {list.map(i => {
                   const e = eff(i)
                   return (
-                    <tr key={i.id} className={i.status}>
+                    <tr key={i.id} className={i.status} data-id={i.id}>
                       <td className="t">
                         {i.delay ? <s>{fmtTime(i.start, tz)}</s> : null}
                         <b>{fmtTime(e.s, tz)}</b>{e.e - e.s >= 5 * MIN ? `–${fmtTime(e.e, tz)}` : ''}

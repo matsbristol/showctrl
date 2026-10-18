@@ -11,6 +11,8 @@ import { Icon } from './Icon'
 import { HQ_NAV, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
+import { useUnreadCount } from './messages/hooks'
+import { UrgentBanner } from './messages/UrgentBanner'
 
 const HQ_COLOR = '#3E63FF'
 const tapeHex = (t: TapeColor | undefined) => TAPE[t ?? 'grey'] ?? TAPE.grey
@@ -30,6 +32,7 @@ export function Layout() {
         <Who />
       </header>
       <ContextBar />
+      <UrgentBanner />
       <PreviewBar />
       <div className="shell">
         <SideNav />
@@ -166,6 +169,7 @@ function SideNav() {
   const terms = useTerms()
   const stages = useCollection('stages')
   const { pathname } = useLocation()
+  const unread = useUnreadCount()
   const current = pathname.split('/')[ctx === 'hq' ? 2 : 3]
   const st = ctx === 'hq' ? null : stages[ctx]
 
@@ -184,6 +188,7 @@ function SideNav() {
           <Link to={to} aria-current={current === v ? 'page' : undefined}>
             <Icon name={meta.icon} />
             <span>{meta.label(terms)}</span>
+            {v === 'messages' && unread > 0 && current !== 'messages' && <span className="badge" aria-label={`${unread} unread`}>{unread}</span>}
           </Link>
         </div>
       ))}

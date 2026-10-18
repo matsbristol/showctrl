@@ -181,7 +181,7 @@ describe('canWrite', () => {
   })
 
   it('checks riders against the artist’s stage', () => {
-    const r = { id: `${mainArtist.id}_tech`, artist: mainArtist.id, kind: 'tech' as const, items: [], updated: 0 }
+    const r = { id: `${mainArtist.id}_tech`, artist: mainArtist.id, kind: 'tech' as const, items: {}, updated: 0 }
     expect(w(as('demo-sm-main'), { col: 'riders', id: r.id, prev: null, next: r })).toBe(true)
     expect(w(as('demo-sm-tent'), { col: 'riders', id: r.id, prev: null, next: r })).toBe(false)
     expect(w(as('demo-sm-main'), { col: 'riders', id: 'wrong', prev: null, next: { ...r, id: 'wrong' } })).toBe(false)

@@ -135,10 +135,11 @@ export function buildSample(t: number = Date.now()): LocalData {
   const st: RiderStatus[] = ['sourced', 'agreed', 'requested', 'sourced', 'declined', 'requested', 'agreed']
   const pick = <T,>(arr: T[], n: number, off: number) => Array.from({ length: n }, (_, j) => arr[(j + off) % arr.length])
   Object.keys(col.artists).filter((_, i) => i % 2 === 0).forEach((a, i) => {
-    const techItems: RiderItem[] = pick(tech, 4 + i % 4, i * 2).map(([text, dept], j) => ({ id: `t${j}`, text, dept, status: st[(i + j) % st.length] }))
-    const hospItems: RiderItem[] = pick(hosp, 3 + i % 4, i * 3).map(([text, dept], j) => ({ id: `h${j}`, text, dept, status: st[(i + j + 2) % st.length] }))
-    col.riders[a + '_tech'] = { id: a + '_tech', artist: a, kind: 'tech', updated: t, items: techItems }
-    col.riders[a + '_hosp'] = { id: a + '_hosp', artist: a, kind: 'hosp', updated: t, items: hospItems }
+    const techItems: RiderItem[] = pick(tech, 4 + i % 4, i * 2).map(([text, dept], j) => ({ id: `t${j}`, text, dept, status: st[(i + j) % st.length], order: j }))
+    const hospItems: RiderItem[] = pick(hosp, 3 + i % 4, i * 3).map(([text, dept], j) => ({ id: `h${j}`, text, dept, status: st[(i + j + 2) % st.length], order: j }))
+    const byId = (items: RiderItem[]) => Object.fromEntries(items.map(x => [x.id, x]))
+    col.riders[a + '_tech'] = { id: a + '_tech', artist: a, kind: 'tech', updated: t, items: byId(techItems) }
+    col.riders[a + '_hosp'] = { id: a + '_hosp', artist: a, kind: 'hosp', updated: t, items: byId(hospItems) }
   })
 
   // clocks: festival-wide + one per stage

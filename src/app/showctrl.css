@@ -346,3 +346,23 @@
 .sc .m .meta b { color: var(--ink) }
 .sc .m .txt { grid-column: 2; white-space: pre-wrap; overflow-wrap: anywhere }
 .sc .m .ack { grid-column: 2; font-size: .8rem; color: var(--ink3); display: flex; gap: .5rem; align-items: center; flex-wrap: wrap }
+
+/* ---------- accommodation ---------- */
+.sc .nights th.n, .sc .nights td.n { text-align: center; padding: .4rem .3rem; min-width: 62px }
+.sc .nights td.n i { display: block; height: 22px; border-radius: 3px; background: var(--accent-soft); border: 1px solid var(--accent) }
+.sc .nights td.n i.req { background: var(--standby-soft); border-color: var(--standby) }
+.sc .nights td.n i.in { background: var(--go-soft); border-color: var(--go) }
+.sc .nights td.over { color: var(--stop); font-weight: 700 }
+
+/* ---------- riders ---------- */
+.sc .rider .ph { flex-wrap: wrap }
+.sc .bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; min-width: 80px }
+.sc .bar i { display: block; height: 100%; background: var(--go) }
+.sc .items { list-style: none; margin: 0; padding: 0 }
+.sc .items li { display: grid; grid-template-columns: 1fr auto auto auto; gap: .6rem; align-items: center; padding: .5rem 1rem; border-bottom: 1px solid var(--line) }
+.sc .items li:last-child { border-bottom: 0 }
+.sc .items li.declined .tx { text-decoration: line-through; color: var(--ink3) }
+@media (max-width: 600px) { .sc .items li { grid-template-columns: 1fr 1fr auto } .sc .items li .tx { grid-column: 1 / -1 } }
+.sc .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto }
+.sc .tabs button { border: 0; background: none; padding: .55rem .9rem; font-weight: 700; color: var(--ink2); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap }
+.sc .tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--accent) }

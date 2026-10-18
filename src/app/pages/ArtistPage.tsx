@@ -5,7 +5,9 @@ import { dayLabel, festDay, fmtTime, tzCity } from '../../lib/time'
 import { moduleOn } from '../../shared/access'
 import { TAPE } from '../../types/constants'
 import type { Artist, ArtistContact, Id, RosItem } from '../../types/model'
+import { BookingForm } from '../accommodation/forms'
 import { ArtistForm, ContactForm } from '../artists/forms'
+import { RiderPanel } from '../riders/RiderPanel'
 import { useDay } from '../day'
 import { DaySheetForm, ItemForm } from '../runsheet/forms'
 import { SheetRow, StatusChip, Tel } from '../runsheet/parts'
@@ -14,9 +16,9 @@ import { Hidden } from './ArtistsPage'
 
 type Dialog =
   | { type: 'edit' } | { type: 'daysheet' } | { type: 'item'; item: Partial<RosItem> }
-  | { type: 'contact'; contact: ArtistContact | null } | null
+  | { type: 'contact'; contact: ArtistContact | null } | { type: 'book' } | null
 
-/** One performer: day sheet, contacts, production details and bookings. Riders arrive in step 8. */
+/** One performer: day sheet, contacts, production details, bookings and riders. */
 export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }) {
   const a = useAccess()
   const t = useTerms()
@@ -117,7 +119,10 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
 
           {moduleOn(cfg, 'accommodation') && a.lv('accommodation', artist.stage) >= 1 && (
             <section className="panel">
-              <div className="ph"><h3>Accommodation</h3></div>
+              <div className="ph">
+                <h3>Accommodation</h3>
+                {a.canW('accommodation') && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'book' })}>+ Book</button></div>}
+              </div>
               {bks.length ? (
                 <ul className="list">
                   {bks.map(b => (
@@ -136,6 +141,9 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
             </section>
           )}
         </div>
+        {moduleOn(cfg, 'riders') && (['tech', 'hosp'] as const)
+          .filter(k => a.lv(k === 'tech' ? 'riders_tech' : 'riders_hosp', artist.stage) >= 1)
+          .map(k => <RiderPanel key={k} artistId={artist.id} kind={k} onArtistPage />)}
       </div>
 
       {dialog?.type === 'edit' && (
@@ -143,6 +151,7 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
       )}
       {dialog?.type === 'daysheet' && <DaySheetForm artist={artist} day={day} onClose={() => setDialog(null)} />}
       {dialog?.type === 'item' && <ItemForm item={dialog.item} sid={artist.stage} day={day} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'book' && <BookingForm booking={null} artistId={artist.id} onClose={() => setDialog(null)} />}
       {dialog?.type === 'contact' && <ContactForm artist={artist} contact={dialog.contact} onClose={() => setDialog(null)} />}
     </>
   )

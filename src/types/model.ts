@@ -270,13 +270,18 @@ export interface RiderItem {
   text: string
   dept?: Id | null
   status: RiderStatus
+  /** Position in the list. */
+  order: number
 }
 
-/** Id is `${artistId}_${kind}`. */
+/**
+ * Id is `${artistId}_${kind}`. Items are keyed by item id (not an array), so two people
+ * changing different items at the same time don't overwrite each other.
+ */
 export interface Rider extends BaseDoc {
   artist: Id
   kind: RiderKind
-  items: RiderItem[]
+  items: Record<Id, RiderItem>
   updated: Ms
 }
 

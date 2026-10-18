@@ -75,7 +75,7 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 
 **`bookings`**: `artist?` or `guest` + `guestRole`, `hotel`, `checkIn`, `checkOut`, `rooms`, `roomType`, `status`, `conf`, `notes`.
 
-**`riders`** (id = `${artistId}_${kind}`): `artist`, `kind` (tech | hosp), `items` [{id, text, dept, status: requested | agreed | sourced | declined}], `updated`.
+**`riders`** (id = `${artistId}_${kind}`): `artist`, `kind` (tech | hosp), `items` {itemId: {id, text, dept, status: requested | agreed | sourced | declined, order}}, `updated`. Items are keyed by id (the prototype used an array) so parallel edits to different items don't overwrite each other.
 
 ## Access model
 
@@ -153,9 +153,12 @@ Suggested porting order:
 5. ~~Run sheet, day sheet generator and clocks.~~ Done: HQ overview and running order, stage Today, run sheet (lanes, on stage / done / delay, add item, add performer with day sheet), clocks with wall mode, stage display, server clock sync (`/time` JSON or the `Date` header).
 6. ~~Artists and personnel.~~ Done: artist list (inline status) and artist page (day sheet, contacts, production, bookings), personnel with paste-list import, Stage setup (details, template, stage team, access requests). In demo mode a stage manager can create crew users; live mode needs sign-in (step 2b) and the server must allow it, since `canWrite` keeps `members` admin-only.
 7. ~~Messages.~~ Done: channels, compose (Everyone needs festival-wide message rights), acknowledge / mark seen, delete, urgent banner on every page (also in wall mode), unread badge (last-read time lives in the user's `prefs` record, so it follows them across devices).
-8. Accommodation and riders.
+8. ~~Accommodation and riders.~~ Done: hotels, rooms used per night against each block, rooming list, bookings (also from the artist page); riders per kind with per-item status and department, paste-in items, progress.
 
-Step 2b (after routing): the Cloudflare adapter and `worker/`.
+Still to do:
+
+- **Admin page:** event settings, departments, stages, people and access, and the roles matrix. Only "preview as" and "reset demo" exist so far.
+- **Step 2b:** the Cloudflare adapter and `worker/`, with sign-in.
 
 ## Backend (not built yet)
 
@@ -188,7 +191,7 @@ Server time should come from the backend for clock sync.
 - **Storage and permissions:** the claude.ai storage is sized for hundreds to low thousands of records, and permissions are mostly UI-enforced.
 - **Direct messages:** these aren't private in the shared store.
 - **Message history:** only the latest 300 messages load.
-- **Concurrent edits:** rider items are stored as one array per rider, so simultaneous edits are last-write-wins.
+- **Concurrent edits:** rider items were one array per rider, so simultaneous edits were last-write-wins. Fixed in the React app (items keyed by id).
 - **Offline use:** there is no offline mode.
 
 ## Backlog ideas

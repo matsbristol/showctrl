@@ -28,7 +28,8 @@ export interface LocalStoreOptions {
   actor?: Id | null
 }
 
-export const DEMO_STORAGE_KEY = 'showctrl-demo-v3'
+// v4: rider items keyed by id. Bump when the stored shape changes so old demo data is rebuilt.
+export const DEMO_STORAGE_KEY = 'showctrl-demo-v4'
 const AUDIT_CAP = 1000
 
 type AnyDoc = { id: Id }

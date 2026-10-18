@@ -3,8 +3,8 @@
 import { Navigate, useParams } from 'react-router-dom'
 import { useCollection, useConfig } from '../../data/hooks'
 import { HQ_VIEWS, STAGE_VIEWS, canOpenHqView, canOpenStageView, homePath, type HqView, type StageView } from '../../shared/views'
-import { HQ_NAV, STAGE_NAV } from '../nav'
 import { useAccess, useTerms } from '../session'
+import { AccommodationPage } from './AccommodationPage'
 import { AdminPage } from './AdminPage'
 import { ArtistDetail } from './ArtistPage'
 import { ArtistsPage } from './ArtistsPage'
@@ -12,13 +12,13 @@ import { ClocksPage } from './ClocksPage'
 import { DisplayPage } from './DisplayPage'
 import { MessagesPage } from './MessagesPage'
 import { OverviewPage } from './OverviewPage'
+import { RidersPage } from './RidersPage'
 import { RunSheetPage } from './RunSheetPage'
 import { PersonnelPage } from './PersonnelPage'
 import { SchedulePage } from './SchedulePage'
 import { SetupPage } from './SetupPage'
 import { TodayPage } from './TodayPage'
 import { NoAccess } from './NoAccess'
-import { Placeholder } from './Placeholder'
 
 const isHqView = (v: string | undefined): v is HqView => (HQ_VIEWS as readonly string[]).includes(v ?? '')
 const isStageView = (v: string | undefined): v is StageView => (STAGE_VIEWS as readonly string[]).includes(v ?? '')
@@ -42,7 +42,8 @@ export function HqPage() {
     case 'artists': return <ArtistsPage sid={null} />
     case 'personnel': return <PersonnelPage sid={null} />
     case 'messages': return <MessagesPage sid={null} />
-    default: return <Placeholder meta={HQ_NAV[view]} />
+    case 'accommodation': return <AccommodationPage />
+    case 'riders': return <RidersPage sid={null} />
   }
 }
 
@@ -60,8 +61,6 @@ export function StagePage() {
   const { stageId, view } = useParams()
   const a = useAccess()
   const cfg = useConfig('event')
-  const t = useTerms()
-  const stages = useCollection('stages')
   const blocked = useStageGuard(stageId)
   if (blocked) return blocked
   if (!isStageView(view) || !canOpenStageView(a, cfg, stageId!, view)) return <NoAccess />
@@ -75,7 +74,7 @@ export function StagePage() {
     case 'personnel': return <PersonnelPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
     case 'messages': return <MessagesPage sid={sid} />
-    default: return <Placeholder meta={STAGE_NAV[view]} sub={`${stages[sid].name} · ${STAGE_NAV[view].about(t)}`} />
+    case 'riders': return <RidersPage sid={sid} />
   }
 }
 

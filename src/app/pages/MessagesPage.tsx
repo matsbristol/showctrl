@@ -1,14 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCollection, useConfig } from '../../data/hooks'
 import { fmtTime, relTime } from '../../lib/time'
 import { inChannel, messageChannels, parseTarget, visibleMsgs } from '../../shared/messages'
 import { initials, personColor, personName } from '../../shared/people'
 import { TAPE } from '../../types/constants'
 import type { Id } from '../../types/model'
-import { markRead, useMessageActions, useMyUrgent } from '../messages/hooks'
+import { useLastRead, useMarkRead, useMessageActions, useMyUrgent } from '../messages/hooks'
 import { useTargetLabel } from '../messages/labels'
 import { useAccess, useNow, useTz } from '../session'
-import { useServerTime } from '../time'
 
 /** Channels on the left; compose and the message list on the right. Opening the page marks everything read. */
 export function MessagesPage({ sid }: { sid: Id | null }) {
@@ -19,7 +18,6 @@ export function MessagesPage({ sid }: { sid: Id | null }) {
   const people = useCollection('people')
   const tz = useTz()
   const now = useNow(30_000)
-  const serverNow = useServerTime()
   const label = useTargetLabel()
   const urgent = useMyUrgent()
   const { send, ack, remove } = useMessageActions()
@@ -29,9 +27,14 @@ export function MessagesPage({ sid }: { sid: Id | null }) {
   const ch = chans.some(c => c.id === chanState) ? chanState : 'inbox'
   const list = visibleMsgs(a, msgs).filter(m => inChannel(m, ch))
 
-  // Mark read on open, and again as new messages arrive while the page is open.
+  // Mark read on open, and again when a message newer than the last read time arrives while the page is open.
+  const markRead = useMarkRead()
+  const lastRead = useLastRead(a.me)
   const newest = list[0]?.at ?? 0
-  useEffect(() => { markRead(a.me, serverNow()) }, [a.me, serverNow, newest])
+  const opened = useRef(false)
+  useEffect(() => {
+    if (!opened.current || newest > lastRead) { opened.current = true; void markRead(a.me) }
+  }, [a.me, newest, lastRead, markRead])
 
   const sendStages = a.stagesSorted().filter(s => a.canW('messages', s.id))
   const others = Object.keys(members).filter(u => u !== a.me).sort((x, y) => personName(x, members, people).localeCompare(personName(y, members, people)))

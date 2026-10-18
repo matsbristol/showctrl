@@ -63,6 +63,8 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 
 **`stageteam`** (one doc per stage): `crew` {userId: true}. Written by that stage's managers.
 
+**`prefs`** (keyed by user id, written only by that user): `lastRead` (ms). Per-user state that must follow the user across devices.
+
 **`requests`** (keyed by user id): `at`, `note`, `stage?`. A person without access asks to join.
 
 **`clocks`**: `label`, `kind` (tod | countdown | timer | stage), `scope` (stage id, or null for festival-wide), plus kind-specific fields `tz`, `target`, `stage`, `duration`, `accum`, `runningSince`, `warn`, `order`.
@@ -114,6 +116,10 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 - **Delays:** "Delay" adds minutes to an item and everything after it on that stage and day. A checkbox decides whether dock items move too. "On stage" and "Done" record actual times and offer to shift the rest of the day when an act starts late or overruns.
 - **Now and next:** a stage's "now" is the live on-stage item. Its "next" is the next show not yet done. The stage display, stage clocks and overview cards all use these.
 
+## Browser independence
+
+Nothing a user does may depend on which browser or device they use. Per-user state (read markers, preferences) goes in the `prefs` collection, never `localStorage`. The only browser storage is demo mode itself: the demo data file and the demo persona picker, both replaced by the backend and sign-in.
+
 ## UI conventions
 
 - **Fonts:** Barlow Condensed for clocks and headings; Atkinson Hyperlegible for body text (legible under pressure, backstage at night).
@@ -146,7 +152,7 @@ Suggested porting order:
 4. ~~Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).~~ Done: `src/app/` (layout, demo persona switcher, preview, route guards). Pages are placeholders until their step.
 5. ~~Run sheet, day sheet generator and clocks.~~ Done: HQ overview and running order, stage Today, run sheet (lanes, on stage / done / delay, add item, add performer with day sheet), clocks with wall mode, stage display, server clock sync (`/time` JSON or the `Date` header).
 6. ~~Artists and personnel.~~ Done: artist list (inline status) and artist page (day sheet, contacts, production, bookings), personnel with paste-list import, Stage setup (details, template, stage team, access requests). In demo mode a stage manager can create crew users; live mode needs sign-in (step 2b) and the server must allow it, since `canWrite` keeps `members` admin-only.
-7. ~~Messages.~~ Done: channels, compose (Everyone needs festival-wide message rights), acknowledge / mark seen, delete, urgent banner on every page (also in wall mode), unread badge (last-read time is per browser in `localStorage`; move it to the server with sign-in).
+7. ~~Messages.~~ Done: channels, compose (Everyone needs festival-wide message rights), acknowledge / mark seen, delete, urgent banner on every page (also in wall mode), unread badge (last-read time lives in the user's `prefs` record, so it follows them across devices).
 8. Accommodation and riders.
 
 Step 2b (after routing): the Cloudflare adapter and `worker/`.

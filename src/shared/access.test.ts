@@ -203,6 +203,12 @@ describe('canWrite', () => {
     expect(w(as('demo-sm-main'), { col: 'requests', id: 'newbie', prev: r, next: null })).toBe(true)
   })
 
+  it('lets users write only their own prefs', () => {
+    expect(w(as('demo-crew-main-3'), { col: 'prefs', id: 'demo-crew-main-3', prev: null, next: { id: 'demo-crew-main-3', lastRead: 1 } })).toBe(true)
+    expect(w(as('demo-crew-main-3'), { col: 'prefs', id: 'demo-pm', prev: null, next: { id: 'demo-pm', lastRead: 1 } })).toBe(false)
+    expect(w(as('demo-admin'), { col: 'prefs', id: 'demo-pm', prev: null, next: { id: 'demo-pm', lastRead: 1 } })).toBe(false)
+  })
+
   it('rejects a body whose id does not match', () => {
     expect(w(as('demo-admin'), { col: 'hotels', id: 'h1', prev: null, next: { ...col.hotels.h2 } })).toBe(false)
   })

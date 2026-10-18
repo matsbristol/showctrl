@@ -50,6 +50,9 @@ export function canWrite(a: Access, req: WriteRequest, ctx: WriteContext): Write
     case 'stageteam':
       return check(a.canW('admin') || a.canW('setup', req.id), 'Only the stage manager or a festival admin changes the stage team.')
 
+    case 'prefs':
+      return check(!!a.me && req.id === a.me, 'You can only change your own settings.')
+
     case 'members':
       return check(a.canW('admin'), 'Only festival admins change who has access.')
 

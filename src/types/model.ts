@@ -280,6 +280,12 @@ export interface Rider extends BaseDoc {
   updated: Ms
 }
 
+/** Per-user state that must follow the user across devices. Keyed by user id; only that user writes it. */
+export interface UserPrefs extends BaseDoc {
+  /** When the user last opened Messages; drives the unread badge. */
+  lastRead?: Ms
+}
+
 /** Collection name → record type. Drives every data layer call. */
 export interface Collections {
   clocks: Clock
@@ -294,6 +300,7 @@ export interface Collections {
   requests: AccessRequest
   people: Person
   stageteam: StageTeam
+  prefs: UserPrefs
 }
 
 export type CollectionName = keyof Collections

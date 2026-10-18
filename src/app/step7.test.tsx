@@ -41,6 +41,19 @@ describe('messages', () => {
     expect(screen.getByRole('heading', { name: 'Messages' })).toBeTruthy()
   })
 
+  it('keeps read state with the user, not the browser', async () => {
+    const store = mount('/s/tent/messages', 'demo-sm-tent')
+    expect(store.peek('prefs')['demo-sm-tent']?.lastRead).toBeTypeOf('number')
+    cleanup()
+    localStorage.clear() // a different device
+    render(
+      <MemoryRouter initialEntries={['/s/tent/today']}>
+        <Routes>{showctrlRoutes(<ShowctrlRoot store={store} initialMe="demo-sm-tent" />)}</Routes>
+      </MemoryRouter>,
+    )
+    expect(sideNav().queryByLabelText(/unread/)).toBeNull()
+  })
+
   it('sends an urgent message to a stage and alerts that stage’s crew', async () => {
     const store = mount('/s/main/messages', 'demo-sm-main')
     fireEvent.change(screen.getByPlaceholderText('Type a message…'), { target: { value: 'Clear the stage, wind warning' } })

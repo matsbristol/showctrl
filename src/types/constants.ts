@@ -157,7 +157,7 @@ export const CLOCK_KINDS = {
 
 /** Every record collection. `config/event` and `config/roles` are stored separately. */
 export const COLLECTIONS = [
-  'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam',
+  'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs',
 ] as const
 
 export function defaultDepts(): Dept[] {

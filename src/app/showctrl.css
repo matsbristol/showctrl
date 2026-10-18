@@ -366,3 +366,12 @@
 .sc .tabs { display: flex; gap: .25rem; border-bottom: 1px solid var(--line); margin-bottom: 1rem; overflow-x: auto }
 .sc .tabs button { border: 0; background: none; padding: .55rem .9rem; font-weight: 700; color: var(--ink2); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap }
 .sc .tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--accent) }
+
+/* ---------- admin ---------- */
+.sc .matrix th, .sc .matrix td { text-align: center }
+.sc .matrix th:first-child, .sc .matrix td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1 }
+.sc .matrix select { font-size: .8rem }
+.sc .lv0 { color: var(--ink3) }
+.sc .lv2 { color: var(--go); font-weight: 700 }
+.sc fieldset.fld { border: 0; padding: 0; margin: 0 }
+.sc fieldset.fld legend { font-size: .85rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .3rem }

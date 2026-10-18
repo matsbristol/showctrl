@@ -7,6 +7,22 @@ import { DEFAULT_ROLES, DEFAULT_TPL, EVENT_TYPES, HOUR, KINDS, MIN, SCHEMA_VERSI
 import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RosItem, TapeColor } from '../types/model'
 import { emptyCollections, type LocalData } from './localStore'
 
+/** An empty three-day festival starting today, with one admin user (the demo persona `demo-admin`). */
+export function blankEvent(t: number = Date.now()): LocalData {
+  const tz = 'Europe/Oslo'
+  const d0 = festDay(t, tz)
+  const col = emptyCollections()
+  col.members['demo-admin'] = { id: 'demo-admin', name: 'Festival admin', role: 'admin', person: null, depts: [], stages: {} }
+  return {
+    cfg: {
+      schema: SCHEMA_VERSION, name: 'New festival', type: 'festival', tz, start: d0, end: addDays(d0, 2),
+      terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true }, depts: defaultDepts(),
+    },
+    roles: { roles: structuredClone(DEFAULT_ROLES) },
+    col,
+  }
+}
+
 const eff = (r: RosItem) => ({ s: r.start + (r.delay || 0), e: r.end + (r.delay || 0) })
 
 export function buildSample(t: number = Date.now()): LocalData {

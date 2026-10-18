@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { DataProvider } from '../data/DataProvider'
-import { useConfig } from '../data/hooks'
+import { useConfig, useStore } from '../data/hooks'
+import { LocalStore } from '../data/localStore'
+import { blankEvent, buildSample } from '../data/sample'
 import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
 import { Layout } from './Layout'
@@ -58,10 +60,26 @@ function Frame({ children }: { children: ReactNode }) {
 function EventGate() {
   const cfg = useConfig('event')
   if (cfg === undefined) return <div className="loading">Connecting…</div>
-  if (!cfg || cfg.schema !== 2) {
-    return (
-      <div className="setup"><div className="panel"><h2>No event set up yet</h2><p className="muted">Event setup arrives with Admin. Reset the demo to start from the sample festival.</p></div></div>
-    )
-  }
+  if (!cfg || cfg.schema !== 2) return <NoEvent />
   return <Layout />
+}
+
+/** Shown when the store has no event yet. In demo mode, offer the sample festival or a blank event. */
+function NoEvent() {
+  const store = useStore()
+  if (!(store instanceof LocalStore)) {
+    return <div className="setup"><div className="panel"><h2>This event isn’t set up yet</h2><p className="muted">The festival admin needs to create it first. Check back shortly.</p></div></div>
+  }
+  return (
+    <div className="setup">
+      <div className="panel">
+        <h1>Create your event</h1>
+        <p className="muted" style={{ margin: '.5rem 0 1.25rem' }}>Load a sample five-stage festival to try everything, or start blank: name the event, add stages and appoint a stage manager for each.</p>
+        <div className="row">
+          <button type="button" className="btn primary" onClick={() => store.reset(buildSample())}>Load sample festival</button>
+          <button type="button" className="btn" onClick={() => store.reset(blankEvent())}>Start blank</button>
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -155,9 +155,10 @@ Suggested porting order:
 7. ~~Messages.~~ Done: channels, compose (Everyone needs festival-wide message rights), acknowledge / mark seen, delete, urgent banner on every page (also in wall mode), unread badge (last-read time lives in the user's `prefs` record, so it follows them across devices).
 8. ~~Accommodation and riders.~~ Done: hotels, rooms used per night against each block, rooming list, bookings (also from the artist page); riders per kind with per-item status and department, paste-in items, progress.
 
+Admin is done too: stages and stage managers, people with access (and access requests), the roles matrix with custom roles and preview, event settings and modules, departments, and in demo mode reload sample or start blank.
+
 Still to do:
 
-- **Admin page:** event settings, departments, stages, people and access, and the roles matrix. Only "preview as" and "reset demo" exist so far.
 - **Step 2b:** the Cloudflare adapter and `worker/`, with sign-in.
 
 ## Backend (not built yet)

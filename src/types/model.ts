@@ -211,6 +211,9 @@ export interface JoinRequest {
   at: Ms
   note: string
   stage?: Id
+  /** Live mode: who is asking, since they have no member record yet. */
+  name?: string
+  email?: string
 }
 
 /* ---------------- clocks ---------------- */

@@ -5,8 +5,9 @@
  * otherwise the device clock is trusted ("Synced"). If the server can't be
  * reached, device time is used ("Device time").
  *
- * When the real backend exists, point `syncClock` at it so server time comes
- * from the same place as the data.
+ * In live mode the time comes from the backend instead (`server_now()` in
+ * Postgres, see `startClockSync(measure)`), so it matches the data, to the
+ * millisecond rather than the header's whole seconds.
  */
 import { useCallback, useSyncExternalStore } from 'react'
 import { MIN } from '../domain/constants'
@@ -69,10 +70,31 @@ export async function syncClock(url = typeof location === 'undefined' ? '' : loc
   return status
 }
 
-/** Syncs now and every 10 minutes. Returns a stop function. */
-export function startClockSync(): () => void {
-  void syncClock()
-  const id = setInterval(() => void syncClock(), SYNC_INTERVAL)
+/** Offset from a server clock read in ms, assuming it was read halfway through the round trip. */
+export const offsetFromServerMs = (t0: number, t1: number, serverMs: number) => serverMs - (t0 + t1) / 2
+
+/** Measures the server-minus-device offset in ms, or null when the server can't be reached. */
+export type OffsetSource = () => Promise<number | null>
+
+/** Measures the offset once with any source (live mode: the backend) and updates the shared status. */
+export async function syncClockWith(measure: OffsetSource): Promise<ClockStatus> {
+  try {
+    const off = await measure()
+    setStatus(off == null || Number.isNaN(off) ? { state: 'device', offset: 0 } : classifyOffset(off))
+  } catch {
+    setStatus({ state: 'device', offset: 0 })
+  }
+  return status
+}
+
+/**
+ * Syncs now and every 10 minutes. Without a source it reads this page's
+ * `Date` header (demo mode). Returns a stop function.
+ */
+export function startClockSync(measure?: OffsetSource): () => void {
+  const run = () => void (measure ? syncClockWith(measure) : syncClock())
+  run()
+  const id = setInterval(run, SYNC_INTERVAL)
   return () => clearInterval(id)
 }
 

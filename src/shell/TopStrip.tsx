@@ -77,10 +77,17 @@ function Who() {
   // Live: festival role if they have one, else their first stage role.
   const stageLabel = access.myStages().map(s => `${STAGE_ROLES[access.stageRole(s.id)!]}, ${s.name}`)[0]
   const roleText = access.role !== 'none' ? access.roleDef.label : stageLabel ?? access.roleDef.label
+  const live = session.live
   return (
     <div className="who">
-      <span>{name} <span className="role">· {roleText}</span></span>
+      <span title={live?.email}>{name} <span className="role">· {roleText}</span></span>
       <Avatar uid={uid} name={name} />
+      {live && (
+        <span className="row nowrap small">
+          <button type="button" className="link" onClick={live.switchEvent}>Events</button>
+          <button type="button" className="link" onClick={live.signOut}>Sign out</button>
+        </span>
+      )}
     </div>
   )
 }

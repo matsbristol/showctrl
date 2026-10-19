@@ -3,12 +3,14 @@ import type { Id, Roles, Snapshot } from '../types/model'
 import { NO_ROLE, STAGE_ROLES } from '../domain/constants'
 import { sortStages, stageRoleOf } from '../access/access'
 
-/** A user's name: their linked personnel record, else their member name. */
+/** A user's name: their linked personnel record, else their member name, else the name on their request to join. */
 export function personName(snap: Snapshot, uid: Id | null | undefined, me?: Id | null): string {
   if (!uid) return 'Someone'
   const m = snap.col.members[uid]
   if (m?.person && snap.col.people[m.person]) return snap.col.people[m.person].name
   if (m?.name) return m.name
+  const r = snap.col.requests[uid]
+  if (r?.name) return r.name
   return uid === me ? 'You' : 'Someone'
 }
 

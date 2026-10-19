@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyOffset, clockStatus, now, offsetFromDateHeader, syncClock } from './clock'
+import { classifyOffset, clockStatus, now, offsetFromDateHeader, offsetFromServerMs, syncClock, syncClockWith } from './clock'
 
 const fakeFetch = (date: string | null) => (async () => ({ headers: new Headers(date ? { date } : {}) })) as unknown as typeof fetch
 
@@ -31,5 +31,22 @@ describe('clock sync', () => {
     expect((await syncClock('file:///x', fakeFetch(null))).state).toBe('device')
     expect((await syncClock('https://example.test/', fakeFetch(null))).state).toBe('device')
     expect(clockStatus().offset).toBe(0)
+  })
+})
+
+describe('clock sync from the backend', () => {
+  it('reads the server halfway through the round trip', () => {
+    expect(offsetFromServerMs(1000, 1200, 5100)).toBe(4000)
+  })
+
+  it('applies a large offset and ignores a small one', async () => {
+    expect((await syncClockWith(async () => 3000)).state).toBe('corrected')
+    expect(clockStatus().offset).toBe(3000)
+    expect((await syncClockWith(async () => 200)).state).toBe('ok')
+  })
+
+  it('falls back to device time when the server is unreachable', async () => {
+    expect((await syncClockWith(async () => null)).state).toBe('device')
+    expect((await syncClockWith(async () => { throw new Error('offline') })).state).toBe('device')
   })
 })

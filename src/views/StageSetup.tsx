@@ -9,13 +9,14 @@ import { stageCrew, TEMPLATE_FIELDS, templateForForm } from '../domain/admin'
 import { tapeHex } from '../domain/constants'
 import { stageManagers } from '../domain/people'
 import { useSnapshot } from '../data/hooks'
-import { useAccess } from '../session/hooks'
+import { useAccess, useSession } from '../session/hooks'
 import { Avatar } from '../shell/Avatar'
 import { Icon } from '../shell/Icon'
 import { personName } from '../shell/people'
 import { colourVar } from '../shell/style'
 import type { Id } from '../types/model'
 import { useAdminActions } from './adminActions'
+import { InviteLink } from './InviteLink'
 import { Head } from './common'
 import { useEvent } from './hooks'
 
@@ -23,6 +24,7 @@ export function StageSetup({ sid }: { sid: Id }) {
   const snap = useSnapshot()
   const access = useAccess()
   const act = useAdminActions()
+  const session = useSession()
   const { T } = useEvent()
   const stage = snap.col.stages[sid]
   const tpl = templateForForm(stage.template)
@@ -69,8 +71,14 @@ export function StageSetup({ sid }: { sid: Id }) {
         <section className="panel">
           <div className="ph">
             <h3>{T.stage} team in showctrl</h3>
-            <div className="actions"><button type="button" className="btn sm primary" onClick={() => act.addDemoUser(sid, false)}><Icon name="plus" />Add</button></div>
+            {session.mode === 'demo' && <div className="actions"><button type="button" className="btn sm primary" onClick={() => act.addDemoUser(sid, false)}><Icon name="plus" />Add</button></div>}
           </div>
+          {session.live && (
+            <div className="pb bordered stack small">
+              <span>To add crew, send them this link. They sign in, ask to join, and appear here to add.</span>
+              <InviteLink eventId={session.live.eventId} stage={sid} />
+            </div>
+          )}
           {requests.length > 0 && (
             <div className="pb bordered">
               <b>Asking to join</b>

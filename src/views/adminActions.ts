@@ -156,7 +156,8 @@ export function useAdminActions() {
         if (session.mode === 'demo' && isNew && !(v.name as string).trim()) return 'Enter a name.'
         const ch = accessChanges(snap, id, {
           role: v.role as string, person: (v.person as string) || undefined, depts: v.depts as string[],
-          managerOf: v.mgr as string[], crewOn: v.crew as string[], name: (v.name as string).trim() || undefined,
+          // Live mode: the name they gave when asking to join.
+          managerOf: v.mgr as string[], crewOn: v.crew as string[], name: (v.name as string).trim() || request?.name || undefined,
         })
         await store.set('members', id, ch.member)
         for (const t of ch.teams) await store.set('stageteam', t.id, t)

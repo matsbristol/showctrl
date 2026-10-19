@@ -20,6 +20,7 @@ import { homePath } from '../shell/nav'
 import { personName } from '../shell/people'
 import { colourVar } from '../shell/style'
 import type { Level, ModuleId } from '../types/model'
+import { InviteLink } from './InviteLink'
 import { useAdminActions } from './adminActions'
 import { Head } from './common'
 import { useEvent } from './hooks'
@@ -27,6 +28,7 @@ import { useEvent } from './hooks'
 type Tab = 'stages' | 'access' | 'roles' | 'event' | 'depts'
 
 function StagesTab({ canEdit }: { canEdit: boolean }) {
+  const session = useSession()
   const snap = useSnapshot()
   const act = useAdminActions()
   const { T } = useEvent()
@@ -52,7 +54,7 @@ function StagesTab({ canEdit }: { canEdit: boolean }) {
                     {canEdit && <button type="button" className="btn sm danger push" onClick={() => act.removeManager(u, s.id)} aria-label={`Remove ${name(u)} as manager of ${s.name}`}>Remove</button>}
                   </span>
                 )) : <span className="muted">None yet</span>}
-                {canEdit && <button type="button" className="btn sm self-start" onClick={() => act.addDemoUser(s.id, true)}><Icon name="plus" />Appoint {T.stage.toLowerCase()} manager</button>}
+                {canEdit && session.mode === 'demo' && <button type="button" className="btn sm self-start" onClick={() => act.addDemoUser(s.id, true)}><Icon name="plus" />Appoint {T.stage.toLowerCase()} manager</button>}
                 <span className="muted">{stageCrew(snap, s.id).length} crew with app access · {peopleFor(snap.col.people, s.id).length} in personnel list</span>
               </div>
             </section>
@@ -65,6 +67,8 @@ function StagesTab({ canEdit }: { canEdit: boolean }) {
 }
 
 function AccessTab({ canEdit }: { canEdit: boolean }) {
+  const session = useSession()
+  const { T } = useEvent()
   const snap = useSnapshot()
   const act = useAdminActions()
   const t = useNow(60_000)
@@ -97,8 +101,14 @@ function AccessTab({ canEdit }: { canEdit: boolean }) {
       <section className="panel">
         <div className="ph">
           <h3>People with access</h3>
-          {canEdit && <div className="actions"><button type="button" className="btn sm primary" onClick={() => act.editAccess()}><Icon name="plus" />Give someone access</button></div>}
+          {canEdit && session.mode === 'demo' && <div className="actions"><button type="button" className="btn sm primary" onClick={() => act.editAccess()}><Icon name="plus" />Give someone access</button></div>}
         </div>
+        {canEdit && session.live && (
+          <div className="pb bordered stack small">
+            <span>To give someone access, send them this link. They sign in, ask to join, and appear under “Waiting for access”. To make someone a {T.stage.toLowerCase()} manager, give them access and tick the {T.stage.toLowerCase()}.</span>
+            <InviteLink eventId={session.live.eventId} />
+          </div>
+        )}
         <div className="tbl-wrap">
           <table>
             <thead><tr><th>Name</th><th>Festival role</th><th>Stages</th><th>Linked personnel entry</th><th /></tr></thead>

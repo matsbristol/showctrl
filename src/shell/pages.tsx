@@ -9,6 +9,7 @@ import { useSnapshot, useStore } from '../data/hooks'
 import { LocalStore } from '../data/localStore'
 import { useAccess, useSession } from '../session/hooks'
 import type { Level } from '../types/model'
+import { Accommodation } from '../views/Accommodation'
 import { ArtistPage } from '../views/ArtistPage'
 import { Artists } from '../views/Artists'
 import { Clocks } from '../views/Clocks'
@@ -16,6 +17,7 @@ import { Display } from '../views/Display'
 import { Messages } from '../views/Messages'
 import { Overview } from '../views/Overview'
 import { Personnel } from '../views/Personnel'
+import { Riders } from '../views/Riders'
 import { RunSheet } from '../views/RunSheet'
 import { Schedule } from '../views/Schedule'
 import { Today } from '../views/Today'
@@ -59,8 +61,6 @@ function SetupScreen() {
 
 /** Which porting step brings each section still to come (CLAUDE.md, "Port status"). */
 const COMING: Partial<Record<HqView | StageView, string>> = {
-  accommodation: 'step 8, accommodation and riders',
-  riders: 'step 8, accommodation and riders',
   admin: 'after step 8, with festival settings',
   setup: 'after step 8, with festival settings',
 }
@@ -101,6 +101,9 @@ export function WorkspacePage({ ctx }: { ctx: Ctx }) {
     case 'hq:artists': return <Artists sid={null} />
     case 'hq:personnel': return <Personnel sid={null} />
     case 'hq:messages': return <Messages sid={null} />
+    case 'hq:accommodation': return <Accommodation />
+    case 'hq:riders': return <Riders sid={null} />
+    case 's:riders': return <Riders sid={sid} />
     case 's:messages': return <Messages sid={sid} />
     case 's:artists': return <Artists sid={sid} />
     case 's:personnel': return <Personnel sid={sid} />

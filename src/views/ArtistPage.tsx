@@ -1,10 +1,11 @@
 /*
  * One artist: their day sheet across days, contacts (if the viewer may see
- * them), production details and hotel bookings. Riders join in step 8.
+ * them), production details, hotel bookings and riders.
  */
 import { Link } from 'react-router-dom'
 import { useNow } from '../clock/clock'
 import { tapeHex } from '../domain/constants'
+import { riderPerm } from '../domain/riders'
 import { itemsForArtist, showsFor } from '../domain/runsheet'
 import { dayLabel, festDay, fmtTime, tzCity } from '../domain/time'
 import { useSnapshot } from '../data/hooks'
@@ -12,10 +13,12 @@ import { useAccess } from '../session/hooks'
 import { Icon } from '../shell/Icon'
 import { ctxPath, stagePath, type Ctx } from '../shell/nav'
 import { colourVar } from '../shell/style'
-import type { Id } from '../types/model'
+import type { Id, RiderKind } from '../types/model'
+import { useAccommodationActions } from './accommodationActions'
 import { useArtistActions } from './artistActions'
 import { Locked, SheetRow, StatusChip, Tel } from './common'
 import { useDay, useEvent } from './hooks'
+import { RiderPanel } from './RiderPanel'
 import { useRunsheetActions } from './runsheetActions'
 
 export function ArtistPage({ ctx, id }: { ctx: Ctx; id: Id }) {
@@ -26,6 +29,7 @@ export function ArtistPage({ ctx, id }: { ctx: Ctx; id: Id }) {
   const t = useNow(60_000)
   const act = useArtistActions(ctx)
   const rs = useRunsheetActions()
+  const acc = useAccommodationActions()
   const a = snap.col.artists[id]
   if (!a) return <div className="panel"><p className="empty">This {T.performer.toLowerCase()} was removed. <Link to={ctxPath(ctx, 'artists')}>Back</Link></p></div>
 
@@ -37,6 +41,7 @@ export function ArtistPage({ ctx, id }: { ctx: Ctx; id: Id }) {
   const stage = a.stage ? snap.col.stages[a.stage] : undefined
   const bookings = Object.values(snap.col.bookings).filter(b => b.artist === id)
   const showBookings = access.moduleOn('accommodation') && access.lv('accommodation', a.stage) >= 1
+  const riderKinds = (['tech', 'hosp'] as RiderKind[]).filter(k => access.moduleOn('riders') && access.lv(riderPerm(k), a.stage) >= 1)
   // The day sheet is for the artist's show day, so new items default to it.
   const showDay = showsFor(snap.col.ros, id)[0]
   const itemDay = showDay ? festDay(showDay.start, tz) : day
@@ -117,8 +122,11 @@ export function ArtistPage({ ctx, id }: { ctx: Ctx; id: Id }) {
 
           {showBookings && (
             <section className="panel">
-              {/* Booking from here comes with the accommodation module in step 8. */}
-              <div className="ph"><h3>Accommodation</h3></div>
+              <div className="ph">
+                <h3>Accommodation</h3>
+                {/* Booking is festival-wide accommodation edit, not per stage. */}
+                {access.canW('accommodation') && <div className="actions"><button type="button" className="btn sm" onClick={() => acc.editBooking(undefined, id)}><Icon name="plus" />Book</button></div>}
+              </div>
               {bookings.length ? (
                 <ul className="list">
                   {bookings.map(b => (
@@ -138,6 +146,7 @@ export function ArtistPage({ ctx, id }: { ctx: Ctx; id: Id }) {
             </section>
           )}
         </div>
+        {riderKinds.map(k => <RiderPanel key={k} artist={id} kind={k} showName={false} />)}
       </div>
     </>
   )

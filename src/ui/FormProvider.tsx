@@ -40,6 +40,9 @@ function Field({ f, values, set, tz }: { f: FieldDef; values: FormValues; set: (
     case 'textarea':
       input = <textarea id={name} value={String(val ?? '')} placeholder={f.placeholder} onChange={e => set(f.k, e.target.value)} />
       break
+    case 'date':
+      input = <input id={name} type="date" value={String(val ?? '')} onChange={e => set(f.k, e.target.value)} />
+      break
     case 'datetime':
       input = (
         <input id={name} type="datetime-local" value={toLocal(val as number | null, tz)}

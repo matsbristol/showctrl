@@ -41,11 +41,12 @@ interface FieldBase {
 
 /**
  * Field types. Values: text, number, textarea and select are strings
- * (convert in onSave, as with any form input); datetime is epoch ms in the
- * event time zone, or null; checks is the list of ticked option keys.
+ * (convert in onSave, as with any form input); date is a `YYYY-MM-DD` day
+ * key; datetime is epoch ms in the event time zone, or null; checks is the
+ * list of ticked option keys.
  */
 export type FieldDef =
-  | (FieldBase & { type?: 'text' | 'number' | 'textarea' | 'datetime' })
+  | (FieldBase & { type?: 'text' | 'number' | 'textarea' | 'date' | 'datetime' })
   | (FieldBase & { type: 'select' | 'checks'; options: [string, string][] })
   | { type: 'note'; k: string; text: string; full?: boolean; show?: (v: FormValues) => boolean }
 

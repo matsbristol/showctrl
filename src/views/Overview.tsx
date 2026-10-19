@@ -12,6 +12,7 @@ import { colourVar } from '../shell/style'
 import type { Stage } from '../types/model'
 import { DelayChip, Head, Slot, Tel } from './common'
 import { useEvent } from './hooks'
+import { MsgPanel } from './MsgPanel'
 
 function StageCard({ stage }: { stage: Stage }) {
   const snap = useSnapshot()
@@ -107,7 +108,7 @@ export function Overview() {
         )}
       </div>
       <div className="grid g2">
-        {/* Latest messages join this grid in step 7. */}
+        <MsgPanel sid={null} />
         <ArrivalsDepartures />
         {access.moduleOn('accommodation') && access.perm('accommodation') >= 1 && <CheckIns />}
       </div>

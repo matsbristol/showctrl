@@ -10,11 +10,13 @@ import { useAccess } from '../session/hooks'
 import { Icon } from './Icon'
 import { ctxPath, hqNav, stageNav, type Ctx } from './nav'
 import { colourVar, HQ_COLOUR } from './style'
+import { useUnread } from '../views/msgHooks'
 
 export function SideNav({ ctx }: { ctx: Ctx }) {
   const snap = useSnapshot()
   const access = useAccess()
   const { pathname } = useLocation()
+  const unread = useUnread()
   const T = termsOf(snap.cfg)
   const stage = ctx === 'hq' ? null : snap.col.stages[ctx]
   const items = ctx === 'hq' ? hqNav(access, T) : stage ? stageNav(access, ctx, T) : []
@@ -38,6 +40,7 @@ export function SideNav({ ctx }: { ctx: Ctx }) {
           <Link to={ctxPath(ctx, n.view)} aria-current={isCurrent(n.view) ? 'page' : undefined}>
             <Icon name={n.icon} />
             <span>{n.label}</span>
+            {n.view === 'messages' && unread > 0 && !isCurrent('messages') && <span className="badge" aria-label={`${unread} unread`}>{unread}</span>}
           </Link>
         </Fragment>
       ))}

@@ -13,6 +13,7 @@ import { ArtistPage } from '../views/ArtistPage'
 import { Artists } from '../views/Artists'
 import { Clocks } from '../views/Clocks'
 import { Display } from '../views/Display'
+import { Messages } from '../views/Messages'
 import { Overview } from '../views/Overview'
 import { Personnel } from '../views/Personnel'
 import { RunSheet } from '../views/RunSheet'
@@ -58,7 +59,6 @@ function SetupScreen() {
 
 /** Which porting step brings each section still to come (CLAUDE.md, "Port status"). */
 const COMING: Partial<Record<HqView | StageView, string>> = {
-  messages: 'step 7, messages',
   accommodation: 'step 8, accommodation and riders',
   riders: 'step 8, accommodation and riders',
   admin: 'after step 8, with festival settings',
@@ -100,6 +100,8 @@ export function WorkspacePage({ ctx }: { ctx: Ctx }) {
     case 'hq:clocks': return <Clocks sid={null} />
     case 'hq:artists': return <Artists sid={null} />
     case 'hq:personnel': return <Personnel sid={null} />
+    case 'hq:messages': return <Messages sid={null} />
+    case 's:messages': return <Messages sid={sid} />
     case 's:artists': return <Artists sid={sid} />
     case 's:personnel': return <Personnel sid={sid} />
     case 's:today': return <Today sid={sid!} />

@@ -11,6 +11,7 @@ import { colourVar } from '../shell/style'
 import type { Id } from '../types/model'
 import { DelayChip, Head, SheetRow, Slot, Tel } from './common'
 import { useEvent } from './hooks'
+import { MsgPanel } from './MsgPanel'
 
 /** How many upcoming items and contacts to list. */
 const UPCOMING = 10
@@ -68,7 +69,7 @@ export function Today({ sid }: { sid: Id }) {
             </div>
           )) : <p className="empty">No crew listed yet.</p>}
         </section>
-        {/* The stage's message channel joins this grid in step 7. */}
+        <MsgPanel sid={sid} />
       </div>
     </>
   )

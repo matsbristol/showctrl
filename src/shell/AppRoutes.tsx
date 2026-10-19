@@ -9,12 +9,14 @@ import { homePath, type Ctx } from './nav'
 import { WorkspacePage } from './pages'
 import { SideNav } from './SideNav'
 import { TopStrip } from './TopStrip'
+import { UrgentBanner } from './UrgentBanner'
 
 function Shell({ ctx }: { ctx: Ctx }) {
   return (
     <>
       <TopStrip />
       <ContextBar ctx={ctx} />
+      <UrgentBanner />
       <div className="shell">
         <SideNav ctx={ctx} />
         <main>

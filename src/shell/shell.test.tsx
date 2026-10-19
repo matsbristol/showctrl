@@ -51,7 +51,7 @@ describe('shell', () => {
 
   it('shows placeholders with the access level for sections not ported yet', () => {
     expect(text(render('/hq/admin', 'demo-admin'))).toContain('You can edit this')
-    expect(text(render('/s/main/personnel', 'demo-crew-main-3'))).toContain('You can view this')
+    expect(text(render('/s/main/riders', 'demo-crew-main-3'))).toContain('You can view this')
   })
 
   it('shows a stage manager only their stage, marked SM, with stage setup', () => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useSyncExternalStore } from 'react'
+import { createContext, useCallback, useContext, useSyncExternalStore } from 'react'
 import type { Snapshot } from '../types/model'
 import type { DataStore } from './store'
 
@@ -13,7 +13,9 @@ export function useStore(): DataStore {
 /** The latest snapshot; re-renders on every change. */
 export function useSnapshot(): Snapshot {
   const store = useStore()
-  const get = () => store.snapshot()
+  // Stable per store, so React subscribes once rather than on every render.
+  const subscribe = useCallback((cb: () => void) => store.subscribe(cb), [store])
+  const get = useCallback(() => store.snapshot(), [store])
   // Same getter for server rendering (used by the shell's smoke tests).
-  return useSyncExternalStore(cb => store.subscribe(cb), get, get)
+  return useSyncExternalStore(subscribe, get, get)
 }

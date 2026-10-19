@@ -1,5 +1,5 @@
 /* Small pieces shared by the workspace views. */
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { useNow } from '../clock/clock'
 import { cdState, fmtCountdown } from '../domain/clocks'
 import { KINDS, MIN } from '../domain/constants'
@@ -7,6 +7,7 @@ import { eff, stageDelay } from '../domain/runsheet'
 import { dayLabel, fmtTime } from '../domain/time'
 import { useSnapshot } from '../data/hooks'
 import type { ArtistStatus, Id, ItemKind, Ms, RosItem } from '../types/model'
+import { Icon } from '../shell/Icon'
 import { useDay, useEvent } from './hooks'
 
 /** Page heading with an optional line under it and actions on the right. */
@@ -88,6 +89,9 @@ export function Slot({ label, item, isNow }: { label: string; item?: RosItem; is
   )
 }
 
+/** Stands in for details the viewer's role may not see, such as artist contacts. */
+export const Locked = () => <span className="lock"><Icon name="lock" />Hidden for your role</span>
+
 /** A phone link that dials, with only digits and + in the number. */
 export const Tel = ({ phone }: { phone?: string }) =>
   phone ? <a className="tel" href={`tel:${phone.replace(/[^+\d]/g, '')}`}>{phone}</a> : null
@@ -96,7 +100,7 @@ export const Tel = ({ phone }: { phone?: string }) =>
  * One line of a vertical day sheet: time (with the planned time struck
  * through when delayed), what, and a countdown or state on the right.
  */
-export function SheetRow({ item, showArtist }: { item: RosItem; showArtist?: boolean }) {
+export function SheetRow({ item, showArtist, onClick }: { item: RosItem; showArtist?: boolean; onClick?: () => void }) {
   const snap = useSnapshot()
   const { tz } = useEvent()
   const t = useNow(15_000)
@@ -112,8 +116,14 @@ export function SheetRow({ item, showArtist }: { item: RosItem; showArtist?: boo
     : running ? <span className="chip go">Now</span>
     : passed ? <span className="chip">Passed</span>
     : <Countdown target={live ? e.e : e.s} title={live ? 'Ends in' : 'Starts in'} />
+  // Clickable rows (to edit) behave as buttons for keyboard users too.
+  const clickable = onClick ? {
+    role: 'button', tabIndex: 0, onClick,
+    onKeyDown: (ev: KeyboardEvent) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); onClick() } },
+    'aria-label': `Edit ${KINDS[item.kind]?.label ?? item.kind} at ${fmtTime(e.s, false, tz)}`,
+  } : {}
   return (
-    <li className={`${item.status} ${running ? 'live' : ''} k-${item.kind}`}>
+    <li className={`${item.status} ${running ? 'live' : ''} k-${item.kind} ${onClick ? 'click' : ''}`} {...clickable}>
       <span className="tm">
         {item.delay ? <s>{fmtTime(item.start, false, tz)}</s> : null}
         {fmtTime(e.s, false, tz)}{long && `–${fmtTime(e.e, false, tz)}`}

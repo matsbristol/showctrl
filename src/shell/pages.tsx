@@ -3,15 +3,18 @@
  * screens, and placeholders for sections that later steps will port.
  */
 import { Link, useParams } from 'react-router-dom'
-import { LEVELS, termsOf } from '../domain/constants'
+import { LEVELS } from '../domain/constants'
 import { buildSample } from '../data/sample'
 import { useSnapshot, useStore } from '../data/hooks'
 import { LocalStore } from '../data/localStore'
 import { useAccess, useSession } from '../session/hooks'
 import type { Level } from '../types/model'
+import { ArtistPage } from '../views/ArtistPage'
+import { Artists } from '../views/Artists'
 import { Clocks } from '../views/Clocks'
 import { Display } from '../views/Display'
 import { Overview } from '../views/Overview'
+import { Personnel } from '../views/Personnel'
 import { RunSheet } from '../views/RunSheet'
 import { Schedule } from '../views/Schedule'
 import { Today } from '../views/Today'
@@ -55,8 +58,6 @@ function SetupScreen() {
 
 /** Which porting step brings each section still to come (CLAUDE.md, "Port status"). */
 const COMING: Partial<Record<HqView | StageView, string>> = {
-  artists: 'step 6, with artists and personnel',
-  personnel: 'step 6, with artists and personnel',
   messages: 'step 7, messages',
   accommodation: 'step 8, accommodation and riders',
   riders: 'step 8, accommodation and riders',
@@ -82,20 +83,6 @@ function Placeholder({ ctx, view, title }: { ctx: Ctx; view: HqView | StageView;
   )
 }
 
-function ArtistPlaceholder({ id }: { id: string }) {
-  const snap = useSnapshot()
-  const T = termsOf(snap.cfg)
-  const a = snap.col.artists[id]
-  return (
-    <div className="head">
-      <div>
-        <h1>{a?.name}</h1>
-        <p>The {T.performer.toLowerCase()} page comes in step 6, with artists and personnel.</p>
-      </div>
-    </div>
-  )
-}
-
 /** The page for /hq/:view/:arg? and /s/:stageId/:view/:arg?, after the access check. */
 export function WorkspacePage({ ctx }: { ctx: Ctx }) {
   const { view = '', arg } = useParams()
@@ -104,13 +91,17 @@ export function WorkspacePage({ ctx }: { ctx: Ctx }) {
   const res = resolvePage(access, snap, ctx, view, arg)
   if (res.kind === 'setup') return <SetupScreen />
   if (res.kind === 'denied') return <NoAccess message={res.message} />
-  if (view === 'artist') return <ArtistPlaceholder id={arg!} />
+  if (view === 'artist') return <ArtistPage ctx={ctx} id={arg!} />
   const sid = ctx === 'hq' ? null : ctx
   // Sections ported so far; the rest show a placeholder until their step.
   switch (`${sid ? 's' : 'hq'}:${view}`) {
     case 'hq:overview': return <Overview />
     case 'hq:schedule': return <Schedule />
     case 'hq:clocks': return <Clocks sid={null} />
+    case 'hq:artists': return <Artists sid={null} />
+    case 'hq:personnel': return <Personnel sid={null} />
+    case 's:artists': return <Artists sid={sid} />
+    case 's:personnel': return <Personnel sid={sid} />
     case 's:today': return <Today sid={sid!} />
     case 's:runsheet': return <RunSheet sid={sid!} />
     case 's:clocks': return <Clocks sid={sid} />

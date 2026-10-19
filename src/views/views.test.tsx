@@ -3,7 +3,7 @@
  * Interaction tests: click through the real screens in a simulated browser
  * and check what reaches the data store.
  */
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 import { MIN } from '../domain/constants'
@@ -45,6 +45,18 @@ function nextPendingShow(store: LocalStore) {
     .sort((a, b) => a.start - b.start)[0]
 }
 
+/**
+ * The sample is built around the current time, so the next show can be
+ * anywhere from seconds to an hour away. Pin it to 30 minutes from now so
+ * going on now is reliably "early".
+ */
+async function showIn30(store: LocalStore) {
+  const show = nextPendingShow(store)
+  const start = Date.now() + 30 * MIN
+  await act(() => store.update('ros', show.id, { start, end: start + (show.end - show.start), delay: 0 }))
+  return store.get('ros', show.id)!
+}
+
 /** The run sheet table row for an item (titles repeat in the lanes, so look in the table). */
 const row = (title: string, kind = 'Show') =>
   within(screen.getByRole('table')).getAllByText(title).map(el => el.closest('tr')!).find(tr => within(tr).queryByText(kind))!
@@ -52,20 +64,20 @@ const row = (title: string, kind = 'Show') =>
 describe('run sheet', () => {
   it('puts a show on stage and finishes the previous live item', async () => {
     const store = setup('/s/main/runsheet', 'demo-sm-main')
-    const show = nextPendingShow(store)
+    const show = await showIn30(store)
     const wasLive = Object.values(store.snapshot().col.ros).filter(i => i.stage === 'main' && i.status === 'live')
     fireEvent.click(within(row(show.title)).getByRole('button', { name: 'On stage' }))
     await waitFor(() => expect(store.get('ros', show.id)!.status).toBe('live'))
     expect(store.get('ros', show.id)!.actual).toBeGreaterThan(0)
     expect(store.get('artists', show.artist!)!.status).toBe('on stage')
     for (const x of wasLive) expect(store.get('ros', x.id)!.status).toBe('done')
-    // The sample's next show is well in the future, so going on now is early: offer to pull the day in.
-    expect(await screen.findByRole('button', { name: /Shift the rest −\d+ min/ })).toBeTruthy()
+    // 30 minutes early: offer to pull the rest of the day in.
+    expect(await screen.findByRole('button', { name: /Shift the rest −(29|30) min/ })).toBeTruthy()
   })
 
   it('applies the shift offered after going on early', async () => {
     const store = setup('/s/main/runsheet', 'demo-sm-main')
-    const show = nextPendingShow(store)
+    const show = await showIn30(store)
     const early = Math.round((eff(show).s - Date.now()) / MIN)
     fireEvent.click(within(row(show.title)).getByRole('button', { name: 'On stage' }))
     fireEvent.click(await screen.findByRole('button', { name: /Shift the rest/ }))

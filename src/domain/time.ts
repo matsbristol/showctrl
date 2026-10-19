@@ -3,7 +3,7 @@
  * never the device's zone.
  */
 import type { DayKey, Ms, TimeZone } from '../types/model'
-import { HOUR } from './constants'
+import { HOUR, MIN } from './constants'
 
 export const DEFAULT_TZ: TimeZone = 'Europe/Oslo'
 
@@ -80,6 +80,15 @@ export function addDays(k: DayKey, n: number): DayKey {
 export function dayLabel(k: DayKey, long = false): string {
   const [y, m, d] = k.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-GB', { weekday: long ? 'long' : 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+}
+
+/** "in 20 min", "1.5 h ago", "in 3 days", or "just now", for `ms` relative to `t`. */
+export function relTime(ms: Ms, t: Ms): string {
+  const d = ms - t
+  const a = Math.abs(d)
+  if (a < MIN) return 'just now'
+  const v = a < HOUR ? `${Math.round(a / MIN)} min` : a < 48 * HOUR ? `${Math.round(a / HOUR * 10) / 10} h` : `${Math.round(a / (24 * HOUR))} days`
+  return d > 0 ? `in ${v}` : `${v} ago`
 }
 
 /** "Oslo" from "Europe/Oslo", "New York" from "America/New_York". */

@@ -315,3 +315,28 @@ html.wallmode .tile .val { font-size: clamp(4rem, 9vw, 8rem) }
 html.wallmode .tile .ctl, html.wallmode .tile .edit { display: none }
 html.wallmode .display { min-height: calc(100vh - 2rem) }
 .exitwall { position: fixed; right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30 }
+
+/* ---------- artists and personnel ---------- */
+.inline-sel { border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: .3rem .45rem; font-size: .85rem }
+input.inline-sel { padding: .45rem .6rem; font-size: .9rem }
+tr.click { cursor: pointer }
+tr.click:hover td { background: var(--surface2) }
+.sheet li.click { cursor: pointer }
+.sheet li.click:hover { background: var(--surface2) }
+.dayhead { padding: .5rem 1rem 0; font-weight: 700; font-size: .85rem; color: var(--ink2) }
+.stack { display: flex; flex-direction: column; gap: .15rem; min-width: 0 }
+.grid.start { align-content: start }
+.row.inline { display: inline-flex }
+.pb { padding: 1rem }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: .3rem 1rem; font-size: .92rem; margin: 0 }
+.kv dt { color: var(--ink2) }
+.kv dd { margin: 0 }
+.pre { white-space: pre-wrap }
+.contact .full { grid-column: 1 / -1 }
+.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left }
+.linkish:hover { text-decoration: underline }
+.tape.thin { width: 10px }
+.lock { display: inline-flex; align-items: center; gap: .3rem; color: var(--ink3); font-size: .82rem }
+.lock svg { width: 14px; height: 14px }
+/* Avatar or colour mark beside text: never wrap onto its own line. */
+.row.nowrap { flex-wrap: nowrap }

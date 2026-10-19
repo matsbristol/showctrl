@@ -8,7 +8,7 @@
  * When the real backend exists, point `syncClock` at it so server time comes
  * from the same place as the data.
  */
-import { useSyncExternalStore } from 'react'
+import { useCallback, useSyncExternalStore } from 'react'
 import { MIN } from '../domain/constants'
 
 export type SyncState = 'device' | 'ok' | 'corrected'
@@ -77,12 +77,13 @@ export function startClockSync(): () => void {
 }
 
 /** Re-renders when the sync status changes. */
+function subscribeStatus(cb: () => void) {
+  listeners.add(cb)
+  return () => { listeners.delete(cb) }
+}
+
 export function useClockStatus(): ClockStatus {
-  return useSyncExternalStore(
-    cb => { listeners.add(cb); return () => { listeners.delete(cb) } },
-    clockStatus,
-    clockStatus,
-  )
+  return useSyncExternalStore(subscribeStatus, clockStatus, clockStatus)
 }
 
 /*
@@ -127,9 +128,10 @@ function subscribeTick(everyMs: number, cb: () => void) {
  * such as "is a show live".
  */
 export function useNow(everyMs = 250): number {
-  return useSyncExternalStore(
-    cb => subscribeTick(everyMs, cb),
-    () => ticker(everyMs).t,
-    () => ticker(everyMs).t,
-  )
+  // Stable functions matter: a new subscribe function on each render makes
+  // React resubscribe every render, which restarts the ticker, which changes
+  // the time and renders again, forever.
+  const subscribe = useCallback((cb: () => void) => subscribeTick(everyMs, cb), [everyMs])
+  const get = useCallback(() => ticker(everyMs).t, [everyMs])
+  return useSyncExternalStore(subscribe, get, get)
 }

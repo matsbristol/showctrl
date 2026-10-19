@@ -10,7 +10,8 @@ import { DEFAULT_TZ, dayLabel, eventDays, festDay, fmtTime, tzCity } from '../do
 import { useSnapshot } from '../data/hooks'
 import { useAccess, useSession } from '../session/hooks'
 import { homePath } from './nav'
-import { initials, personColor, personName, personTag } from './people'
+import { Avatar } from './Avatar'
+import { personName, personTag } from './people'
 import { colourVar } from './style'
 
 function MasterClock({ tz }: { tz: string }) {
@@ -39,10 +40,6 @@ function EventName() {
   const sub = di >= 0 ? `Day ${di + 1} of ${days.length} · ${dayLabel(today, true)}`
     : days.length ? `${dayLabel(days[0])} – ${dayLabel(days[days.length - 1])}` : ''
   return <div className="ev"><b>{cfg.name || 'Untitled event'}</b><span>{sub}</span></div>
-}
-
-function Avatar({ uid, name }: { uid: string; name: string }) {
-  return <span className="av" style={colourVar(personColor(uid))} aria-hidden="true">{initials(name)}</span>
 }
 
 /** Demo mode: pick which sample person to be. Live mode: your name and role. */

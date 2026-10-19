@@ -149,8 +149,8 @@ Porting order (done items are on branch `port/foundations`):
 2. ✅ A data layer behind one interface with get, subscribe, set, update and delete.
 3. ✅ Access helpers (`lv`, `canW`, `stageRole`).
 4. ✅ Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`). Real paths instead of the prototype's `#/` hashes. Every section is a placeholder that shows your access level until its step lands. Not yet ported: the urgent-message banner and unread badge (step 7), "Ask for access" (needs real sign-in), and the controls that start a preview (admin).
-5. ✅ Run sheet, day sheet generator and clocks. HQ overview and running order; stage Today, run sheet (lanes + table, delays, on stage / done with the offer to shift the day, back on planned times, add / edit / delete items, day sheet generator), clocks (all four kinds, timers, wall mode) and the stage display. The day sheet button lives on the run sheet until the artist page arrives in step 6. Messages panels on Overview and Today come with step 7.
-6. Artists and personnel.
+5. ✅ Run sheet, day sheet generator and clocks. HQ overview and running order; stage Today, run sheet (lanes + table, delays, on stage / done with the offer to shift the day, back on planned times, add / edit / delete items, day sheet generator), clocks (all four kinds, timers, wall mode) and the stage display. Messages panels on Overview and Today come with step 7.
+6. ✅ Artists and personnel. Artists list (HQ and per stage, search, inline status, contacts hidden from roles without contact access), artist page (day sheet across days with add item / create / regenerate, contacts, production, bookings), add / edit / delete artist (a new one can get a tour manager and a day sheet in one step; deleting removes their run sheet items), and personnel (filters, add / edit, paste a crew list, "App" chip for people with access). Booking a hotel and riders on the artist page come with step 8.
 7. Messages.
 8. Accommodation and riders.
 

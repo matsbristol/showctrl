@@ -60,6 +60,12 @@ export const EVENT_TYPES: Record<EventType, { label: string; terms: Terms }> = {
   sport:      { label: 'Sports event',          terms: { performer: 'Team', performers: 'Teams', stage: 'Arena', stages: 'Arenas' } },
 }
 
+/**
+ * The event's vocabulary. UI text must come from here and never hard-code
+ * "Artist" or "Stage", so a conference reads "Speakers / Rooms".
+ */
+export const termsOf = (cfg?: { terms?: Partial<Terms> } | null): Terms => ({ ...EVENT_TYPES.festival.terms, ...cfg?.terms })
+
 export const TIME_ZONES = [
   'Europe/Oslo', 'Europe/Stockholm', 'Europe/Copenhagen', 'Europe/London', 'Europe/Berlin', 'Europe/Madrid',
   'America/New_York', 'America/Chicago', 'America/Los_Angeles', 'Asia/Tokyo', 'Australia/Sydney', 'UTC',

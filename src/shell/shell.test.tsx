@@ -1,0 +1,81 @@
+/*
+ * Smoke tests: render the real shell to HTML for different people and check
+ * what they see. No browser needed; effects (timers, clock sync) don't run.
+ */
+import { renderToString } from 'react-dom/server'
+import { MemoryRouter } from 'react-router-dom'
+import { describe, expect, it } from 'vitest'
+import { DataProvider } from '../data/DataProvider'
+import { LocalStore, emptySnapshot } from '../data/localStore'
+import { buildSample } from '../data/sample'
+import { SessionProvider } from '../session/SessionProvider'
+import { AppRoutes } from './AppRoutes'
+
+const sample = buildSample(Date.now())
+
+function render(path: string, uid: string, store = new LocalStore({ storage: null, seed: () => sample })) {
+  return renderToString(
+    <DataProvider store={store}>
+      <SessionProvider initialUser={uid}>
+        <MemoryRouter initialEntries={[path]}>
+          <AppRoutes />
+        </MemoryRouter>
+      </SessionProvider>
+    </DataProvider>,
+  )
+}
+
+/** Just the stage tabs (the "view as" list also names stages). */
+const tabs = (html: string) => text(html.match(/<nav class="ctxbar".*?<\/nav>/)![0])
+
+/** Visible text, without tags or React's comment markers. */
+const text = (html: string) => html.replace(/<!--.*?-->/g, '').replace(/<[^>]+>/g, ' ').replace(/&#x27;/g, "'").replace(/\s+/g, ' ')
+
+describe('shell', () => {
+  it('shows the admin Festival HQ, every stage tab and the HQ sections', () => {
+    const html = render('/hq/overview', 'demo-admin')
+    const t = text(html)
+    expect(t).toContain('Nordlys Open Air 2026')
+    // HQ first, then every stage in running order.
+    expect(tabs(html).replace(/\s+/g, ' ').trim()).toBe('Festival HQ Main Stage Fjord Stage The Tent Harbour Club Forest Stage')
+    expect(t).toContain('Accommodation')
+    expect(t).toContain('Admin')
+    expect(t).toContain('You can edit this')
+  })
+
+  it('shows a stage manager only their stage, marked SM, with stage setup', () => {
+    const html = render('/s/main/today', 'demo-sm-main')
+    const t = text(html)
+    expect(tabs(html).trim()).toBe('Main Stage SM')
+    expect(t).toContain('Stage setup')
+    expect(t).toContain('You can edit this')
+  })
+
+  it('shows crew a view-only run sheet without setup', () => {
+    const t = text(render('/s/main/runsheet', 'demo-crew-main-3'))
+    expect(t).toContain('Run sheet')
+    expect(t).toContain('You can view this')
+    expect(t).not.toContain('Stage setup')
+  })
+
+  it('refuses another stage by URL', () => {
+    expect(text(render('/s/tent/today', 'demo-sm-main'))).toContain("You don't have access to this stage.")
+  })
+
+  it('refuses HQ to stage-only people', () => {
+    expect(text(render('/hq/overview', 'demo-crew-main-3'))).toContain('Your access does not include this page')
+  })
+
+  it('offers the sample festival when there is no event', () => {
+    const store = new LocalStore({ storage: null, seed: emptySnapshot })
+    expect(text(render('/hq/overview', 'demo-admin', store))).toContain('Load the sample festival')
+  })
+
+  it('renders an artist page inside its stage', () => {
+    const a = Object.values(sample.col.artists).find(x => x.stage === 'main')!
+    const html = render(`/s/main/artist/${a.id}`, 'demo-sm-main')
+    expect(text(html)).toContain(a.name)
+    // The artists section stays highlighted on an artist's page.
+    expect(html).toMatch(/aria-current="page"[^>]*>.*?Artists/)
+  })
+})

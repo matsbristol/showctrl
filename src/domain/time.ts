@@ -76,6 +76,15 @@ export function addDays(k: DayKey, n: number): DayKey {
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
 }
 
+/** "Thu 2 Jul", or "Thursday 2 Jul" when `long`. Day keys are zone-free, so format in UTC. */
+export function dayLabel(k: DayKey, long = false): string {
+  const [y, m, d] = k.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d, 12)).toLocaleDateString('en-GB', { weekday: long ? 'long' : 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+}
+
+/** "Oslo" from "Europe/Oslo", "New York" from "America/New_York". */
+export const tzCity = (tz: TimeZone) => tz.split('/').pop()!.replace(/_/g, ' ')
+
 /** Every day from `start` to `end` inclusive (capped at 21). */
 export function eventDays(start?: DayKey, end?: DayKey): DayKey[] {
   const out: DayKey[] = []

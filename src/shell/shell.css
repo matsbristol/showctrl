@@ -1,0 +1,124 @@
+/*
+ * Base styles for the new app, ported from public/showctrl.html.
+ * Colours are tokens on :root, redefined for dark mode (follows the device
+ * unless data-theme on <html> forces light or dark).
+ * Status colours: go green, standby amber, stop/late red.
+ */
+:root {
+  --bg: #E3E7EC; --surface: #F7F8FA; --surface2: #ECEFF3; --ink: #1A1F27; --ink2: #4E5868; --ink3: #788396; --line: #CBD2DB;
+  --accent: #2747C9; --accent-ink: #FFFFFF; --accent-soft: #DCE3FB;
+  --go: #1C8549; --standby: #B07800; --stop: #C3302E; --go-soft: #D7F0E1; --standby-soft: #F8ECCB; --stop-soft: #F8DAD9;
+  /* The prompt-desk strip stays dark in both themes. */
+  --strip: #131A2A; --strip2: #1D2639; --strip-ink: #EEF1F7; --strip-ink2: #9AA6BD;
+  --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
+  --body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r: 6px;
+  /* Height of the strip and the strip + context bar, for sticky offsets. */
+  --strip-h: 64px; --bars-h: 106px;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B101B; --surface: #131A28; --surface2: #1A2334; --ink: #E6EAF2; --ink2: #AAB4C6; --ink3: #7C879C; --line: #263149;
+    --accent: #8299FF; --accent-ink: #0B101B; --accent-soft: #1F2A4D;
+    --go: #45C982; --standby: #F1B734; --stop: #FF6764; --go-soft: #123323; --standby-soft: #3A2D0B; --stop-soft: #3E1717;
+    --strip: #060910; --strip2: #111827; --strip-ink: #EEF1F7; --strip-ink2: #8E9AB1;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B101B; --surface: #131A28; --surface2: #1A2334; --ink: #E6EAF2; --ink2: #AAB4C6; --ink3: #7C879C; --line: #263149;
+  --accent: #8299FF; --accent-ink: #0B101B; --accent-soft: #1F2A4D;
+  --go: #45C982; --standby: #F1B734; --stop: #FF6764; --go-soft: #123323; --standby-soft: #3A2D0B; --stop-soft: #3E1717;
+  --strip: #060910; --strip2: #111827; --strip-ink: #EEF1F7; --strip-ink2: #8E9AB1;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box }
+html { height: 100%; scroll-padding-top: env(safe-area-inset-top, 0px) }
+body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); -webkit-font-smoothing: antialiased }
+/* Fill the notch area with the strip colour on phones. */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--strip) }
+button, input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.1; margin: 0 }
+h1 { font-size: 2rem; letter-spacing: .01em }
+h2 { font-size: 1.45rem }
+h3 { font-size: 1.15rem }
+p { margin: 0 }
+a { color: var(--accent) }
+
+/* ---------- strip ---------- */
+.strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--strip); color: var(--strip-ink); display: flex; align-items: center; gap: 1.25rem; padding: .5rem 1rem; min-height: var(--strip-h); flex-wrap: wrap }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .06em; display: flex; align-items: center; gap: .5rem; white-space: nowrap }
+.brand i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3E63FF; box-shadow: 0 0 0 3px rgba(62, 99, 255, .25) }
+.ev { min-width: 0; line-height: 1.2 }
+.ev b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 26ch }
+.ev span { color: var(--strip-ink2); font-size: .85rem }
+.master { margin-left: auto; display: flex; align-items: baseline; gap: .6rem }
+.master .t { font-family: var(--display); font-weight: 600; font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .02em }
+.sync { font-size: .78rem; color: var(--strip-ink2); display: flex; align-items: center; gap: .35rem; white-space: nowrap }
+.sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c, #8E9AB1) }
+.who { display: flex; align-items: center; gap: .5rem; background: var(--strip2); border-radius: 999px; padding: .25rem .3rem .25rem .75rem; font-size: .85rem; white-space: nowrap }
+.who label { display: flex; align-items: center; gap: .3rem }
+.who select { background: transparent; border: 0; color: var(--strip-ink); max-width: 16ch; padding: .15rem }
+.who select option { color: #1A1F27 }
+.who .role { color: var(--strip-ink2) }
+.av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .75rem; color: #fff; background: var(--c, #555); flex: none; overflow: hidden }
+
+.preview { background: var(--standby); color: #1A1F27; padding: .4rem 1rem; font-size: .9rem; display: flex; gap: .75rem; align-items: center }
+.preview button { background: rgba(0, 0, 0, .12); border: 0; border-radius: var(--r); padding: .2rem .6rem; cursor: pointer }
+
+/* ---------- context bar: Festival HQ + one tab per stage ---------- */
+.ctxbar { position: sticky; top: calc(var(--strip-h) + env(safe-area-inset-top, 0px)); z-index: 19; background: var(--strip2); display: flex; gap: 2px; padding: 0 .5rem; overflow-x: auto; scrollbar-width: thin }
+.ctxbar a { display: flex; align-items: center; gap: .45rem; padding: .55rem .85rem; color: var(--strip-ink2); text-decoration: none; font-weight: 700; font-size: .9rem; white-space: nowrap; border-bottom: 3px solid transparent }
+.ctxbar a:hover { color: var(--strip-ink) }
+.ctxbar a[aria-current="true"] { color: var(--strip-ink); border-bottom-color: var(--c, #3E63FF) }
+.ctxbar .live { width: 7px; height: 7px; border-radius: 50%; background: #45C982; box-shadow: 0 0 0 3px rgba(69, 201, 130, .2) }
+.ctxbar .role { font-weight: 400; font-size: .75rem; color: var(--strip-ink2); border: 1px solid #2C3850; border-radius: 3px; padding: 0 .3rem }
+
+/* ---------- layout ---------- */
+.shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - var(--bars-h)) }
+nav.side { border-right: 1px solid var(--line); padding: 1rem .6rem; display: flex; flex-direction: column; gap: 2px; position: sticky; top: calc(var(--bars-h) + env(safe-area-inset-top, 0px)); align-self: start; max-height: calc(100vh - var(--bars-h)); overflow: auto }
+nav.side a { display: flex; align-items: center; gap: .65rem; padding: .55rem .7rem; border-radius: var(--r); text-decoration: none; color: var(--ink2); font-weight: 700; font-size: .95rem }
+nav.side a:hover { background: var(--surface2); color: var(--ink) }
+nav.side a[aria-current="page"] { background: var(--accent-soft); color: var(--ink) }
+nav.side a[aria-current="page"] svg { color: var(--accent) }
+nav.side svg { width: 20px; height: 20px; flex: none }
+nav.side .sep { height: 1px; background: var(--line); margin: .6rem .4rem }
+.ctxhead { display: flex; align-items: center; gap: .6rem; padding: .2rem .7rem .7rem; font-family: var(--display); font-size: 1.25rem; font-weight: 600 }
+main { padding: 1.5rem clamp(1rem, 3vw, 2.25rem) 4rem; min-width: 0; overflow-x: clip }
+.head { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem }
+.head > div:first-child { min-width: 0 }
+.head p { color: var(--ink2); max-width: 62ch; margin-top: .35rem }
+.head .actions { margin-left: auto; display: flex; gap: .5rem; flex-wrap: wrap; max-width: 100% }
+
+/* Under 860 px the side nav becomes a bottom bar. */
+@media (max-width: 860px) {
+  .strip { position: relative; top: auto; gap: .75rem }
+  .ctxbar { top: env(safe-area-inset-top, 0px) }
+  .shell { grid-template-columns: 1fr }
+  nav.side { position: fixed; bottom: 0; left: 0; right: 0; top: auto; z-index: 15; flex-direction: row; overflow-x: auto; border-right: 0; border-top: 1px solid var(--line); background: var(--surface); padding: .35rem .4rem calc(.35rem + env(safe-area-inset-bottom, 0px)); max-height: none }
+  nav.side a { position: relative; flex-direction: column; gap: .15rem; font-size: .7rem; padding: .35rem .55rem; white-space: nowrap }
+  nav.side .sep, .ctxhead { display: none }
+  main { padding-bottom: 6.5rem }
+  .master .t { font-size: 2rem }
+  .ev b { max-width: 18ch }
+}
+@media (max-width: 520px) { .ev, .sync { display: none } }
+
+/* ---------- atoms ---------- */
+.btn { display: inline-flex; align-items: center; gap: .4rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: var(--r); padding: .45rem .85rem; font-weight: 700; font-size: .9rem; cursor: pointer; text-decoration: none; white-space: nowrap }
+.btn:hover { border-color: var(--ink3) }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+.muted { color: var(--ink2) }
+.chip { display: inline-flex; align-items: center; gap: .3rem; border-radius: 4px; padding: .05rem .45rem; font-size: .78rem; font-weight: 700; background: var(--surface2); color: var(--ink2); white-space: nowrap }
+.chip.go { background: var(--go-soft); color: var(--go) }
+.tape { display: inline-block; width: 18px; height: 8px; background: var(--c); border-radius: 1px; flex: none; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12) }
+
+.setup { max-width: 640px; margin: 3rem auto; display: grid; gap: 1rem }
+.setup .panel { padding: 1.5rem; display: grid; gap: .75rem; justify-items: start }

@@ -18,10 +18,20 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | Path | What it is |
 | --- | --- |
 | `public/showctrl.html` | The working prototype. One self-contained HTML file (vanilla JS, no build step). This is the reference implementation for behaviour, data model and UI. |
-| `src/` | The original React + TypeScript + Vite app. Local state only (React contexts). To be brought in line with the prototype. |
+| `src/` | React + TypeScript + Vite. The port of the prototype is under way (see "Port status" below). |
+| `src/types/model.ts` | Types for the data model below. |
+| `src/domain/` | Constants (roles, permissions, item kinds, tape colours, day sheet template), event time zone helpers, run sheet logic. |
+| `src/data/` | `DataStore` interface, `LocalStore` (memory + localStorage, key `showctrl-react-v1`), the sample festival, React hooks. |
+| `src/access/` | `createAccess(snapshot, viewer)`: `lv`, `canW`, `stageRole` and the other access rules, as pure functions. |
+| `src/clock/` | Server-time sync and `now()` / `useNow()`. Use these, never `Date.now()`, for anything shown to people. |
+| `src/session/` | Who is viewing. Demo mode only for now ("view as" any sample person). |
+| `src/shell/` | Routes, top strip, context bar, side nav, access guard, `shell.css`. |
+| `src/legacy/`, `src/context/`, `src/pages/`, `src/components/` | The September app, served at `/legacy`. Delete once the port covers it. |
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
 
-Run `npm run dev` and open `/showctrl.html` to use the prototype locally.
+Run `npm run dev`, then open `/` for the new app, `/showctrl.html` for the prototype and `/legacy` for the old app. `npm test` runs the tests (Vitest).
+
+`npm run build` currently fails at `tsc -b` on 8 old type errors in the September app (`duration` on `TimelineItem` and unused variables). `npx vite build` builds fine.
 
 ## Two runtime modes in the prototype
 
@@ -129,12 +139,14 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 | `RiserPlanningContext` | not in prototype yet; fits under technical riders or stage setup |
 | `ModulesContext` | `config/event.modules` + `navItems()` |
 
-Suggested porting order:
+## Port status
 
-1. Types for the data model above, in `src/types/`.
-2. A data layer behind one interface with get, subscribe, set, update and delete.
-3. Access helpers (`lv`, `canW`, `stageRole`).
-4. Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`).
+Porting order (done items are on branch `port/foundations`):
+
+1. ✅ Types for the data model above, in `src/types/`.
+2. ✅ A data layer behind one interface with get, subscribe, set, update and delete.
+3. ✅ Access helpers (`lv`, `canW`, `stageRole`).
+4. ✅ Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`). Real paths instead of the prototype's `#/` hashes. Every section is a placeholder that shows your access level until its step lands. Not yet ported: the urgent-message banner and unread badge (step 7), "Ask for access" (needs real sign-in), and the controls that start a preview (admin).
 5. Run sheet, day sheet generator and clocks.
 6. Artists and personnel.
 7. Messages.

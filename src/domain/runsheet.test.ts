@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Artist, Stage } from '../types/model'
 import { MIN } from './constants'
-import { buildDaySheet, eff, track } from './runsheet'
+import { buildDaySheet, eff, nowNext, track } from './runsheet'
 
 const stage: Stage = { id: 'main', name: 'Main Stage', tape: 'red', order: 0 }
 const artist: Artist = { id: 'a1', name: 'Hollow Pines', status: 'confirmed', contacts: [] }
@@ -40,6 +40,45 @@ describe('buildDaySheet', () => {
     expect([rel(co.start), rel(co.end)]).toEqual([-45, 0])
     const check = items.find(i => i.kind === 'soundcheck')!
     expect([rel(check.start), rel(check.end)]).toEqual([-240, -210])
+  })
+})
+
+describe('nowNext', () => {
+  const items = Object.fromEntries(buildDaySheet(stage, artist, show, showEnd).map(i => [i.id, i]))
+  const second = buildDaySheet(stage, { ...artist, id: 'a2', name: 'Grålys' }, showEnd + 30 * MIN, showEnd + 90 * MIN)
+  const ros = { ...items, ...Object.fromEntries(second.map(i => [i.id, i])) }
+  const kindAt = (t: number) => {
+    const { cur, next } = nowNext(ros, 'main', t)
+    return [cur && `${cur.kind}:${cur.artist}`, next && `${next.kind}:${next.artist}`]
+  }
+
+  it('finds the item on stage and the next show', () => {
+    expect(kindAt(show - 10 * MIN)).toEqual(['changeover:a1', 'show:a1'])
+    expect(kindAt(show + 10 * MIN)).toEqual(['show:a1', 'show:a2'])
+    expect(kindAt(showEnd + 10 * MIN)).toEqual(['changeover:a2', 'show:a2'])
+  })
+
+  it('ignores dock items and stage access', () => {
+    // Load in (dock) and stage access (a point) are going on, but nothing is on stage.
+    expect(kindAt(show - 100 * MIN)).toEqual([undefined, 'show:a1'])
+    expect(kindAt(show - 45 * MIN)).toEqual([undefined, 'show:a1'])
+  })
+
+  it('prefers the item marked live, and applies delays', () => {
+    const s1 = Object.values(ros).find(i => i.kind === 'show' && i.artist === 'a1')!
+    const late = { ...ros, [s1.id]: { ...s1, status: 'live' as const } }
+    // Running over: still live after its planned end.
+    expect(nowNext(late, 'main', showEnd + 40 * MIN).cur?.id).toBe(s1.id)
+    // Delayed 15 min: not on yet at +5, on at +20.
+    const delayed = { ...ros, [s1.id]: { ...s1, delay: 15 * MIN } }
+    expect(nowNext(delayed, 'main', show + 5 * MIN)).toMatchObject({ cur: undefined, next: { id: s1.id } })
+    expect(nowNext(delayed, 'main', show + 20 * MIN).cur?.id).toBe(s1.id)
+  })
+
+  it('skips finished shows', () => {
+    const s1 = Object.values(ros).find(i => i.kind === 'show' && i.artist === 'a1')!
+    const done = { ...ros, [s1.id]: { ...s1, status: 'done' as const } }
+    expect(nowNext(done, 'main', show - 10 * MIN).next?.artist).toBe('a2')
   })
 })
 

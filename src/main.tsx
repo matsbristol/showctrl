@@ -1,4 +1,4 @@
-/* Entry point. See app/Root.tsx for how the new and old apps are split. */
+/* Entry point. */
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Root } from './app/Root'

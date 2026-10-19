@@ -18,7 +18,7 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | Path | What it is |
 | --- | --- |
 | `public/showctrl.html` | The working prototype. One self-contained HTML file (vanilla JS, no build step). This is the reference implementation for behaviour, data model and UI. |
-| `src/` | React + TypeScript + Vite. The port of the prototype is under way (see "Port status" below). |
+| `src/` | React + TypeScript + Vite: the port of the prototype (see "Port status" below). The September app was removed on 2026-10-19; its cues and riser-planning screens are in git history (commit `dafcb34`) if they come back as modules. |
 | `src/types/model.ts` | Types for the data model below. |
 | `src/domain/` | Constants, time zone helpers, and pure logic: run sheet operations (`shiftFrom`, `goLive`, `markDone` return changes rather than writing), clock values and timers, timeline layout, personnel lookups. |
 | `src/data/` | `DataStore` interface, `LocalStore` (memory + localStorage, key `showctrl-react-v1`), the sample festival, React hooks. |
@@ -28,12 +28,9 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/shell/` | Routes, top strip, context bar, side nav, access guard, `shell.css`. |
 | `src/views/` | The workspace screens. `runsheetActions.ts` holds every run sheet operation the UI offers. |
 | `src/ui/` | App-wide UI: the data-driven form dialog (`useForm`), toasts (`useToast`), wall mode. |
-| `src/legacy/`, `src/context/`, `src/pages/`, `src/components/` | The September app, served at `/legacy`. Delete once the port covers it. |
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
 
-Run `npm run dev`, then open `/` for the new app, `/showctrl.html` for the prototype and `/legacy` for the old app. `npm test` runs the tests (Vitest). Files ending `.test.tsx` that start with `// @vitest-environment jsdom` click through real screens with Testing Library.
-
-`npm run build` currently fails at `tsc -b` on 8 old type errors in the September app (`duration` on `TimelineItem` and unused variables). `npx vite build` builds fine.
+Run `npm run dev`, then open `/` for the app and `/showctrl.html` for the prototype. `npm test` runs the tests (Vitest). Files ending `.test.tsx` that start with `// @vitest-environment jsdom` click through real screens with Testing Library.
 
 ## Two runtime modes in the prototype
 
@@ -128,18 +125,20 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 - **Vocabulary:** labels come from `terms()`, so a conference shows "Speakers / Rooms" instead of "Artists / Stages". Never hard-code "Artist" or "Stage" in UI text.
 - **Mobile:** the side nav becomes a bottom bar under 860 px, and the run sheet table stacks.
 
-## Mapping to the existing React app
+## Where the prototype's parts live in `src/`
 
-| Existing context in `src/context/` | Prototype equivalent |
+| Prototype | React app |
 | --- | --- |
-| `ClockContext` | `clocks`, `syncClock`, `clockValue`, stage display |
-| `RunOfShowContext` | `ros` items, `nowNext`, `shiftFrom`, lanes timeline |
-| `PerformerReadinessContext` | `artists.status` + day sheet item status |
-| `CrewContext` | `people`, `members`, `stageteam` |
-| `HospitalityContext` | `riders` (hosp) + `bookings`/`hotels` |
-| `TravelContext` | arrival/departure items; transport is a candidate new module |
-| `RiserPlanningContext` | not in prototype yet; fits under technical riders or stage setup |
-| `ModulesContext` | `config/event.modules` + `navItems()` |
+| `S.col`, `put / patch / del / putMany` | `DataStore` in `data/store.ts`; `LocalStore` for demo mode |
+| `lv`, `canW`, `stageRole`, `visibleStages` | `createAccess` in `access/access.ts` |
+| `syncClock`, `now()` | `clock/clock.ts` (`now`, `useNow`, `startClockSync`) |
+| `nowNext`, `shiftFrom`, `buildDaySheet`, item actions | `domain/runsheet.ts`; UI in `views/runsheetActions.ts` |
+| `clockValue`, timers | `domain/clocks.ts` |
+| `visibleMsgs`, `myUrgent`, `unreadCount` | `domain/messages.ts` |
+| `accessForm`, `setCrew`, roles, departments | `domain/admin.ts`; UI in `views/adminActions.ts` |
+| `HQ_NAV`, `STAGE_NAV`, `route()`, `renderMain` | `shell/nav.ts`, `shell/AppRoutes.tsx`, `shell/pages.tsx` |
+| `VIEWS.*` | `views/*.tsx` |
+| `openForm`, `toast` | `ui/FormProvider.tsx`, `ui/ToastProvider.tsx` (`useForm`, `useToast`) |
 
 ## Port status
 
@@ -159,7 +158,6 @@ Porting order (done items are on branch `port/foundations`):
 
 - **Backend:** a Supabase (or Firebase) `DataStore`, with row-level security mirroring `src/access/access.ts`, `src/domain/messages.ts` and `src/domain/admin.ts`; server time for clock sync; and an audit log of timing changes (`src/data/apply.ts` is the place).
 - **Sign-in:** replace `SessionProvider` with real users; then "Ask for access" (the `requests` collection) and an organisation user picker instead of the demo "add person" forms.
-- **Clean-up:** delete the September app (`src/legacy/`, `src/context/`, `src/pages/`, `src/components/`, `src/App.*`, `src/index.css`), which also fixes `npm run build`.
 - The backlog ideas below.
 
 ## Backend (not built yet)

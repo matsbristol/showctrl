@@ -49,10 +49,11 @@ describe('shell', () => {
     expect(t).toContain('Festival overview')
   })
 
-  it('shows placeholders with the access level for sections not ported yet', () => {
-    expect(text(render('/hq/admin', 'demo-admin'))).toContain('You can edit this')
-    // The production manager can view admin but not change it.
-    expect(text(render('/hq/admin', 'demo-pm'))).toContain('You can view this')
+  it('shows the production manager admin read-only', () => {
+    const t = text(render('/hq/admin', 'demo-pm'))
+    expect(t).toContain('Main Stage')
+    expect(t).not.toContain('Add stage')
+    expect(t).not.toContain('Appoint stage manager')
   })
 
   it('shows a stage manager only their stage, marked SM, with stage setup', () => {

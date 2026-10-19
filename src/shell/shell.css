@@ -399,3 +399,20 @@ html.wallmode .urgent { position: fixed; left: 0; right: 0; top: 0; z-index: 40 
   .items li { grid-auto-flow: row; grid-template-columns: 1fr 1fr auto }
   .items li .tx { grid-column: 1 / -1 }
 }
+
+/* ---------- admin and stage setup ---------- */
+.row.end { justify-content: flex-end }
+.self-start { align-self: flex-start }
+.gap-t { margin-top: 1rem }
+.row.gap-t { margin-top: .5rem }
+.mr { margin-right: .3rem }
+.measure { max-width: 70ch }
+.narrow { max-width: 640px }
+.contents { display: contents }
+.bordered { border-bottom: 1px solid var(--line) }
+.pad { padding: 0 1rem 1rem }
+.matrix th, .matrix td { text-align: center }
+.matrix th:first-child, .matrix td:first-child { text-align: left; position: sticky; left: 0; background: var(--surface) }
+.matrix select { font-size: .8rem; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; padding: .15rem .25rem }
+.lv0 { color: var(--ink3) }
+.lv2 { color: var(--go); font-weight: 700 }

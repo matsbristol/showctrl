@@ -8,22 +8,14 @@
  * A section that isn't in someone's nav is also refused if they type its URL.
  */
 import type { Access } from '../access/access'
-import type { Id, PermKey, Snapshot, Terms } from '../types/model'
-import { termsOf, type StagePermKey } from '../domain/constants'
+import type { Id, Snapshot, Terms } from '../types/model'
+import { termsOf } from '../domain/constants'
 import type { IconName } from './Icon'
 
 export type HqView = 'overview' | 'schedule' | 'artists' | 'personnel' | 'clocks' | 'messages' | 'accommodation' | 'riders' | 'admin'
 export type StageView = 'today' | 'runsheet' | 'artists' | 'personnel' | 'clocks' | 'messages' | 'riders' | 'display' | 'setup'
 /** One artist's page, reachable from either workspace: /hq/artist/:id or /s/:sid/artist/:id. */
 export type DetailView = 'artist'
-
-/** The permission each section is gated on, used to show "view only" vs "edit". */
-export const VIEW_PERM: Record<HqView | StageView, StagePermKey | PermKey[]> = {
-  overview: 'show', schedule: 'schedule', today: 'schedule', runsheet: 'schedule',
-  artists: 'artists', personnel: 'personnel', clocks: 'clocks', display: 'clocks',
-  messages: 'messages', accommodation: 'accommodation', riders: ['riders_tech', 'riders_hosp'],
-  admin: 'admin', setup: 'setup',
-}
 
 export interface NavItem<V extends string = string> {
   view: V

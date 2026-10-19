@@ -440,9 +440,9 @@ language sql stable security definer set search_path = '' as $$
 $$;
 
 revoke execute on function public.server_now() from public;
-revoke execute on function public.doc_patch(uuid, text, text, jsonb) from public;
-revoke execute on function public.create_event(uuid, text, jsonb, jsonb, text) from public;
-revoke execute on function public.event_name(uuid) from public;
+revoke execute on function public.doc_patch(uuid, text, text, jsonb) from public, anon;
+revoke execute on function public.create_event(uuid, text, jsonb, jsonb, text) from public, anon;
+revoke execute on function public.event_name(uuid) from public, anon;
 grant execute on function public.server_now() to anon, authenticated;
 grant execute on function public.doc_patch(uuid, text, text, jsonb) to authenticated;
 grant execute on function public.create_event(uuid, text, jsonb, jsonb, text) to authenticated;

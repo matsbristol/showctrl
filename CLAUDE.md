@@ -28,7 +28,11 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/shell/` | Routes, top strip, context bar, side nav, access guard, `shell.css`. |
 | `src/views/` | The workspace screens. `runsheetActions.ts` holds every run sheet operation the UI offers. |
 | `src/ui/` | App-wide UI: the data-driven form dialog (`useForm`), toasts (`useToast`), wall mode. |
+| `supabase/migrations/` | The backend schema: `orgs`, `events` (cfg + roles), one `docs` table for every collection, row-level security that mirrors `src/access/access.ts`, `src/domain/messages.ts` and `src/domain/admin.ts`, the `ros_audit` timing log, and RPCs (`server_now`, `doc_patch`, `create_event`, `event_name`). Applied to the Supabase project `showctrl` (ref `qlxvycobgxayogwxtrus`, eu-west-1). |
+| `src/data/supabaseStore.ts`, `src/app/LiveApp.tsx` | Live mode: the Supabase `DataStore` (realtime, optimistic writes put back when refused), magic-link sign-in, event list / create, ask for access. |
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
+
+**Live or demo:** with `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` set (in `.env.local`, see `.env.example`) the app runs live on Supabase; without them it runs the demo on the sample festival.
 
 Run `npm run dev`, then open `/` for the app and `/showctrl.html` for the prototype. `npm test` runs the tests (Vitest). Files ending `.test.tsx` that start with `// @vitest-environment jsdom` click through real screens with Testing Library.
 
@@ -88,7 +92,7 @@ Artist contact details are shown only to roles with `contacts: true`, admins, an
 
 People see the Festival HQ tab only if their festival role grants overview, admin, accommodation or personnel access. They see a stage tab if they hold a stage role there or have festival-wide schedule or overview access.
 
-**Important:** in the prototype only `config/*` and `members` are protected at the data level. All other permissions are enforced in the UI only. The real backend must enforce them server-side (for example with row-level security).
+**Important:** in the prototype only `config/*` and `members` are protected at the data level, and all other permissions are enforced in the UI only. In live mode, Supabase row-level security enforces them (see "Backend"), apart from artist contact details.
 
 ## Day sheet template
 
@@ -154,13 +158,27 @@ Porting order (done items are on branch `port/foundations`):
 8. ✅ Accommodation and riders. Hotels (add / edit), rooms used per night against each block (red when over), the rooming list with a night grid and a stage filter, add / edit bookings for an artist or a named guest (also from the artist page). Hotel contacts and booking refs show only to roles with contact access. Riders in HQ and per stage, as technical / hospitality tabs shown per permission: paste items line by line, set department and status, remove, progress per rider; also on the artist page. Fixed from the prototype: pasting "24 × water" no longer drops the leading quantity.
 9. ✅ Admin and stage setup (not in the original list). Admin: stages and managers (add / edit; delete only when a stage is empty), people with access (festival role, stages managed, crew places, departments, personnel link; your own access can't be removed), roles matrix with custom roles and "Preview the app as", event (type sets the vocabulary), modules, departments, and demo resets. Stage setup: details, day sheet template (entered as plain minutes), stage team (managers shown, crew added / removed by the stage's managers, requests to join approved). Access rules live in `src/domain/admin.ts`.
 
-**Every screen from the prototype is ported.** What's left:
+**Every screen from the prototype is ported.**
 
-- **Backend:** a Supabase (or Firebase) `DataStore`, with row-level security mirroring `src/access/access.ts`, `src/domain/messages.ts` and `src/domain/admin.ts`; server time for clock sync; and an audit log of timing changes (`src/data/apply.ts` is the place).
-- **Sign-in:** replace `SessionProvider` with real users; then "Ask for access" (the `requests` collection) and an organisation user picker instead of the demo "add person" forms.
-- The backlog ideas below.
+10. ✅ Supabase backend (2026-10-19). Schema and row-level security in `supabase/migrations/`, `SupabaseStore`, magic-link sign-in (`LiveApp`, `LiveSessionProvider`), create an event (blank or from the sample), invite links (`?event=<id>&stage=<id>`) that lead to "Ask for access", server time from `server_now()`, and the `ros_audit` log written by a trigger.
 
-## Backend (not built yet)
+What's left:
+
+- **Supabase auth settings** (dashboard, not in migrations): Site URL and redirect URLs for each place the app is served, and custom SMTP before real use (the built-in email sender is rate-limited).
+- **Artist contacts** are inside the artist doc, so RLS can't hide them from people who can see the artist; move them to their own collection to enforce `canSeeContacts` server-side.
+- **Visibility changes:** realtime only sends rows as they change, so the store reloads when members, stage teams or roles change. A record moved out of someone's view (an artist moved to another stage) stays on their screen until the next reload.
+- **Run sheet changes aren't one transaction** yet: `applyChanges` sends each change separately (each still audited).
+- An organisation user picker (the live Admin uses invite links instead of the demo "add person" forms), a screen for the timing audit log, and the backlog ideas below.
+
+## Backend
+
+Built on Supabase (see "Port status", step 10). How it fits the data model:
+
+- **`events`** holds `config/event` (`cfg`) and `config/roles` (`roles`). The creator is `owner` and always Festival admin.
+- **`docs` (event_id, col, id, doc)** holds every collection record; `doc` is the record without its id. Access rules read fields (`stage`, `artist`, `kind`, `scope`, `to`, `from`) from the jsonb.
+- **RLS helpers** live in the `private` schema (not exposed by the API): `perm`, `stage_role`, `lv`, `can_read`, `can_write`. `private.stage_lv` must be kept in step with `STAGE_LV` in `src/domain/constants.ts`.
+- **Updates** go through `doc_patch` (server-side deep merge), so two people acknowledging a message don't overwrite each other. A trigger lets non-senders change only their own ack.
+- **Test the rules** by running a `do` block as simulated users (`set local role authenticated` plus `request.jwt.claims`) that ends in `raise exception`, so nothing is kept.
 
 Requirements for production at festival scale:
 

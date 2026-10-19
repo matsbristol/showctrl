@@ -85,7 +85,8 @@ export class LocalStore implements DataStore {
   }
 
   async set<K extends CollectionName>(col: K, id: Id, doc: DocInput<K>): Promise<void> {
-    this.writeCol(col, { ...this.snap.col[col], [id]: { ...doc, id } as Collections[K] })
+    // DocInput is Collections[K] without the id (per union member), so adding it back is safe.
+    this.writeCol(col, { ...this.snap.col[col], [id]: { ...doc, id } as unknown as Collections[K] })
   }
 
   async update<K extends CollectionName>(col: K, id: Id, patch: DeepPartial<Omit<Collections[K], 'id'>>): Promise<void> {

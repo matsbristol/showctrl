@@ -9,6 +9,12 @@ import { useSnapshot, useStore } from '../data/hooks'
 import { LocalStore } from '../data/localStore'
 import { useAccess, useSession } from '../session/hooks'
 import type { Level } from '../types/model'
+import { Clocks } from '../views/Clocks'
+import { Display } from '../views/Display'
+import { Overview } from '../views/Overview'
+import { RunSheet } from '../views/RunSheet'
+import { Schedule } from '../views/Schedule'
+import { Today } from '../views/Today'
 import { homePath, resolvePage, VIEW_PERM, type Ctx, type HqView, type StageView } from './nav'
 
 /** Shown when the viewer may not see a page, with a way back to one they can. */
@@ -47,14 +53,8 @@ function SetupScreen() {
   )
 }
 
-/** Which porting step brings each section (CLAUDE.md, "Suggested porting order"). */
-const COMING: Record<HqView | StageView, string> = {
-  overview: 'step 5, with the run sheet and clocks',
-  schedule: 'step 5, with the run sheet and clocks',
-  today: 'step 5, with the run sheet and clocks',
-  runsheet: 'step 5, with the run sheet and clocks',
-  clocks: 'step 5, with the run sheet and clocks',
-  display: 'step 5, with the run sheet and clocks',
+/** Which porting step brings each section still to come (CLAUDE.md, "Port status"). */
+const COMING: Partial<Record<HqView | StageView, string>> = {
   artists: 'step 6, with artists and personnel',
   personnel: 'step 6, with artists and personnel',
   messages: 'step 7, messages',
@@ -75,7 +75,7 @@ function Placeholder({ ctx, view, title }: { ctx: Ctx; view: HqView | StageView;
     <div className="head">
       <div>
         <h1>{title}</h1>
-        <p>Not ported yet: this comes in {COMING[view]}. The prototype at <a href="/showctrl.html">/showctrl.html</a> has it working.</p>
+        <p>Not ported yet: this comes in {COMING[view] ?? 'a later step'}. The prototype at <a href="/showctrl.html">/showctrl.html</a> has it working.</p>
       </div>
       <div className="actions"><span className={`chip ${level >= 2 ? 'go' : ''}`}>{ACCESS_TEXT[level]}</span></div>
     </div>
@@ -105,5 +105,16 @@ export function WorkspacePage({ ctx }: { ctx: Ctx }) {
   if (res.kind === 'setup') return <SetupScreen />
   if (res.kind === 'denied') return <NoAccess message={res.message} />
   if (view === 'artist') return <ArtistPlaceholder id={arg!} />
+  const sid = ctx === 'hq' ? null : ctx
+  // Sections ported so far; the rest show a placeholder until their step.
+  switch (`${sid ? 's' : 'hq'}:${view}`) {
+    case 'hq:overview': return <Overview />
+    case 'hq:schedule': return <Schedule />
+    case 'hq:clocks': return <Clocks sid={null} />
+    case 's:today': return <Today sid={sid!} />
+    case 's:runsheet': return <RunSheet sid={sid!} />
+    case 's:clocks': return <Clocks sid={sid} />
+    case 's:display': return <Display sid={sid!} />
+  }
   return <Placeholder ctx={ctx} view={res.item!.view as HqView | StageView} title={res.item!.label} />
 }

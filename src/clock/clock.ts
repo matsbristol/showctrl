@@ -8,7 +8,7 @@
  * When the real backend exists, point `syncClock` at it so server time comes
  * from the same place as the data.
  */
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { MIN } from '../domain/constants'
 
 export type SyncState = 'device' | 'ok' | 'corrected'
@@ -85,17 +85,51 @@ export function useClockStatus(): ClockStatus {
   )
 }
 
+/*
+ * One shared ticker per interval, so a page with forty countdowns runs one
+ * timer, and every countdown on screen changes on the same tick.
+ */
+interface Ticker { t: number; listeners: Set<() => void>; id: ReturnType<typeof setInterval> | null }
+const tickers = new Map<number, Ticker>()
+
+function ticker(everyMs: number): Ticker {
+  let tk = tickers.get(everyMs)
+  if (!tk) {
+    tk = { t: now(), listeners: new Set(), id: null }
+    tickers.set(everyMs, tk)
+  }
+  return tk
+}
+
+function subscribeTick(everyMs: number, cb: () => void) {
+  const tk = ticker(everyMs)
+  tk.listeners.add(cb)
+  if (!tk.id) {
+    tk.t = now()
+    tk.id = setInterval(() => {
+      // A new sync offset is picked up on the next tick.
+      tk.t = now()
+      for (const l of tk.listeners) l()
+    }, everyMs)
+  }
+  return () => {
+    tk.listeners.delete(cb)
+    if (!tk.listeners.size && tk.id) {
+      clearInterval(tk.id)
+      tk.id = null
+    }
+  }
+}
+
 /**
  * Server time, refreshed every `everyMs`. Use 250 for anything showing
  * seconds (so the display never skips a second), longer for coarse state
  * such as "is a show live".
  */
 export function useNow(everyMs = 250): number {
-  const [t, setT] = useState(now)
-  useEffect(() => {
-    // A new sync offset is picked up on the next tick.
-    const id = setInterval(() => setT(now()), everyMs)
-    return () => clearInterval(id)
-  }, [everyMs])
-  return t
+  return useSyncExternalStore(
+    cb => subscribeTick(everyMs, cb),
+    () => ticker(everyMs).t,
+    () => ticker(everyMs).t,
+  )
 }

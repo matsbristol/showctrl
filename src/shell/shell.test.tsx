@@ -9,6 +9,8 @@ import { DataProvider } from '../data/DataProvider'
 import { LocalStore, emptySnapshot } from '../data/localStore'
 import { buildSample } from '../data/sample'
 import { SessionProvider } from '../session/SessionProvider'
+import { FormProvider } from '../ui/FormProvider'
+import { ToastProvider } from '../ui/ToastProvider'
 import { AppRoutes } from './AppRoutes'
 
 const sample = buildSample(Date.now())
@@ -17,9 +19,13 @@ function render(path: string, uid: string, store = new LocalStore({ storage: nul
   return renderToString(
     <DataProvider store={store}>
       <SessionProvider initialUser={uid}>
-        <MemoryRouter initialEntries={[path]}>
-          <AppRoutes />
-        </MemoryRouter>
+        <ToastProvider>
+          <FormProvider>
+            <MemoryRouter initialEntries={[path]}>
+              <AppRoutes />
+            </MemoryRouter>
+          </FormProvider>
+        </ToastProvider>
       </SessionProvider>
     </DataProvider>,
   )
@@ -40,7 +46,12 @@ describe('shell', () => {
     expect(tabs(html).replace(/\s+/g, ' ').trim()).toBe('Festival HQ Main Stage Fjord Stage The Tent Harbour Club Forest Stage')
     expect(t).toContain('Accommodation')
     expect(t).toContain('Admin')
-    expect(t).toContain('You can edit this')
+    expect(t).toContain('Festival overview')
+  })
+
+  it('shows placeholders with the access level for sections not ported yet', () => {
+    expect(text(render('/hq/admin', 'demo-admin'))).toContain('You can edit this')
+    expect(text(render('/s/main/personnel', 'demo-crew-main-3'))).toContain('You can view this')
   })
 
   it('shows a stage manager only their stage, marked SM, with stage setup', () => {
@@ -48,13 +59,21 @@ describe('shell', () => {
     const t = text(html)
     expect(tabs(html).trim()).toBe('Main Stage SM')
     expect(t).toContain('Stage setup')
-    expect(t).toContain('You can edit this')
+    expect(t).toContain('Coming up')
+  })
+
+  it('gives a stage manager the run sheet controls', () => {
+    const t = text(render('/s/main/runsheet', 'demo-sm-main'))
+    expect(t).toContain('Run sheet · Main Stage')
+    expect(t).toContain('Add item')
+    expect(t).toContain('Delay')
   })
 
   it('shows crew a view-only run sheet without setup', () => {
     const t = text(render('/s/main/runsheet', 'demo-crew-main-3'))
-    expect(t).toContain('Run sheet')
-    expect(t).toContain('You can view this')
+    expect(t).toContain('Run sheet · Main Stage')
+    expect(t).not.toContain('Add item')
+    expect(t).not.toContain('Delay')
     expect(t).not.toContain('Stage setup')
   })
 

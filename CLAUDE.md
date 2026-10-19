@@ -20,16 +20,18 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `public/showctrl.html` | The working prototype. One self-contained HTML file (vanilla JS, no build step). This is the reference implementation for behaviour, data model and UI. |
 | `src/` | React + TypeScript + Vite. The port of the prototype is under way (see "Port status" below). |
 | `src/types/model.ts` | Types for the data model below. |
-| `src/domain/` | Constants (roles, permissions, item kinds, tape colours, day sheet template), event time zone helpers, run sheet logic. |
+| `src/domain/` | Constants, time zone helpers, and pure logic: run sheet operations (`shiftFrom`, `goLive`, `markDone` return changes rather than writing), clock values and timers, timeline layout, personnel lookups. |
 | `src/data/` | `DataStore` interface, `LocalStore` (memory + localStorage, key `showctrl-react-v1`), the sample festival, React hooks. |
 | `src/access/` | `createAccess(snapshot, viewer)`: `lv`, `canW`, `stageRole` and the other access rules, as pure functions. |
 | `src/clock/` | Server-time sync and `now()` / `useNow()`. Use these, never `Date.now()`, for anything shown to people. |
 | `src/session/` | Who is viewing. Demo mode only for now ("view as" any sample person). |
 | `src/shell/` | Routes, top strip, context bar, side nav, access guard, `shell.css`. |
+| `src/views/` | The workspace screens. `runsheetActions.ts` holds every run sheet operation the UI offers. |
+| `src/ui/` | App-wide UI: the data-driven form dialog (`useForm`), toasts (`useToast`), wall mode. |
 | `src/legacy/`, `src/context/`, `src/pages/`, `src/components/` | The September app, served at `/legacy`. Delete once the port covers it. |
 | `HANDOVER.md` | Original product notes: stage execution first, department views, modules switchable per customer, multi-tenant later. |
 
-Run `npm run dev`, then open `/` for the new app, `/showctrl.html` for the prototype and `/legacy` for the old app. `npm test` runs the tests (Vitest).
+Run `npm run dev`, then open `/` for the new app, `/showctrl.html` for the prototype and `/legacy` for the old app. `npm test` runs the tests (Vitest). Files ending `.test.tsx` that start with `// @vitest-environment jsdom` click through real screens with Testing Library.
 
 `npm run build` currently fails at `tsc -b` on 8 old type errors in the September app (`duration` on `TimelineItem` and unused variables). `npx vite build` builds fine.
 
@@ -147,7 +149,7 @@ Porting order (done items are on branch `port/foundations`):
 2. ✅ A data layer behind one interface with get, subscribe, set, update and delete.
 3. ✅ Access helpers (`lv`, `canW`, `stageRole`).
 4. ✅ Festival HQ and stage workspace routing (`/hq/...`, `/s/:stageId/...`). Real paths instead of the prototype's `#/` hashes. Every section is a placeholder that shows your access level until its step lands. Not yet ported: the urgent-message banner and unread badge (step 7), "Ask for access" (needs real sign-in), and the controls that start a preview (admin).
-5. Run sheet, day sheet generator and clocks.
+5. ✅ Run sheet, day sheet generator and clocks. HQ overview and running order; stage Today, run sheet (lanes + table, delays, on stage / done with the offer to shift the day, back on planned times, add / edit / delete items, day sheet generator), clocks (all four kinds, timers, wall mode) and the stage display. The day sheet button lives on the run sheet until the artist page arrives in step 6. Messages panels on Overview and Today come with step 7.
 6. Artists and personnel.
 7. Messages.
 8. Accommodation and riders.

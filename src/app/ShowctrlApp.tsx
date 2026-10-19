@@ -4,6 +4,8 @@ import { startClockSync } from '../clock/clock'
 import { DataProvider } from '../data/DataProvider'
 import { SessionProvider } from '../session/SessionProvider'
 import { AppRoutes } from '../shell/AppRoutes'
+import { FormProvider } from '../ui/FormProvider'
+import { ToastProvider } from '../ui/ToastProvider'
 import '../shell/shell.css'
 import { store } from './store'
 
@@ -14,9 +16,13 @@ export default function ShowctrlApp() {
   return (
     <DataProvider store={store}>
       <SessionProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <ToastProvider>
+          <FormProvider>
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          </FormProvider>
+        </ToastProvider>
       </SessionProvider>
     </DataProvider>
   )

@@ -10,8 +10,14 @@ import type { CollectionName, Collections, EventConfig, Id, Roles, Snapshot } fr
 
 export type DeepPartial<T> = T extends unknown[] ? T : T extends object ? { [K in keyof T]?: DeepPartial<T[K]> } : T
 
+/**
+ * Omit that keeps union members apart. Plain Omit on a union (such as Clock,
+ * one type per kind) keeps only the keys every member shares.
+ */
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never
+
 /** A document as written: the id is the key, so it is optional in the body. */
-export type DocInput<K extends CollectionName> = Omit<Collections[K], 'id'> & { id?: Id }
+export type DocInput<K extends CollectionName> = DistributiveOmit<Collections[K], 'id'> & { id?: Id }
 
 export type StoreErrorCode = 'not_found' | 'permission_denied' | 'quota_exceeded' | 'unavailable'
 

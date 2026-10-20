@@ -13,7 +13,8 @@
     "deploy": "vite build && wrangler deploy",
     "db:init:local": "wrangler d1 execute showctrl --local --file worker/schema.sql",
     "db:init": "wrangler d1 execute showctrl --remote --file worker/schema.sql",
-    "typecheck:worker": "tsc -p worker/tsconfig.json"
+    "typecheck:worker": "tsc -p worker/tsconfig.json",
+    "simulate": "node scripts/simulate.mjs"
   },
   "dependencies": {
     "jose": "^6.2.12",

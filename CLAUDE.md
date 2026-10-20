@@ -24,6 +24,7 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/lib/` | Pure helpers shared by client and (later) the Worker: time zones, day sheet generator, ids. |
 | `src/app/` | The new showctrl workspace UI: `ShowctrlRoot` (data + session + layout), `routes.tsx` (`/hq/...`, `/s/:stageId/...`), `session.ts` (`useAccess`, `useTerms`, `useNow`), styles scoped under `.sc`. Mounted from `src/main.tsx`; open `/hq` in `npm run dev`. |
 | `worker/`, `src/server/` | The Cloudflare backend. See "Backend" below. |
+| `scripts/simulate.mjs` | Local festival simulator (`npm run simulate`). Drives a sample event in real time through `wrangler dev` as the demo personas, using the normal permission checks. |
 | `src/shared/` | Access rules shared by client and Worker: `createAccess()` (levels, visibility, messages), `views.ts` (which pages a user can open), `writeRules.ts` (`canWrite()`, which the Worker must call before every write). |
 
 Run `npm test` for the Vitest suite. Component tests that click through the UI use happy-dom (`// @vitest-environment happy-dom` at the top of the file).

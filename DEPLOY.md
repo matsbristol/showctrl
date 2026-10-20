@@ -71,6 +71,13 @@ Someone who signs in before being added sees **Ask for access**. Their request t
   SHOWCTRL_API=http://localhost:8787 npm run dev      # app on :5173, proxied
   ```
   Add `?as=someone@example.com` to the URL to act as another user in a second window. This only works while `ACCESS_AUD` is unset, so it never works in production.
+- **A simulated show day:** with the local Worker running, `npm run simulate` creates a fresh sample event and works it in real time, as the sample festival's stage managers, production, hospitality and crew:
+  - shows go on and off stage, sometimes late or overrunning
+  - artists move through arrived, backstage and ready
+  - incidents push running orders back and send urgent messages
+  - messages get acknowledged, and hotel check-ins and riders progress
+
+  Run it against an existing event with `npm run simulate -- --event <id>`, and stop it with Ctrl+C.
 
 ## Good to know
 

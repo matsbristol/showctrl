@@ -37,6 +37,7 @@ export const PERM_KEYS = [
   { key: 'riders_tech', label: 'Technical riders' },
   { key: 'riders_hosp', label: 'Hospitality riders' },
   { key: 'admin', label: 'Admin' },
+  { key: 'risk', label: 'Risk assessment' },
 ] as const
 
 export const LEVELS = ['No access', 'View', 'Edit'] as const
@@ -47,21 +48,21 @@ function mkPerms(s: string): Record<PermKey, PermLevel> {
 }
 
 export const DEFAULT_ROLES: Record<string, RoleDef> = {
-  admin: { label: 'Festival admin', perms: mkPerms('2222222222'), contacts: true, locked: true },
-  pm: { label: 'Production manager', perms: mkPerms('2222222221'), contacts: true },
-  liaison: { label: 'Artist liaison', perms: mkPerms('1121112220'), contacts: true },
-  hosp: { label: 'Hospitality', perms: mkPerms('1111121020'), contacts: false },
-  tech: { label: 'Technical production', perms: mkPerms('1111221200'), contacts: false },
-  site: { label: 'Site & security', perms: mkPerms('1111120000'), contacts: false },
-  none: { label: 'Stage access only', perms: mkPerms('0000000000'), contacts: false, locked: true },
+  admin: { label: 'Festival admin', perms: mkPerms('22222222222'), contacts: true, locked: true },
+  pm: { label: 'Production manager', perms: mkPerms('22222222212'), contacts: true },
+  liaison: { label: 'Artist liaison', perms: mkPerms('11211122201'), contacts: true },
+  hosp: { label: 'Hospitality', perms: mkPerms('11111210201'), contacts: false },
+  tech: { label: 'Technical production', perms: mkPerms('11112212001'), contacts: false },
+  site: { label: 'Site & security', perms: mkPerms('11111200002'), contacts: false },
+  none: { label: 'Stage access only', perms: mkPerms('00000000000'), contacts: false, locked: true },
 }
 
 export const STAGE_ROLES = { manager: 'Stage manager', crew: 'Stage crew' } as const
 
 /** What a stage-level role adds, for that stage only. `setup` opens Stage setup. */
 export const STAGE_LV: Record<keyof typeof STAGE_ROLES, Partial<Record<PermKey | 'setup', PermLevel>>> = {
-  manager: { show: 1, schedule: 2, artists: 2, personnel: 2, clocks: 2, messages: 2, riders_tech: 2, riders_hosp: 2, accommodation: 1, setup: 2 },
-  crew: { show: 1, schedule: 1, artists: 1, personnel: 1, clocks: 1, messages: 2, riders_tech: 1 },
+  manager: { show: 1, schedule: 2, artists: 2, personnel: 2, clocks: 2, messages: 2, riders_tech: 2, riders_hosp: 2, accommodation: 1, risk: 2, setup: 2 },
+  crew: { show: 1, schedule: 1, artists: 1, personnel: 1, clocks: 1, messages: 2, riders_tech: 1, risk: 1 },
 }
 
 export const ACCRED = ['AAA', 'Production', 'Stage', 'Backstage', 'Artist', 'Site', 'Day pass'] as const
@@ -155,12 +156,38 @@ export const CLOCK_KINDS = {
   stage: 'Follows a stage',
 } as const
 
+/** Risk assessment levels, mildest first. */
+export const RISK_LEVELS = {
+  green: { label: 'Green', hint: 'Normal show, standard measures' },
+  orange: { label: 'Orange', hint: 'Elevated: extra measures or attention needed' },
+  red: { label: 'Red', hint: 'High: special plan, briefing and staffing required' },
+} as const
+
+/** Common reasons a show gets a higher rating. Free-text notes cover the rest. */
+export const RISK_FACTORS = [
+  'Crowd surge / moshing', 'Crowd surfing / stage diving', 'Pyrotechnics', 'Lasers / special effects',
+  'Expected capacity crowd', 'High-profile artist / security threat', 'Young audience', 'Alcohol / drugs expected',
+  'Artist invites crowd on stage', 'Weather exposure',
+] as const
+
+/** Places trucks are sent to. */
+export const LOCATION_KINDS = {
+  loadbay: 'Load bay',
+  staging: 'Staging area',
+  truckpark: 'Truck park',
+  dock: 'Dock / ramp',
+  other: 'Other',
+} as const
+
+/** Run sheet kinds that move vehicles in or out. */
+export const TRUCK_KINDS = ['arrival', 'getin', 'loadin', 'loadout', 'departure'] as const
+
 /** Optional sections an event can switch on or off. Defined in src/shared/modules.ts. */
-export const MODULE_IDS = ['messages', 'clocks', 'display', 'personnel', 'accommodation', 'riders'] as const
+export const MODULE_IDS = ['messages', 'clocks', 'display', 'personnel', 'accommodation', 'riders', 'risk', 'trucks'] as const
 
 /** Every record collection. `config/event` and `config/roles` are stored separately. */
 export const COLLECTIONS = [
-  'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs',
+  'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs', 'risks', 'locations',
 ] as const
 
 export function defaultDepts(): Dept[] {

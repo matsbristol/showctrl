@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCollection, useStore } from '../../data/hooks'
+import { useCollection, useConfig, useStore } from '../../data/hooks'
+import { moduleOn } from '../../shared/modules'
+import { ArtistRisk } from '../risk/RiskChip'
 import { eff } from '../../lib/runsheet'
 import { dayLabel, festDay, fmtTime, relTime } from '../../lib/time'
 import { ARTIST_STATUS, TAPE } from '../../types/constants'
@@ -25,6 +27,8 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
   const [q, setQ] = useState('')
   const [adding, setAdding] = useState(false)
   const base = sid ? `/s/${sid}` : '/hq'
+  const cfg = useConfig('event')
+  const showRisk = moduleOn(cfg, 'risk') && (sid ? a.lv('risk', sid) >= 1 : a.anyLv('risk') >= 1)
 
   const list = Object.values(artists)
     .filter(x => (sid ? x.stage === sid : a.canSeeStage(x.stage)) && (!q || x.name.toLowerCase().includes(q.toLowerCase())))
@@ -47,7 +51,7 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
       <div className="panel tbl-wrap">
         <table>
           <thead>
-            <tr><th>{t.performer}</th>{!sid && <th>{t.stage}</th>}<th>On stage</th><th>Next activity</th><th>Status</th><th>Party</th><th>Main contact</th></tr>
+            <tr><th>{t.performer}</th>{!sid && <th>{t.stage}</th>}{showRisk && <th>Risk</th>}<th>On stage</th><th>Next activity</th><th>Status</th><th>Party</th><th>Main contact</th></tr>
           </thead>
           <tbody>
             {list.map(x => {
@@ -60,6 +64,7 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
                 <tr key={x.id} className="click" onClick={() => navigate(`${base}/artists/${x.id}`)}>
                   <td><b>{x.name}</b>{x.genre && <div className="small muted">{x.genre}</div>}</td>
                   {!sid && <td>{st ? <span className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span> : '—'}</td>}
+                  {showRisk && <td><ArtistRisk artistId={x.id} /></td>}
                   <td className="num small">
                     {shows.length ? shows.map(s => <div key={s.id}>{dayLabel(festDay(s.start, tz))} <b>{fmtTime(eff(s).s, tz)}</b></div>) : <span className="muted">Not scheduled</span>}
                   </td>
@@ -82,7 +87,7 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
                 </tr>
               )
             })}
-            {!list.length && <tr><td colSpan={7} className="empty">No {t.performers.toLowerCase()} yet.</td></tr>}
+            {!list.length && <tr><td colSpan={8} className="empty">No {t.performers.toLowerCase()} yet.</td></tr>}
           </tbody>
         </table>
       </div>

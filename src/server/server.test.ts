@@ -222,3 +222,35 @@ describe('server: modules', () => {
     expect(Object.keys(sm.peek('clocks')!).length).toBeGreaterThan(0)
   })
 })
+
+describe('server: risk assessment and locations', () => {
+  it('lets a stage manager rate their own acts, not other stages’, and hides ratings from roles without risk rights', async () => {
+    const { client, core } = setup()
+    const admin = client('owner@example.com')
+    const sm = client('demo-sm-main')
+    await tick()
+    const mainAct = Object.values(core.col.artists).find(a => a.stage === 'main')!
+    const tentAct = Object.values(core.col.artists).find(a => a.stage === 'tent')!
+    await sm.set('risks', mainAct.id, { artist: mainAct.id, level: 'red', factors: ['Pyrotechnics'], notes: 'Fire watch', by: 'demo-sm-main', at: T })
+    expect(core.col.risks[mainAct.id].level).toBe('red')
+    await expect(sm.set('risks', tentAct.id, { artist: tentAct.id, level: 'green', factors: [] })).rejects.toMatchObject({ code: 'denied' })
+    await expect(sm.set('risks', 'wrong-id', { artist: mainAct.id, level: 'green', factors: [] })).rejects.toMatchObject({ code: 'denied' })
+
+    const roles = structuredClone(core.roles!.roles)
+    roles.hosp.perms.risk = 0
+    await admin.setConfig('roles', { roles })
+    const hosp = client('demo-hosp')
+    await tick()
+    expect(hosp.peek('risks')).toEqual({})
+    expect(Object.keys(admin.peek('risks')!).length).toBeGreaterThan(0)
+  })
+
+  it('lets a stage manager add their own load bay but not festival-wide places', async () => {
+    const { client, core } = setup()
+    const sm = client('demo-sm-main')
+    await tick()
+    await sm.set('locations', 'lb2', { name: 'Load bay 2', kind: 'loadbay', stage: 'main' })
+    expect(core.col.locations.lb2.stage).toBe('main')
+    await expect(sm.set('locations', 'park', { name: 'Park', kind: 'truckpark', stage: null })).rejects.toMatchObject({ code: 'denied' })
+  })
+})

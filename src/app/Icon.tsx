@@ -13,6 +13,8 @@ const PATHS = {
   admin: <><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z" /><path d="M9 12l2 2 4-4" /></>,
   setup: <><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" /></>,
   display: <><rect x="2" y="4" width="20" height="13" rx="1" /><path d="M8 21h8M12 17v4" /></>,
+  risk: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17h.01" /></>,
+  truck: <><path d="M2 6h11v9H2zM13 9h4l4 4v2h-8z" /><circle cx="6" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
   lock: <><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
 } as const
 

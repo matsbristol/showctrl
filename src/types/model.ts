@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, KINDS, LEGACY_KINDS, MODULE_IDS,
+  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, RISK_LEVELS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -29,6 +29,8 @@ export type BookingStatus = (typeof BOOKING_STATUS)[number]
 export type RiderStatus = (typeof RIDER_STATUS)[number]
 export type RiderKind = (typeof RIDER_KINDS)[number]
 export type ModuleId = (typeof MODULE_IDS)[number]
+export type RiskLevel = keyof typeof RISK_LEVELS
+export type LocationKind = keyof typeof LOCATION_KINDS
 export type MsgPriority = (typeof MSG_PRIORITY)[number]
 export type DayTemplate = { [K in keyof typeof DEFAULT_TPL]: number }
 
@@ -139,6 +141,10 @@ export interface RosItem extends BaseDoc {
   actual?: Ms
   /** When the item was actually marked done. */
   actualEnd?: Ms
+  /** Trucks module: how many trucks come in or go out with this item. */
+  trucks?: number | null
+  /** Trucks module: where to send them on arrival (a `locations` id). */
+  dest?: Id | null
 }
 
 /** A personnel record. Separate from app users (members). */
@@ -286,6 +292,29 @@ export interface Rider extends BaseDoc {
   updated: Ms
 }
 
+/** Risk assessment for one performer. Id is the artist id. */
+export interface Risk extends BaseDoc {
+  artist: Id
+  level: RiskLevel
+  /** Items from RISK_FACTORS, or free text. */
+  factors: string[]
+  notes?: string
+  /** Who assessed it, and when. */
+  by?: Id | null
+  at?: Ms
+}
+
+/** A place trucks are sent to: a stage's load bay, or a festival-wide staging area or truck park. */
+export interface Location extends BaseDoc {
+  name: string
+  kind: LocationKind
+  /** Stage id, or null for festival-wide. */
+  stage?: Id | null
+  notes?: string
+  /** How many trucks it holds at once. Used to warn about clashes. */
+  capacity?: number | null
+}
+
 /** Per-user state that must follow the user across devices. Keyed by user id; only that user writes it. */
 export interface UserPrefs extends BaseDoc {
   /** When the user last opened Messages; drives the unread badge. */
@@ -307,6 +336,8 @@ export interface Collections {
   people: Person
   stageteam: StageTeam
   prefs: UserPrefs
+  risks: Risk
+  locations: Location
 }
 
 export type CollectionName = keyof Collections

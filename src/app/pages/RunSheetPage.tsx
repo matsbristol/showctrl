@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCollection } from '../../data/hooks'
 import { eff, itemsFor, track } from '../../lib/runsheet'
-import { fmtTime } from '../../lib/time'
+import { festDay, fmtTime } from '../../lib/time'
+import { clashes, truckMoves } from '../../lib/trucks'
+import { ArtistRisk } from '../risk/RiskChip'
+import { TruckLine } from '../trucks/parts'
 import { MIN, TAPE, TRACKS } from '../../types/constants'
 import type { Id, RosItem } from '../../types/model'
 import { DaySelector } from '../DaySelector'
@@ -22,6 +25,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
   const ros = useCollection('ros')
   const artists = useCollection('artists')
   const stages = useCollection('stages')
+  const locations = useCollection('locations')
   const actions = useRunSheetActions()
   const [day] = useDay()
   const [filter, setFilter] = useState('all')
@@ -38,6 +42,8 @@ export function RunSheetPage({ sid }: { sid: Id }) {
   const list = its.filter(i => (!hideDone || i.status !== 'done') && (
     filter === 'all' || (filter === 'stage' ? track(i) === 'stage' : filter === 'dock' ? track(i) === 'dock' : i.artist === filter)))
   const arts = [...new Set(its.map(i => i.artist).filter((x): x is string => !!x))]
+  // Truck clashes for the day, across all stages (staging areas are shared).
+  const clashIds = new Set(clashes(truckMoves(ros).filter(i => festDay(i.start, tz) === day), locations).flatMap(c => c.items))
 
   return (
     <>
@@ -88,9 +94,11 @@ export function RunSheetPage({ sid }: { sid: Id }) {
                       <td>
                         <KindTag kind={i.kind} />
                         <b>{i.artist ? <Link to={`/s/${sid}/artists/${i.artist}`} style={{ color: 'inherit' }}>{i.title}</Link> : i.title}</b>
+                        {i.kind === 'show' && <> <ArtistRisk artistId={i.artist} /></>}
                         <div className="small muted">
                           {TRACKS[track(i)]}{i.notes ? ` · ${i.notes}` : ''}{i.delayNote ? ` · Delay: ${i.delayNote}` : ''}
                         </div>
+                        <TruckLine item={i} clash={clashIds.has(i.id)} />
                       </td>
                       <td>{i.status === 'live' ? <span className="chip go">Live</span> : i.status === 'done' ? <span className="chip">Done</span> : null}</td>
                       <td>

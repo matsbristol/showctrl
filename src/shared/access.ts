@@ -70,7 +70,9 @@ export function createAccess(s: AccessState) {
   /** Festival-wide level for a key. */
   const perm = (k: AccessKey): PermLevel => {
     if (role() === 'admin') return 2
-    return k === 'setup' ? 0 : roleDef().perms?.[k] ?? 0
+    if (k === 'setup') return 0
+    // Roles saved before a permission key existed fall back to that role's default.
+    return roleDef().perms?.[k] ?? DEFAULT_ROLES[role()]?.perms[k] ?? 0
   }
 
   const stageRole = (sid: Id | null | undefined): StageRole | null => {

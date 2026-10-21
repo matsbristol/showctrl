@@ -65,6 +65,10 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 
 **`stageteam`** (one doc per stage): `crew` {userId: true}. Written by that stage's managers.
 
+**`risks`** (Risk assessment module; id = artist id): `artist`, `level` (green | orange | red), `factors` [strings, usually from `RISK_FACTORS`], `notes`, `by`, `at`. Permission key `risk` (Site & security and Production edit; stage managers edit their own stage). Shown as a chip or dot on run sheet shows, now/next cards, the artist list and page, and the Risk page.
+
+**`locations`** (Trucks & docks module): `name`, `kind` (loadbay | staging | truckpark | dock | other), `stage` (null = festival-wide), `capacity` (trucks at once; empty = 1 for bays and docks, unlimited otherwise), `notes`. Run sheet items in `TRUCK_KINDS` carry `trucks` and `dest` (a location). `src/lib/trucks.ts` finds clashes, where more trucks are booked into a location than it takes, across all stages.
+
 **`prefs`** (keyed by user id, written only by that user): `lastRead` (ms). Per-user state that must follow the user across devices.
 
 **`requests`** (keyed by user id): `at`, `note`, `stage?`. A person without access asks to join.
@@ -123,7 +127,7 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 showctrl is modular: each event switches optional sections on or off in **Admin → Modules**. The registry is `src/shared/modules.ts`.
 
 - **Core (always on):** Overview, Running order and run sheets, performers (Artists), Stage setup, Admin.
-- **Modules:** Messages, Clocks, Stage display, Personnel, Accommodation, Riders. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
+- **Modules:** Messages, Clocks, Stage display, Personnel, Accommodation, Riders, Risk assessment, Trucks & docks. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
 
 When a module is off:
 

@@ -101,6 +101,19 @@ export function canWrite(a: Access, req: WriteRequest, ctx: WriteContext): Write
       return check(deepEqual(restBefore, restAfter) && otherAcksSame, 'Messages can’t be edited, only acknowledged.')
     }
 
+    case 'risks': {
+      const r = (next ?? prev) as Collections['risks']
+      if (req.id !== r.artist) return no('A risk assessment’s id must be the artist id.')
+      if (prev && next && (prev as Collections['risks']).artist !== r.artist) return no('A risk assessment can’t move to another artist.')
+      return check(a.canW('risk', ctx.artistStage(r.artist) ?? null), 'No edit access to risk assessments on this stage.')
+    }
+
+    case 'locations': {
+      // A stage's own load bay: that stage's schedule editors. Festival-wide places: festival schedule editors.
+      const pr = prev as Collections['locations'] | null, nx = next as Collections['locations'] | null
+      return check(onBothStages(a, 'schedule', pr?.stage, nx?.stage, p, n), 'No edit access to these locations.')
+    }
+
     case 'hotels':
     case 'bookings':
       return check(a.canW('accommodation'), 'No edit access to accommodation.')

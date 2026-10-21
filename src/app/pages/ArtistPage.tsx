@@ -8,6 +8,7 @@ import type { Artist, ArtistContact, Id, RosItem } from '../../types/model'
 import { BookingForm } from '../accommodation/forms'
 import { ArtistForm, ContactForm } from '../artists/forms'
 import { RiderPanel } from '../riders/RiderPanel'
+import { RiskPanel } from '../risk/RiskPanel'
 import { useDay } from '../day'
 import { DaySheetForm, ItemForm } from '../runsheet/forms'
 import { SheetRow, StatusChip, Tel } from '../runsheet/parts'
@@ -86,6 +87,7 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
         </section>
 
         <div className="grid" style={{ alignContent: 'start' }}>
+          <RiskPanel artist={artist} />
           <section className="panel">
             <div className="ph">
               <h3>Contacts</h3>

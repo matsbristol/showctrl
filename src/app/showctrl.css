@@ -383,3 +383,47 @@
 .sc .module > label > .stack { flex: 1; min-width: 0 }
 .sc .module > label > input { margin-top: .3rem; width: 1.1rem; height: 1.1rem; flex: none }
 .sc .module.on { border-color: var(--go) }
+
+/* ---------- risk assessment ---------- */
+.sc { --risk-green: #2E9E57; --risk-orange: #E8780C; --risk-red: #D93A3A }
+.sc .chip.risk-green { background: color-mix(in srgb, var(--risk-green) 18%, transparent); color: var(--risk-green) }
+.sc .chip.risk-orange { background: color-mix(in srgb, var(--risk-orange) 20%, transparent); color: var(--risk-orange) }
+.sc .chip.risk-red { background: var(--risk-red); color: #fff }
+.sc .chip.risk-none { background: var(--surface2); color: var(--ink3); font-weight: 400 }
+.sc .riskdot { display: inline-block; width: .7rem; height: .7rem; border-radius: 50%; vertical-align: .05em; box-shadow: 0 0 0 2px var(--surface) }
+.sc .riskdot.risk-green { background: var(--risk-green) }
+.sc .riskdot.risk-orange { background: var(--risk-orange) }
+.sc .riskdot.risk-red { background: var(--risk-red) }
+.sc .risk-panel.risk-orange { border-left: 6px solid var(--risk-orange) }
+.sc .risk-panel.risk-red { border-left: 6px solid var(--risk-red) }
+.sc .risk-panel.risk-green { border-left: 6px solid var(--risk-green) }
+.sc .risk-panel .ph .chip { margin-left: .25rem }
+.sc tr.risk-row-red td:first-child { box-shadow: inset 5px 0 0 var(--risk-red) }
+.sc tr.risk-row-orange td:first-child { box-shadow: inset 5px 0 0 var(--risk-orange) }
+.sc .risk-pick { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem }
+.sc .risk-pick button { display: flex; flex-direction: column; align-items: flex-start; gap: .2rem; text-align: left; border: 2px solid var(--line); border-radius: var(--r); padding: .6rem .7rem; background: var(--surface); cursor: pointer; font-size: .8rem; color: var(--ink2) }
+.sc .risk-pick button b { font-size: 1rem; color: var(--ink) }
+.sc .risk-pick button.risk-green b { color: var(--risk-green) }
+.sc .risk-pick button.risk-orange b { color: var(--risk-orange) }
+.sc .risk-pick button.risk-red b { color: var(--risk-red) }
+.sc .risk-pick button[aria-checked="true"].risk-green { border-color: var(--risk-green); background: color-mix(in srgb, var(--risk-green) 14%, var(--surface)) }
+.sc .risk-pick button[aria-checked="true"].risk-orange { border-color: var(--risk-orange); background: color-mix(in srgb, var(--risk-orange) 14%, var(--surface)) }
+.sc .risk-pick button[aria-checked="true"].risk-red { border-color: var(--risk-red); background: color-mix(in srgb, var(--risk-red) 14%, var(--surface)) }
+@media (max-width: 520px) { .sc .risk-pick { grid-template-columns: 1fr } }
+.sc .risk-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem }
+.sc .risk-summary button { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-top: 6px solid var(--c, var(--ink3)); border-radius: 8px; background: var(--surface); padding: .7rem .9rem; cursor: pointer; color: var(--ink2); font-weight: 700 }
+.sc .risk-summary button b { font-family: var(--display); font-size: 2rem; line-height: 1; color: var(--ink) }
+.sc .risk-summary button[aria-pressed="true"] { outline: 3px solid var(--c, var(--accent)); outline-offset: -1px }
+.sc .risk-summary .risk-green { --c: var(--risk-green) }
+.sc .risk-summary .risk-orange { --c: var(--risk-orange) }
+.sc .risk-summary .risk-red { --c: var(--risk-red) }
+@media (max-width: 600px) { .sc .risk-summary { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+
+/* ---------- trucks & docks ---------- */
+.sc .truckline { font-size: .8rem; color: var(--ink2); margin-top: .15rem }
+.sc .truckline::before { content: "🚚 "; }
+.sc .truckline.clash { color: var(--stop) }
+.sc tr.clash td { background: var(--stop-soft) }
+.sc tr.soon td:first-child { box-shadow: inset 5px 0 0 var(--standby) }
+.sc .clash-box { border-color: var(--stop); margin-bottom: 1rem }
+.sc .clash-box .ph h3 { color: var(--stop) }

@@ -4,8 +4,8 @@ import type { EventConfig, Id } from '../types/model'
 import type { Access } from './access'
 import { moduleOfView, moduleOn } from './modules'
 
-export const HQ_VIEWS = ['overview', 'schedule', 'artists', 'personnel', 'clocks', 'messages', 'accommodation', 'riders', 'admin'] as const
-export const STAGE_VIEWS = ['today', 'runsheet', 'artists', 'personnel', 'clocks', 'messages', 'riders', 'display', 'setup'] as const
+export const HQ_VIEWS = ['overview', 'schedule', 'artists', 'risk', 'trucks', 'personnel', 'clocks', 'messages', 'accommodation', 'riders', 'admin'] as const
+export const STAGE_VIEWS = ['today', 'runsheet', 'artists', 'risk', 'trucks', 'personnel', 'clocks', 'messages', 'riders', 'display', 'setup'] as const
 
 export type HqView = (typeof HQ_VIEWS)[number]
 export type StageView = (typeof STAGE_VIEWS)[number]
@@ -17,6 +17,8 @@ export function canOpenHqView(a: Access, cfg: EventConfig | null | undefined, v:
     case 'overview': return a.perm('show') >= 1
     case 'schedule': return a.perm('schedule') >= 1
     case 'artists': return a.perm('artists') >= 1
+    case 'risk': return a.perm('risk') >= 1
+    case 'trucks': return a.perm('schedule') >= 1
     case 'personnel': return a.perm('personnel') >= 1
     case 'clocks': return a.perm('clocks') >= 1
     case 'messages': return a.anyLv('messages') >= 1
@@ -34,6 +36,8 @@ export function canOpenStageView(a: Access, cfg: EventConfig | null | undefined,
     case 'today':
     case 'runsheet': return a.lv('schedule', sid) >= 1
     case 'artists': return a.lv('artists', sid) >= 1
+    case 'risk': return a.lv('risk', sid) >= 1
+    case 'trucks': return a.lv('schedule', sid) >= 1
     case 'personnel': return a.lv('personnel', sid) >= 1
     case 'clocks': return a.lv('clocks', sid) >= 1
     // The display follows the run sheet, so it works without the Clocks module.

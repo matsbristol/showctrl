@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { useCollection, useStore } from '../../data/hooks'
+import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { buildDaySheet } from '../../lib/daySheet'
 import { rid } from '../../lib/id'
 import { festDay, fromLocal } from '../../lib/time'
-import { HOUR, KINDS, MIN, TRACKS } from '../../types/constants'
+import { HOUR, KINDS, MIN, TRACKS, TRUCK_KINDS } from '../../types/constants'
+import { moduleOn } from '../../shared/modules'
 import type { Artist, DayKey, Id, RosItem, RosKind } from '../../types/model'
 import { useAccess, useTerms, useTz } from '../session'
 import { DateTimeInput, Field, FormDialog } from '../ui/Dialog'
@@ -27,7 +28,13 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
     end: (item.end ?? start0 + HOUR) as number | null,
     stage: item.stage ?? sid ?? stages[0]?.id ?? '',
     notes: item.notes ?? '',
+    trucks: item.trucks ? String(item.trucks) : '',
+    dest: item.dest ?? '',
   })
+  const cfg = useConfig('event')
+  const locations = useCollection('locations')
+  const showTrucks = moduleOn(cfg, 'trucks') && (TRUCK_KINDS as readonly string[]).includes(v.kind)
+  const destOpts = Object.values(locations).filter(l => !l.stage || l.stage === v.stage).sort((x, y) => x.name.localeCompare(y.name))
   const set = <K extends keyof typeof v>(k: K, x: (typeof v)[K]) => setV(o => ({ ...o, [k]: x }))
   const stageArtists = Object.values(artists).filter(x => x.stage === v.stage).sort((x, y) => x.name.localeCompare(y.name))
 
@@ -43,6 +50,7 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
         const title = v.title.trim() || (v.artist ? artists[v.artist]?.name : '') || KINDS[v.kind].label
         await store.set('ros', item.id ?? rid(), {
           title, kind: v.kind, stage: v.stage, start: v.start, end: v.end, artist: v.artist || null, notes: v.notes,
+          ...(showTrucks ? { trucks: Number(v.trucks) || null, dest: v.dest || null } : { trucks: item.trucks ?? null, dest: item.dest ?? null }),
           status: item.status ?? 'pending', delay: item.delay ?? 0, delayNote: item.delayNote ?? '',
           ...(item.actual ? { actual: item.actual } : {}), ...(item.actualEnd ? { actualEnd: item.actualEnd } : {}),
         })
@@ -69,8 +77,17 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
           {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>
+      <Field label="Trucks" hidden={!showTrucks}>
+        <input type="number" min={0} value={v.trucks} onChange={e => set('trucks', e.target.value)} />
+      </Field>
+      <Field label="Send trucks to" hidden={!showTrucks}>
+        <select value={v.dest} onChange={e => set('dest', e.target.value)}>
+          <option value="">Not set</option>
+          {destOpts.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+        </select>
+      </Field>
       <Field label="Notes" full>
-        <textarea value={v.notes} placeholder="e.g. Dock 2, two trucks, forklift needed" onChange={e => set('notes', e.target.value)} />
+        <textarea value={v.notes} placeholder="e.g. Forklift needed, ramp on the left" onChange={e => set('notes', e.target.value)} />
       </Field>
       {item.delay ? <p className="fld full small muted">This item runs {Math.round(item.delay / MIN)} min {item.delay > 0 ? 'late' : 'early'}. Times above are planned times.</p> : null}
     </FormDialog>

@@ -61,6 +61,16 @@ export const MODULES: Record<ModuleId, ModuleDef> = {
     description: 'Technical and hospitality riders, item by item, assigned to the departments that source them.',
     perms: ['riders_tech', 'riders_hosp'], collections: ['riders'], hqViews: ['riders'], stageViews: ['riders'],
   },
+  risk: {
+    id: 'risk', label: 'Risk assessment', defaultOn: true,
+    description: 'A green, orange or red rating per performer, with risk factors and notes, shown wherever their show appears.',
+    perms: ['risk'], collections: ['risks'], hqViews: ['risk'], stageViews: ['risk'],
+  },
+  trucks: {
+    id: 'trucks', label: 'Trucks & docks', defaultOn: true,
+    description: 'Truck counts on load in and load out, where to send each truck (load bay, staging area, truck park), and clash warnings.',
+    perms: [], collections: ['locations'], hqViews: ['trucks'], stageViews: ['trucks'],
+  },
 }
 
 export function moduleOn(cfg: Pick<EventConfig, 'modules'> | null | undefined, id: ModuleId): boolean {

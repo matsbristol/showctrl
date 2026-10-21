@@ -7,6 +7,7 @@ import { TAPE } from '../../types/constants'
 import type { Id } from '../../types/model'
 import { Icon } from '../Icon'
 import { MsgBlock } from '../messages/MsgBlock'
+import { TrucksSoon } from '../trucks/parts'
 import { DelayChip, SheetRow, Slot, Tel } from '../runsheet/parts'
 import { useNowNext } from '../runsheet/helpers'
 import { useNow, useTz } from '../session'
@@ -57,6 +58,7 @@ export function TodayPage({ sid }: { sid: Id }) {
           )) : <p className="empty">No crew listed yet.</p>}
         </section>}
         <MsgBlock sid={sid} />
+        <TrucksSoon sid={sid} />
       </div>
     </>
   )

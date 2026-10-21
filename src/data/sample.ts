@@ -2,9 +2,10 @@
 // Day 1 is today, with statuses set relative to the current time and The Tent running late.
 
 import { buildDaySheet } from '../lib/daySheet'
+import { parseTrucks } from '../lib/trucks'
 import { addDays, festDay, fromLocal } from '../lib/time'
 import { DEFAULT_ROLES, DEFAULT_TPL, EVENT_TYPES, HOUR, KINDS, MIN, SCHEMA_VERSION, defaultDepts } from '../types/constants'
-import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RosItem, TapeColor } from '../types/model'
+import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RiskLevel, RosItem, TapeColor } from '../types/model'
 import { emptyCollections, type LocalData } from './collections'
 
 /** An empty three-day festival starting today, with one admin user (the demo persona `demo-admin`). */
@@ -130,6 +131,33 @@ export function buildSample(t: number = Date.now()): LocalData {
       col.stageteam[sid].crew[uid] = true
     }
   }
+
+  // trucks & docks: a load bay per stage, a staging area and a truck park; trucks on load in and load out
+  for (const s of STG) col.locations[`lb-${s.id}`] = { id: `lb-${s.id}`, name: `Load bay · ${s.name}`, kind: 'loadbay', stage: s.id, capacity: s.id === 'main' ? 2 : 1, notes: '' }
+  col.locations['staging-n'] = { id: 'staging-n', name: 'Staging area North', kind: 'staging', stage: null, notes: 'Wait here until called to the load bay on Ch 1' }
+  col.locations['park-p3'] = { id: 'park-p3', name: 'Truck park P3', kind: 'truckpark', stage: null, notes: 'Overnight parking, gate 7' }
+  for (const r of Object.values(col.ros)) {
+    if ((r.kind !== 'loadin' && r.kind !== 'loadout') || !r.artist) continue
+    const trucks = parseTrucks(col.artists[r.artist].vehicles)
+    if (!trucks) continue
+    r.trucks = trucks
+    r.dest = r.kind === 'loadin' && trucks > 1 ? 'staging-n' : `lb-${r.stage}`
+  }
+
+  // risk assessments: mostly green, some orange, a few red, a few not assessed yet
+  const RISK: [RiskLevel, string[], string][] = [
+    ['orange', ['Crowd surge / moshing', 'Expected capacity crowd'], 'Extra pit security, barrier check before the set.'],
+    ['orange', ['Pyrotechnics'], 'Pyro permit on file. Fire watch side stage.'],
+    ['red', ['Crowd surge / moshing', 'Crowd surfing / stage diving', 'Alcohol / drugs expected'], 'Briefing with pit crew 30 min before. Medics at front of stage. Stop-show procedure agreed with tour manager.'],
+    ['orange', ['Young audience'], 'Front-of-stage water and extra stewards.'],
+    ['red', ['High-profile artist / security threat'], 'Close protection team. Artist entrance via gate 7 only.'],
+  ]
+  Object.keys(col.artists).forEach((aid, i) => {
+    const h = (i * 37) % 20
+    if (h === 19) return // not assessed yet
+    const [level, factors, notes] = h < 13 ? ['green' as RiskLevel, [] as string[], ''] : RISK[(i * 7) % RISK.length]
+    col.risks[aid] = { id: aid, artist: aid, level, factors, notes, by: 'demo-pm', at: t - (i % 5) * HOUR }
+  })
 
   // hotels & bookings
   col.hotels.h1 = { id: 'h1', name: 'Fjordhotellet', address: 'Strandgata 12', contact: 'Groups desk', phone: '+47 69 00 00 01', block: 30, notes: 'Late check-in until 04:00' }

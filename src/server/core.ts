@@ -186,6 +186,7 @@ export class EventCore {
       return id === a.me || a.canW('admin') || (!!stage && a.canW('setup', stage)) ? doc : null
     }
     if (!this.hasAccess(a)) return col === 'stages' ? doc : null
+    if (col === 'risks') return a.lv('risk', this.col.artists[doc.artist as Id]?.stage) >= 1 ? doc : null
     if (col === 'msgs') return a.canSeeMsg(doc as unknown as Parameters<Access['canSeeMsg']>[0]) ? doc : null
     if (col === 'artists' && !a.artistContacts(doc as { stage: Id })) return { ...doc, contacts: [] }
     if (!seesSensitive(a)) {

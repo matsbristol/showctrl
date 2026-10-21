@@ -13,6 +13,8 @@ import { DisplayPage } from './DisplayPage'
 import { MessagesPage } from './MessagesPage'
 import { OverviewPage } from './OverviewPage'
 import { RidersPage } from './RidersPage'
+import { RiskPage } from './RiskPage'
+import { TrucksPage } from './TrucksPage'
 import { RunSheetPage } from './RunSheetPage'
 import { PersonnelPage } from './PersonnelPage'
 import { SchedulePage } from './SchedulePage'
@@ -41,6 +43,8 @@ export function HqPage() {
     case 'clocks': return <ClocksPage sid={null} />
     case 'artists': return <ArtistsPage sid={null} />
     case 'personnel': return <PersonnelPage sid={null} />
+    case 'risk': return <RiskPage sid={null} />
+    case 'trucks': return <TrucksPage sid={null} />
     case 'messages': return <MessagesPage sid={null} />
     case 'accommodation': return <AccommodationPage />
     case 'riders': return <RidersPage sid={null} />
@@ -72,6 +76,8 @@ export function StagePage() {
     case 'display': return <DisplayPage sid={sid} />
     case 'artists': return <ArtistsPage sid={sid} />
     case 'personnel': return <PersonnelPage sid={sid} />
+    case 'risk': return <RiskPage sid={sid} />
+    case 'trucks': return <TrucksPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
     case 'messages': return <MessagesPage sid={sid} />
     case 'riders': return <RidersPage sid={sid} />

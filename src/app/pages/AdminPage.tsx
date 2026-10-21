@@ -222,7 +222,7 @@ function RolesTab({ w, open }: TabProps) {
                     {w && !DEFAULT_ROLES[rk] && <> <button type="button" className="btn sm danger" onClick={() => void removeRole(rk)}>Remove</button></>}
                   </td>
                   {keys.map(({ key }) => {
-                    const v = rk === 'admin' ? 2 : r.perms?.[key] ?? 0
+                    const v = rk === 'admin' ? 2 : r.perms?.[key] ?? DEFAULT_ROLES[rk]?.perms[key] ?? 0
                     return (
                       <td key={key}>
                         {w && !r.locked

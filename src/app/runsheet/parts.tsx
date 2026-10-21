@@ -6,6 +6,7 @@ import { HOUR, MIN } from '../../types/constants'
 import type { ArtistStatus, DayKey, Id, RosItem } from '../../types/model'
 import { useNow, useTz } from '../session'
 import { kindLabel } from './helpers'
+import { ArtistRisk } from '../risk/RiskChip'
 
 export function KindTag({ kind }: { kind: string }) {
   return <span className={`kind k-${kind}`}>{kindLabel(kind)}</span>
@@ -50,7 +51,7 @@ export function Slot({ label, item, isNow }: { label: string; item?: RosItem; is
   return (
     <div className={`slot${isNow ? ' now' : ''}`}>
       <span className="lbl">{label}</span>
-      <span className="ttl">{item.title}</span>
+      <span className="ttl">{item.title}{item.kind === 'show' && <> <ArtistRisk artistId={item.artist} dot /></>}</span>
       <Countdown target={isNow ? e.e : e.s} />
       <span className="sub">
         {isNow ? `${kindLabel(item.kind)} ends ${fmtTime(e.e, tz)}` : `On stage ${fmtTime(e.s, tz)}`}

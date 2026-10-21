@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { LocalStore } from '../data/localStore'
@@ -52,7 +52,7 @@ describe('artists', () => {
     await click(screen.getByRole('button', { name: 'Save' }))
     expect(store.peek('artists').a0.contacts.at(-1)).toMatchObject({ name: 'Pat Driver', role: 'Driver' })
 
-    await click(screen.getByRole('button', { name: 'Edit' }))
+    await click(within(document.querySelector<HTMLElement>('main .head')!).getByRole('button', { name: 'Edit' }))
     fireEvent.change(screen.getByLabelText('Vehicles at dock'), { target: { value: '3 trucks' } })
     await click(screen.getByRole('button', { name: 'Save' }))
     expect(store.peek('artists').a0.vehicles).toBe('3 trucks')
@@ -62,7 +62,7 @@ describe('artists', () => {
     const store = mount('/s/main/artists/a0', 'demo-sm-main')
     const orig = globalThis.confirm
     globalThis.confirm = () => true
-    await click(screen.getByRole('button', { name: 'Edit' }))
+    await click(within(document.querySelector<HTMLElement>('main .head')!).getByRole('button', { name: 'Edit' }))
     await click(screen.getByRole('button', { name: 'Delete' }))
     globalThis.confirm = orig
     expect(store.peek('artists').a0).toBeUndefined()

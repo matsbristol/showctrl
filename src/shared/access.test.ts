@@ -115,7 +115,7 @@ describe('messages', () => {
 describe('views', () => {
   it('lists HQ pages by festival role', () => {
     expect(hqViews(as('demo-admin'), d.cfg)).toContain('admin')
-    expect(hqViews(as('demo-hosp'), d.cfg)).toEqual(['overview', 'schedule', 'artists', 'personnel', 'clocks', 'messages', 'accommodation', 'riders'])
+    expect(hqViews(as('demo-hosp'), d.cfg)).toEqual(['overview', 'schedule', 'artists', 'risk', 'trucks', 'personnel', 'clocks', 'messages', 'accommodation', 'riders'])
     expect(hqViews(as('demo-sm-main'), d.cfg)).toEqual([])
   })
 

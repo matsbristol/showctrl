@@ -377,3 +377,9 @@
 .sc fieldset.fld { border: 0; padding: 0; margin: 0 }
 .sc fieldset.fld legend { font-size: .85rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .3rem }
 .sc .who-btn { background: transparent; border: 1px solid #2C3850; color: var(--strip-ink); border-radius: 999px; padding: .1rem .6rem; font-size: .8rem; cursor: pointer }
+
+/* ---------- admin: modules ---------- */
+.sc .module > label { flex-wrap: nowrap; gap: .75rem; height: 100% }
+.sc .module > label > .stack { flex: 1; min-width: 0 }
+.sc .module > label > input { margin-top: .3rem; width: 1.1rem; height: 1.1rem; flex: none }
+.sc .module.on { border-color: var(--go) }

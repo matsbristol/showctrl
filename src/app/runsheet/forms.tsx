@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { useState } from 'react'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { buildDaySheet } from '../../lib/daySheet'
@@ -46,7 +47,7 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
       onSave={async () => {
         if (!v.start || !v.end) return 'Set a start and an end.'
         if (v.end < v.start) return 'The end must be after the start.'
-        if (!v.stage) return `Choose a ${t.stage.toLowerCase()}.`
+        if (!v.stage) return `Choose ${aOrAn(t.stage.toLowerCase())}.`
         const title = v.title.trim() || (v.artist ? artists[v.artist]?.name : '') || KINDS[v.kind].label
         await store.set('ros', item.id ?? rid(), {
           title, kind: v.kind, stage: v.stage, start: v.start, end: v.end, artist: v.artist || null, notes: v.notes,
@@ -176,7 +177,7 @@ export function AddPerformerForm({ sid, day, onClose }: { sid: Id; day: DayKey; 
   const [tm, setTm] = useState({ name: '', phone: '', email: '' })
   return (
     <FormDialog
-      title={`Add ${t.performer.toLowerCase()} with day sheet`}
+      title={`Add ${aOrAn(t.performer.toLowerCase())} with day sheet`}
       saveLabel="Add"
       onClose={onClose}
       onSave={async () => {

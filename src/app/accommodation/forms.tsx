@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { useState } from 'react'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { rid } from '../../lib/id'
@@ -75,7 +76,7 @@ export function BookingForm({ booking, artistId, onClose }: { booking: Booking |
     >
       <Field label={t.performer}>
         <select value={v.artist} onChange={e => set('artist', e.target.value)}>
-          <option value="">Not a {t.performer.toLowerCase()}</option>
+          <option value="">Not {aOrAn(t.performer.toLowerCase())}</option>
           {Object.values(artists).sort((x, y) => x.name.localeCompare(y.name)).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
       </Field>

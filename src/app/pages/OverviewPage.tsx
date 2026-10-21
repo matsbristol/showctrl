@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { Link } from 'react-router-dom'
 import { useCollection, useConfig } from '../../data/hooks'
 import { eff } from '../../lib/runsheet'
@@ -100,7 +101,7 @@ export function OverviewPage() {
       <div className="head">
         <div>
           <h1>Festival overview</h1>
-          <p>Every {t.stage.toLowerCase()} at a glance. Open a {t.stage.toLowerCase()} for its own run sheet, crew and display.</p>
+          <p>Every {t.stage.toLowerCase()} at a glance. Open {aOrAn(t.stage.toLowerCase())} for its own run sheet, crew and display.</p>
         </div>
       </div>
       <div className="grid g3" style={{ marginBottom: '1rem' }}>

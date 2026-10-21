@@ -2,14 +2,24 @@ import { useEffect, useRef } from 'react'
 import { useCollection } from '../../data/hooks'
 import { eff, packRows, stageDelay } from '../../lib/runsheet'
 import { countdownState, fmtCountdown, fmtTime, fromLocal } from '../../lib/time'
-import { HOUR, MIN } from '../../types/constants'
+import { HOUR, KINDS, MIN } from '../../types/constants'
 import type { ArtistStatus, DayKey, Id, RosItem } from '../../types/model'
 import { useNow, useTz } from '../session'
-import { kindLabel } from './helpers'
+import { kindClass, kindIcon, kindLabel } from './helpers'
+import { Icon } from '../Icon'
 import { ArtistRisk } from '../risk/RiskChip'
 
+/** A kind's colour, icon and name. The same colours are used on the timeline and run sheet rows. */
 export function KindTag({ kind }: { kind: string }) {
-  return <span className={`kind k-${kind}`}>{kindLabel(kind)}</span>
+  return <span className={`kind ${kindClass(kind)}`}><Icon name={kindIcon(kind)} />{kindLabel(kind)}</span>
+}
+
+/** A key to the colours, for the kinds that appear in `kinds`. */
+export function KindLegend({ kinds }: { kinds: string[] }) {
+  const order = Object.keys(KINDS)
+  const present = [...new Set(kinds.map(k => (k === 'set' ? 'show' : k === 'break' ? 'other' : k)))].sort((a, b) => order.indexOf(a) - order.indexOf(b))
+  if (!present.length) return null
+  return <div className="kind-legend" aria-label="Key">{present.map(k => <KindTag key={k} kind={k} />)}</div>
 }
 
 /** A live countdown to `target`, coloured as it nears and passes. */
@@ -74,7 +84,7 @@ export function SheetRow({ item, showArtist, onClick }: { item: RosItem; showArt
   const label = showArtist && item.artist ? artistName : item.artist && item.title === artistName ? '' : item.title
   return (
     <li
-      className={`${item.status ?? ''}${running ? ' live' : ''} k-${item.kind}${onClick ? ' click' : ''}`}
+      className={`${item.status ?? ''}${running ? ' live' : ''} ${kindClass(item.kind)}${onClick ? ' click' : ''}`}
       {...(onClick ? { role: 'button', tabIndex: 0, onClick, onKeyDown: (ev: React.KeyboardEvent) => { if (ev.key === 'Enter') onClick() } } : {})}
     >
       <span className="tm">
@@ -143,15 +153,16 @@ export function Lanes({ lanes, day, onPick }: { lanes: Lane[]; day: DayKey; onPi
               <div className="lt" style={{ ['--lh' as string]: `${rows * 28 + 10}px` }}>
                 {out.map(([i, r]) => {
                   const e = eff(i)
-                  const text = ln.short ? (i.kind === 'show' ? i.title : kindLabel(i.kind)) : `${kindLabel(i.kind)} · ${(i.artist && artists[i.artist]?.name) || i.title}`
+                  // The colour and icon carry the kind, so the text can name the act.
+                  const text = ln.short ? (i.kind === 'show' ? i.title : kindLabel(i.kind)) : (i.artist && artists[i.artist]?.name) || i.title
                   const props = {
-                    className: `blk k-${i.kind} ${i.status ?? ''}`,
+                    className: `blk ${kindClass(i.kind)} ${i.status ?? ''}`,
                     style: { left: pct(e.s), width: `max(30px, calc(${((e.e - e.s) / span * 100).toFixed(3)}% - 2px))`, top: 5 + r * 28, ['--c' as string]: ln.color ?? 'var(--accent)' },
                     title: `${kindLabel(i.kind)}: ${i.title} ${fmtTime(e.s, tz)}–${fmtTime(e.e, tz)}`,
                   }
                   return onPick
-                    ? <button type="button" key={i.id} {...props} onClick={() => onPick(i)}><b>{text}</b></button>
-                    : <div key={i.id} {...props}><b>{text}</b></div>
+                    ? <button type="button" key={i.id} {...props} onClick={() => onPick(i)}><Icon name={kindIcon(i.kind)} /><b>{text}</b></button>
+                    : <div key={i.id} {...props}><Icon name={kindIcon(i.kind)} /><b>{text}</b></div>
                 })}
                 {marks.map(i => (
                   <div key={i.id} className="mark" style={{ left: pct(eff(i).s) }} title={`${kindLabel(i.kind)}: ${i.title} ${fmtTime(eff(i).s, tz)}`}>

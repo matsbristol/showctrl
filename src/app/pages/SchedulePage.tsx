@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { Link } from 'react-router-dom'
 import { useCollection } from '../../data/hooks'
 import { itemsFor } from '../../lib/runsheet'
@@ -24,7 +25,7 @@ export function SchedulePage() {
       <div className="head">
         <div>
           <h1>Running order</h1>
-          <p>All {t.stages.toLowerCase()}, on-stage activity only. Open a {t.stage.toLowerCase()}’s run sheet for get in, load in and load out.</p>
+          <p>All {t.stages.toLowerCase()}, on-stage activity only. Open {aOrAn(t.stage.toLowerCase())}’s run sheet for get in, load in and load out.</p>
         </div>
         <div className="actions"><DaySelector /></div>
       </div>

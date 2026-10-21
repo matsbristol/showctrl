@@ -8,7 +8,7 @@ import { LOCATION_KINDS, MIN, TAPE } from '../../types/constants'
 import type { Id, Location } from '../../types/model'
 import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
-import { kindLabel } from '../runsheet/helpers'
+import { KindTag } from '../runsheet/parts'
 import { useAccess, useNow, useTerms, useTz } from '../session'
 import { LocationForm } from '../trucks/LocationForm'
 
@@ -80,7 +80,7 @@ export function TrucksPage({ sid }: { sid: Id | null }) {
                   <td className="num">{i.delay ? <s className="muted">{fmtTime(i.start, tz)} </s> : null}<b>{fmtTime(e.s, tz)}</b>{e.e - e.s >= 5 * MIN ? `–${fmtTime(e.e, tz)}` : ''}</td>
                   {!sid && <td>{st && <span className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>}</td>}
                   <td>{i.artist ? <Link to={`${base}/artists/${i.artist}`} style={{ color: 'inherit' }}>{artists[i.artist]?.name ?? i.title}</Link> : i.title}</td>
-                  <td><span className={`kind k-${i.kind}`}>{kindLabel(i.kind)}</span></td>
+                  <td><KindTag kind={i.kind} /></td>
                   <td className="num"><b>{i.trucks}</b></td>
                   <td>
                     {w ? (

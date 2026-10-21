@@ -189,9 +189,6 @@
 .sc .sheet li.live { background: var(--go-soft) }
 .sc .sheet li.done { color: var(--ink3) }
 .sc .sheet li.k-show .what { font-size: 1.1rem }
-.sc .kind { display: inline-block; font-size: .72rem; font-weight: 700; padding: 0 .35rem; border-radius: 3px; background: var(--surface2); color: var(--ink2); margin-right: .35rem; vertical-align: 1px }
-.sc .kind.k-show { background: var(--accent-soft); color: var(--accent) }
-.sc .kind.k-soundcheck, .sc .kind.k-linecheck { background: var(--standby-soft); color: var(--standby) }
 
 /* ---------- lanes (timeline) ---------- */
 .sc .lanes { position: relative; overflow-x: auto }
@@ -205,12 +202,6 @@
 .sc .blk { position: absolute; height: 24px; border-radius: 4px; padding: .15rem .4rem; font-size: .78rem; line-height: 1.25; overflow: hidden; background: var(--surface2); border: 1px solid var(--line); color: var(--ink); cursor: default; text-align: left; display: flex; align-items: center; gap: .3rem; white-space: nowrap }
 .sc .blk b { display: inline; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: .78rem }
 .sc button.blk { cursor: pointer }
-.sc .blk.k-show { background: var(--accent-soft); border-color: transparent; border-left: 4px solid var(--c) }
-.sc .blk.k-soundcheck, .sc .blk.k-linecheck { background: var(--standby-soft); border-color: transparent }
-.sc .blk.k-changeover { background: repeating-linear-gradient(135deg, var(--surface2) 0 6px, transparent 6px 12px); color: var(--ink2) }
-.sc .blk.k-loadin, .sc .blk.k-loadout { background: var(--surface); border-style: dashed }
-.sc .blk.k-arrival, .sc .blk.k-departure, .sc .blk.k-getin, .sc .blk.k-access { background: var(--surface2); color: var(--ink2) }
-.sc .blk.live { background: var(--go-soft) !important; border-left: 4px solid var(--go) }
 .sc .blk.done { opacity: .5 }
 .sc .mark { position: absolute; top: 0; bottom: 0; width: 0; border-left: 2px dashed var(--ink2); z-index: 1 }
 .sc .mark span { position: absolute; left: 4px; bottom: 3px; font-size: .7rem; font-weight: 700; color: var(--ink2); white-space: nowrap; background: var(--surface); padding: 0 .2rem }
@@ -427,3 +418,45 @@
 .sc tr.soon td:first-child { box-shadow: inset 5px 0 0 var(--standby) }
 .sc .clash-box { border-color: var(--stop); margin-bottom: 1rem }
 .sc .clash-box .ph h3 { color: var(--stop) }
+
+/* ---------- run sheet kinds: one colour and icon each, used everywhere ----------
+   Grouped by family: travel and people (blue-greys, teal), trucks (amber/brown),
+   stage (purple, gold, grey, blue), site (green/red), other (pink, grey). */
+.sc .k-arrival { --kc: #4F7CAC }
+.sc .k-departure { --kc: #6C63B5 }
+.sc .k-getin { --kc: #12949A }
+.sc .k-loadin { --kc: #D7860B }
+.sc .k-loadout { --kc: #A4581C }
+.sc .k-access { --kc: #9B4FD3 }
+.sc .k-soundcheck { --kc: #C09A00 }
+.sc .k-linecheck { --kc: #8F9C00 }
+.sc .k-changeover { --kc: #6B7586 }
+.sc .k-show { --kc: #2F6FE0 }
+.sc .k-doors { --kc: #23944F }
+.sc .k-curfew { --kc: #D93A3A }
+.sc .k-meeting { --kc: #C94A8C }
+.sc .k-other { --kc: #7C879C }
+
+/* Tag: tinted background, coloured edge, readable text in both themes */
+.sc .kind { display: inline-flex; align-items: center; gap: .3rem; font-size: .74rem; font-weight: 700; line-height: 1.5; padding: 0 .45rem 0 .35rem; border-radius: 4px; margin-right: .4rem; vertical-align: 1px; white-space: nowrap;
+  background: color-mix(in srgb, var(--kc, var(--ink3)) 16%, var(--surface)); color: color-mix(in srgb, var(--kc, var(--ink3)) 72%, var(--ink)); box-shadow: inset 3px 0 0 var(--kc, var(--ink3)) }
+.sc .kind svg { width: .9rem; height: .9rem; flex: none; stroke-width: 2.4 }
+.sc .kind.k-show { background: var(--kc); color: #fff; box-shadow: none }
+
+/* Timeline blocks */
+.sc .blk { background: color-mix(in srgb, var(--kc, var(--ink3)) 20%, var(--surface)); border: 1px solid color-mix(in srgb, var(--kc, var(--ink3)) 45%, transparent); border-left: 4px solid var(--kc, var(--ink3)); color: var(--ink) }
+.sc .blk svg { width: .85rem; height: .85rem; flex: none; color: var(--kc, var(--ink3)); stroke-width: 2.4 }
+.sc .blk.k-show { background: var(--kc); border-color: var(--kc); color: #fff }
+.sc .blk.k-show svg { color: #fff }
+.sc .blk.k-changeover { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--kc) 22%, var(--surface)) 0 6px, var(--surface) 6px 12px) }
+.sc .blk.k-loadin, .sc .blk.k-loadout { border-style: solid dashed dashed solid }
+.sc .blk.live { box-shadow: 0 0 0 2px var(--go), 0 0 0 4px color-mix(in srgb, var(--go) 30%, transparent) }
+
+/* Rows: a coloured edge per kind */
+.sc .ro tr[class*="k-"] td:first-child { box-shadow: inset 5px 0 0 var(--kc, transparent) }
+.sc .sheet li[class*="k-"] { box-shadow: inset 4px 0 0 var(--kc, transparent) }
+.sc .ro tr.done td:first-child, .sc .sheet li.done { box-shadow: inset 5px 0 0 color-mix(in srgb, var(--kc, transparent) 35%, transparent) }
+
+/* Key under the timeline */
+.sc .kind-legend { display: flex; flex-wrap: wrap; gap: .35rem; margin: -.5rem 0 1rem }
+.sc .kind-legend .kind { margin: 0 }

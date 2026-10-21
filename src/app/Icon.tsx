@@ -15,6 +15,21 @@ const PATHS = {
   display: <><rect x="2" y="4" width="20" height="13" rx="1" /><path d="M8 21h8M12 17v4" /></>,
   risk: <><path d="M12 3l9 16H3z" /><path d="M12 10v4M12 17h.01" /></>,
   truck: <><path d="M2 6h11v9H2zM13 9h4l4 4v2h-8z" /><circle cx="6" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
+  // Run sheet kinds
+  arrival: <><path d="M3 12h11M10 8l4 4-4 4" /><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4" /></>,
+  departure: <><path d="M10 12h11M17 8l4 4-4 4" /><path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4" /></>,
+  getin: <><path d="M5 21V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v17M3 21h18" /><path d="M15 12h.01" /></>,
+  loadin: <><path d="M3 8l9-5 9 5v8l-9 5-9-5z" /><path d="M12 8v7M9 12l3 3 3-3" /></>,
+  loadout: <><path d="M3 8l9-5 9 5v8l-9 5-9-5z" /><path d="M12 15V8M9 11l3-3 3 3" /></>,
+  access: <><circle cx="8" cy="15" r="4" /><path d="M11 12l9-9M17 6l3 3" /></>,
+  soundcheck: <><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></>,
+  linecheck: <path d="M3 12h3l2-6 4 12 2-6h7" />,
+  changeover: <path d="M4 8h14l-3-3M20 16H6l3 3" />,
+  show: <path d="M12 3l2.7 5.6 6.3.9-4.5 4.4 1 6.1L12 17l-5.5 3 1-6.1L3 9.5l6.3-.9z" />,
+  doors: <path d="M4 21h16M6 21V4l8 2v15M14 6h4v15" />,
+  curfew: <><path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z" /><path d="M9 12h6" /></>,
+  meeting: <><circle cx="8" cy="9" r="3" /><circle cx="16" cy="9" r="3" /><path d="M3 20c.8-3 2.8-5 5-5s4.2 2 5 5M11 20c.8-3 2.8-5 5-5s4.2 2 5 5" /></>,
+  other: <circle cx="12" cy="12" r="3" />,
   lock: <><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>,
 } as const
 

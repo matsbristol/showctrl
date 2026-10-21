@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { useState } from 'react'
 import { useCollection, useStore } from '../../data/hooks'
 import { buildDaySheet } from '../../lib/daySheet'
@@ -47,7 +48,7 @@ export function ArtistForm({ artist, sid, onClose, onCreated, onDeleted }: {
       } : undefined}
       onSave={async () => {
         if (!v.name.trim()) return 'Enter a name.'
-        if (!v.stage) return `Choose a ${t.stage.toLowerCase()}.`
+        if (!v.stage) return `Choose ${aOrAn(t.stage.toLowerCase())}.`
         const id = artist?.id ?? rid()
         const contacts: ArtistContact[] = artist?.contacts
           ?? (v.cname || v.cphone || v.cemail ? [{ id: rid(), role: 'Tour manager', name: v.cname || 'Tour manager', phone: v.cphone, email: v.cemail }] : [])

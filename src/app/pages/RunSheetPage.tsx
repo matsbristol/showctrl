@@ -1,3 +1,4 @@
+import { aOrAn } from '../../lib/text'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCollection } from '../../data/hooks'
@@ -12,7 +13,8 @@ import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
 import { useRunSheetActions } from '../runsheet/actions'
 import { AddPerformerForm, DelayForm, ItemForm } from '../runsheet/forms'
-import { KindTag, Lanes } from '../runsheet/parts'
+import { KindLegend, KindTag, Lanes } from '../runsheet/parts'
+import { kindClass } from '../runsheet/helpers'
 import { useAccess, useTerms, useTz } from '../session'
 
 type Dialog = { type: 'item'; item: Partial<RosItem> } | { type: 'delay'; item: RosItem } | { type: 'performer' } | null
@@ -60,6 +62,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
       </div>
 
       <Lanes lanes={lanes} day={day} onPick={w ? it => setDialog({ type: 'item', item: it }) : undefined} />
+      <KindLegend kinds={its.map(i => i.kind)} />
 
       <div className="filters">
         <label className="small muted" htmlFor="rsf">Show</label>
@@ -86,7 +89,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
                 {list.map(i => {
                   const e = eff(i)
                   return (
-                    <tr key={i.id} className={i.status} data-id={i.id}>
+                    <tr key={i.id} className={`${i.status} ${kindClass(i.kind)}`} data-id={i.id}>
                       <td className="t">
                         {i.delay ? <s>{fmtTime(i.start, tz)}</s> : null}
                         <b>{fmtTime(e.s, tz)}</b>{e.e - e.s >= 5 * MIN ? `–${fmtTime(e.e, tz)}` : ''}
@@ -119,7 +122,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
             </table>
           </div>
         ) : (
-          <p className="empty">Nothing scheduled this day.{w && ` Add a ${t.performer.toLowerCase()} to generate their day sheet.`}</p>
+          <p className="empty">Nothing scheduled this day.{w && ` Add ${aOrAn(t.performer.toLowerCase())} to generate their day sheet.`}</p>
         )}
       </section>
 

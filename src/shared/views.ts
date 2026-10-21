@@ -4,8 +4,22 @@ import type { EventConfig, Id } from '../types/model'
 import type { Access } from './access'
 import { moduleOfView, moduleOn } from './modules'
 
-export const HQ_VIEWS = ['overview', 'schedule', 'artists', 'risk', 'trucks', 'personnel', 'clocks', 'messages', 'accommodation', 'riders', 'admin'] as const
-export const STAGE_VIEWS = ['today', 'runsheet', 'artists', 'risk', 'trucks', 'personnel', 'clocks', 'messages', 'riders', 'display', 'setup'] as const
+// Order is the side-nav order; groups are in src/app/nav.ts.
+export const HQ_VIEWS = [
+  'overview',
+  'schedule', 'screens', 'clocks', 'messages',
+  'artists', 'summary', 'lines', 'plots', 'risers', 'risk', 'riders',
+  'trucks', 'transport', 'accommodation', 'facilities',
+  'personnel', 'documents',
+  'admin',
+] as const
+export const STAGE_VIEWS = [
+  'today',
+  'runsheet', 'display', 'screens', 'clocks', 'messages',
+  'artists', 'summary', 'lines', 'plots', 'risers', 'risk', 'riders',
+  'trucks', 'transport', 'facilities',
+  'personnel', 'documents', 'setup',
+] as const
 
 export type HqView = (typeof HQ_VIEWS)[number]
 export type StageView = (typeof STAGE_VIEWS)[number]
@@ -19,6 +33,14 @@ export function canOpenHqView(a: Access, cfg: EventConfig | null | undefined, v:
     case 'artists': return a.perm('artists') >= 1
     case 'risk': return a.perm('risk') >= 1
     case 'trucks': return a.perm('schedule') >= 1
+    case 'screens': return a.perm('clocks') >= 1
+    case 'summary': return a.perm('artists') >= 1
+    case 'lines':
+    case 'plots':
+    case 'risers': return a.perm('technical') >= 1
+    case 'transport': return a.perm('transport') >= 1
+    case 'facilities': return a.perm('facilities') >= 1
+    case 'documents': return a.anyLv('documents') >= 1
     case 'personnel': return a.perm('personnel') >= 1
     case 'clocks': return a.perm('clocks') >= 1
     case 'messages': return a.anyLv('messages') >= 1
@@ -38,6 +60,14 @@ export function canOpenStageView(a: Access, cfg: EventConfig | null | undefined,
     case 'artists': return a.lv('artists', sid) >= 1
     case 'risk': return a.lv('risk', sid) >= 1
     case 'trucks': return a.lv('schedule', sid) >= 1
+    case 'screens': return a.lv('clocks', sid) >= 1
+    case 'summary': return a.lv('artists', sid) >= 1
+    case 'lines':
+    case 'plots':
+    case 'risers': return a.lv('technical', sid) >= 1
+    case 'transport': return a.lv('transport', sid) >= 1
+    case 'facilities': return a.lv('facilities', sid) >= 1
+    case 'documents': return a.lv('documents', sid) >= 1
     case 'personnel': return a.lv('personnel', sid) >= 1
     case 'clocks': return a.lv('clocks', sid) >= 1
     // The display follows the run sheet, so it works without the Clocks module.

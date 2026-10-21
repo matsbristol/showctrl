@@ -460,3 +460,7 @@
 /* Key under the timeline */
 .sc .kind-legend { display: flex; flex-wrap: wrap; gap: .35rem; margin: -.5rem 0 1rem }
 .sc .kind-legend .kind { margin: 0 }
+
+/* ---------- side nav groups ---------- */
+.sc nav.side .navgroup { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); padding: .9rem .7rem .25rem }
+@media (max-width: 860px) { .sc nav.side .navgroup { display: none } }

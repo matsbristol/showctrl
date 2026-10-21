@@ -114,6 +114,7 @@ export class EventCore {
       }
       const verdict = canWrite(a, { col: op.col, id, prev, next: next as { id: Id } | null } as Parameters<typeof canWrite>[1], {
         artistStage: aid => this.col.artists[aid]?.stage,
+        facilityStage: fid => this.col.facilities[fid]?.stage ?? null,
       })
       if (!verdict.ok) return { ok: false, code: 'denied', message: verdict.reason }
       planned.push({ id, prev, next: next as { id: Id } | null })
@@ -187,6 +188,14 @@ export class EventCore {
     }
     if (!this.hasAccess(a)) return col === 'stages' ? doc : null
     if (col === 'risks') return a.lv('risk', this.col.artists[doc.artist as Id]?.stage) >= 1 ? doc : null
+    if (col === 'lines' || col === 'plots') return a.lv('technical', this.col.artists[doc.artist as Id]?.stage) >= 1 ? doc : null
+    if (col === 'risers') return a.lv('technical', doc.stage as Id) >= 1 ? doc : null
+    if (col === 'transfers') return a.lv('transport', doc.artist ? this.col.artists[doc.artist as Id]?.stage : null) >= 1 ? doc : null
+    if (col === 'allocations') return a.lv('facilities', this.col.facilities[doc.facility as Id]?.stage ?? null) >= 1 ? doc : null
+    if (col === 'files') {
+      const stage = (doc.stage as Id | null) ?? (doc.artist ? this.col.artists[doc.artist as Id]?.stage : null) ?? null
+      return a.lv('documents', stage) >= 1 ? doc : null
+    }
     if (col === 'msgs') return a.canSeeMsg(doc as unknown as Parameters<Access['canSeeMsg']>[0]) ? doc : null
     if (col === 'artists' && !a.artistContacts(doc as { stage: Id })) return { ...doc, contacts: [] }
     if (!seesSensitive(a)) {

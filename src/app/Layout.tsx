@@ -8,7 +8,7 @@ import { homePath, hqViews, stageViews } from '../shared/views'
 import { STAGE_ROLES, TAPE } from '../types/constants'
 import type { Id, TapeColor } from '../types/model'
 import { Icon } from './Icon'
-import { HQ_NAV, STAGE_NAV, hqPath, stagePath } from './nav'
+import { HQ_NAV, NAV_GROUPS, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
 import { useLive } from './live'
@@ -201,9 +201,11 @@ function SideNav() {
       {ctx === 'hq'
         ? <div className="ctxhead"><span className="tape" style={{ ['--c' as string]: HQ_COLOR }} />Festival HQ</div>
         : st && <div className="ctxhead"><span className="tape" style={{ ['--c' as string]: tapeHex(st.tape) }} />{st.name}</div>}
-      {items.map(({ v, meta, to }) => (
+      {items.map(({ v, meta, to }, i) => (
         <div key={v} className="navitem">
-          {meta.sep && <div className="sep" />}
+          {i > 0 && items[i - 1].meta.group !== meta.group && (
+            NAV_GROUPS[meta.group] ? <div className="navgroup">{NAV_GROUPS[meta.group]}</div> : <div className="sep" />
+          )}
           <Link to={to} aria-current={current === v ? 'page' : undefined}>
             <Icon name={meta.icon} />
             <span>{meta.label(terms)}</span>

@@ -66,6 +66,46 @@ export const MODULES: Record<ModuleId, ModuleDef> = {
     description: 'A green, orange or red rating per performer, with risk factors and notes, shown wherever their show appears.',
     perms: ['risk'], collections: ['risks'], hqViews: ['risk'], stageViews: ['risk'],
   },
+  screens: {
+    id: 'screens', label: 'Screens', defaultOn: true,
+    description: 'Named layouts for the monitors in production offices, at FOH and side stage: running order, now and next, big clock.',
+    perms: [], collections: ['screens'], hqViews: ['screens'], stageViews: ['screens'],
+  },
+  summary: {
+    id: 'summary', label: 'Technical summary', defaultOn: true,
+    description: 'Every act on one page: key times, party and vehicles, loads, contacts, input count and risers, with CSV and print export.',
+    perms: [], collections: [], hqViews: ['summary'], stageViews: ['summary'],
+  },
+  lines: {
+    id: 'lines', label: 'Input lists', defaultOn: true,
+    description: 'Channel lists and monitor mixes per act, pasted from the band’s rider or typed in, ready to print for FOH and monitors.',
+    perms: ['technical'], collections: ['lines'], hqViews: ['lines'], stageViews: ['lines'],
+  },
+  plots: {
+    id: 'plots', label: 'Stage plots', defaultOn: true,
+    description: 'Drag-and-drop stage plots per act, to scale, with risers, wedges and power drops.',
+    perms: ['technical'], collections: ['plots'], hqViews: ['plots'], stageViews: ['plots'],
+  },
+  risers: {
+    id: 'risers', label: 'Risers', defaultOn: true,
+    description: 'Each stage’s riser stock against what every act needs, with shortages and what has to move at each changeover.',
+    perms: ['technical'], collections: ['risers'], hqViews: ['risers'], stageViews: ['risers'],
+  },
+  transport: {
+    id: 'transport', label: 'Transport', defaultOn: true,
+    description: 'Pickups and drop-offs tied to arrivals and departures: who, how many, from where, which car and driver.',
+    perms: ['transport'], collections: ['transfers'], hqViews: ['transport'], stageViews: ['transport'],
+  },
+  facilities: {
+    id: 'facilities', label: 'Facilities', defaultOn: true,
+    description: 'Dressing rooms, production offices and other spaces, and who has them when, with double bookings flagged.',
+    perms: ['facilities'], collections: ['facilities', 'allocations'], hqViews: ['facilities'], stageViews: ['facilities'],
+  },
+  documents: {
+    id: 'documents', label: 'Documents', defaultOn: true,
+    description: 'Site plans, safety documents, contracts and technical files for the event, a stage or one act.',
+    perms: ['documents'], collections: ['files'], hqViews: ['documents'], stageViews: ['documents'],
+  },
   trucks: {
     id: 'trucks', label: 'Trucks & docks', defaultOn: true,
     description: 'Truck counts on load in and load out, where to send each truck (load bay, staging area, truck park), and clash warnings.',
@@ -91,5 +131,7 @@ export function moduleOfCollection(col: CollectionName): ModuleId | null {
 
 /** Whether a permission key belongs to a module that's switched off. */
 export function permHidden(cfg: Pick<EventConfig, 'modules'> | null | undefined, key: PermKey): boolean {
-  return Object.values(MODULES).some(m => m.perms.includes(key) && !moduleOn(cfg, m.id))
+  // A key shared by several modules (Technical: input lists, stage plots, risers) stays while any of them is on.
+  const owners = Object.values(MODULES).filter(m => m.perms.includes(key))
+  return owners.length > 0 && owners.every(m => !moduleOn(cfg, m.id))
 }

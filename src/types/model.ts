@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, RISK_LEVELS,
+  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SIZES, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -30,6 +30,11 @@ export type RiderStatus = (typeof RIDER_STATUS)[number]
 export type RiderKind = (typeof RIDER_KINDS)[number]
 export type ModuleId = (typeof MODULE_IDS)[number]
 export type RiskLevel = keyof typeof RISK_LEVELS
+export type ScreenBlock = keyof typeof SCREEN_BLOCKS
+export type PlotKind = keyof typeof PLOT_KINDS
+export type RiserSize = keyof typeof RISER_SIZES
+export type TransferStatus = (typeof TRANSFER_STATUS)[number]
+export type FacilityKind = keyof typeof FACILITY_KINDS
 export type LocationKind = keyof typeof LOCATION_KINDS
 export type MsgPriority = (typeof MSG_PRIORITY)[number]
 export type DayTemplate = { [K in keyof typeof DEFAULT_TPL]: number }
@@ -315,6 +320,136 @@ export interface Location extends BaseDoc {
   capacity?: number | null
 }
 
+/** A named layout for one physical monitor: production office, FOH desk, a stage's side screen. */
+export interface Screen extends BaseDoc {
+  name: string
+  /** Stage this screen belongs to, or null for HQ. */
+  scope?: Id | null
+  /** Stages it follows. Empty means every stage. */
+  stages: Id[]
+  blocks: ScreenBlock[]
+  order?: number
+}
+
+export interface InputLine {
+  id: Id
+  ch: number
+  /** What's on the channel: Kick in, Lead vox. */
+  name: string
+  mic?: string
+  stand?: string
+  phantom?: boolean
+  /** Stagebox or subsnake input. */
+  box?: string
+  notes?: string
+}
+
+export interface OutputLine {
+  id: Id
+  n: number
+  /** Who or what it feeds: Vox wedge, Drum fill, IEM 1. */
+  name: string
+  /** Wedge, IEM, sidefill, drum fill. */
+  type?: string
+  notes?: string
+}
+
+/** A performer's input list and monitor mixes. Id is the artist id. */
+export interface Lines extends BaseDoc {
+  artist: Id
+  inputs: Record<Id, InputLine>
+  outputs: Record<Id, OutputLine>
+  notes?: string
+  updated?: Ms
+}
+
+export interface PlotItem {
+  id: Id
+  kind: PlotKind
+  label: string
+  /** Position of the item's centre in metres from stage left (x) and the front edge (y). */
+  x: number
+  y: number
+  w: number
+  d: number
+  /** Risers: deck size and height in centimetres. */
+  size?: RiserSize
+  height?: number
+  /** Risers: on wheels, so it can be built off stage and rolled on. */
+  rolling?: boolean
+}
+
+/** A performer's stage plot. Id is the artist id. */
+export interface Plot extends BaseDoc {
+  artist: Id
+  items: Record<Id, PlotItem>
+  notes?: string
+  updated?: Ms
+}
+
+/** A stage's riser stock. Id is the stage id. */
+export interface RiserStock extends BaseDoc {
+  stage: Id
+  decks: Partial<Record<RiserSize, number>>
+  /** Leg heights available, in centimetres. */
+  heights: number[]
+  notes?: string
+}
+
+/** A pickup or drop-off: airport, hotel, site. */
+export interface Transfer extends BaseDoc {
+  artist?: Id | null
+  /** For people who aren't performers. */
+  guest?: string
+  pax: number
+  from: string
+  to: string
+  at: Ms
+  vehicle?: string
+  driver?: string
+  phone?: string
+  status: TransferStatus
+  /** The run sheet arrival or departure it serves. */
+  item?: Id | null
+  notes?: string
+}
+
+/** A room or space: dressing room, production office, catering. */
+export interface Facility extends BaseDoc {
+  name: string
+  kind: FacilityKind
+  /** Stage it belongs to, or null for festival-wide. */
+  stage?: Id | null
+  capacity?: number | null
+  notes?: string
+}
+
+/** Who has a facility and when. */
+export interface Allocation extends BaseDoc {
+  facility: Id
+  artist?: Id | null
+  /** For anyone who isn't a performer: Catering crew, Press. */
+  label?: string
+  from: Ms
+  to: Ms
+  notes?: string
+}
+
+/** A document: an uploaded file or a link. Scoped to the whole event, one stage, or one performer. */
+export interface FileDoc extends BaseDoc {
+  name: string
+  category: string
+  stage?: Id | null
+  artist?: Id | null
+  /** A link to somewhere else (shared drive, website). */
+  url?: string
+  /** An uploaded file: storage key (live) or a data URL (demo), with size and type. */
+  blob?: { key: string; size: number; type: string }
+  by?: Id | null
+  at?: Ms
+  notes?: string
+}
+
 /** Per-user state that must follow the user across devices. Keyed by user id; only that user writes it. */
 export interface UserPrefs extends BaseDoc {
   /** When the user last opened Messages; drives the unread badge. */
@@ -338,6 +473,14 @@ export interface Collections {
   prefs: UserPrefs
   risks: Risk
   locations: Location
+  screens: Screen
+  lines: Lines
+  plots: Plot
+  risers: RiserStock
+  transfers: Transfer
+  facilities: Facility
+  allocations: Allocation
+  files: FileDoc
 }
 
 export type CollectionName = keyof Collections

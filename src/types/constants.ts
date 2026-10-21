@@ -30,39 +30,58 @@ export const PERM_KEYS = [
   { key: 'show', label: 'Festival overview' },
   { key: 'schedule', label: 'Running order' },
   { key: 'artists', label: 'Artists' },
+  { key: 'technical', label: 'Technical' },
+  { key: 'risk', label: 'Risk assessment' },
   { key: 'personnel', label: 'Personnel' },
-  { key: 'clocks', label: 'Clocks' },
+  { key: 'clocks', label: 'Clocks & screens' },
   { key: 'messages', label: 'Messages' },
+  { key: 'transport', label: 'Transport' },
   { key: 'accommodation', label: 'Accommodation' },
+  { key: 'facilities', label: 'Facilities' },
   { key: 'riders_tech', label: 'Technical riders' },
   { key: 'riders_hosp', label: 'Hospitality riders' },
+  { key: 'documents', label: 'Documents' },
   { key: 'admin', label: 'Admin' },
-  { key: 'risk', label: 'Risk assessment' },
 ] as const
 
 export const LEVELS = ['No access', 'View', 'Edit'] as const
 
-/** Builds a perms map from a digit string in PERM_KEYS order, e.g. '2222222221'. */
-function mkPerms(s: string): Record<PermKey, PermLevel> {
-  return Object.fromEntries(PERM_KEYS.map(({ key }, i) => [key, Number(s[i]) as PermLevel])) as Record<PermKey, PermLevel>
+/** A role's levels: anything not listed is 0 (no access). */
+function perms(levels: Partial<Record<PermKey, PermLevel>>, all?: PermLevel): Record<PermKey, PermLevel> {
+  return Object.fromEntries(PERM_KEYS.map(({ key }) => [key, levels[key] ?? all ?? 0])) as Record<PermKey, PermLevel>
 }
 
 export const DEFAULT_ROLES: Record<string, RoleDef> = {
-  admin: { label: 'Festival admin', perms: mkPerms('22222222222'), contacts: true, locked: true },
-  pm: { label: 'Production manager', perms: mkPerms('22222222212'), contacts: true },
-  liaison: { label: 'Artist liaison', perms: mkPerms('11211122201'), contacts: true },
-  hosp: { label: 'Hospitality', perms: mkPerms('11111210201'), contacts: false },
-  tech: { label: 'Technical production', perms: mkPerms('11112212001'), contacts: false },
-  site: { label: 'Site & security', perms: mkPerms('11111200002'), contacts: false },
-  none: { label: 'Stage access only', perms: mkPerms('00000000000'), contacts: false, locked: true },
+  admin: { label: 'Festival admin', perms: perms({}, 2), contacts: true, locked: true },
+  pm: { label: 'Production manager', perms: perms({ admin: 1 }, 2), contacts: true },
+  liaison: {
+    label: 'Artist liaison', contacts: true,
+    perms: perms({ show: 1, schedule: 1, artists: 2, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 1, transport: 2, accommodation: 2, facilities: 2, riders_tech: 2, riders_hosp: 2, documents: 1 }),
+  },
+  hosp: {
+    label: 'Hospitality', contacts: false,
+    perms: perms({ show: 1, schedule: 1, artists: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, transport: 2, accommodation: 1, facilities: 2, riders_hosp: 2, documents: 1 }),
+  },
+  tech: {
+    label: 'Technical production', contacts: false,
+    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 2, risk: 1, personnel: 1, clocks: 2, messages: 2, accommodation: 1, facilities: 1, riders_tech: 2, documents: 1 }),
+  },
+  site: {
+    label: 'Site & security', contacts: false,
+    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 1, risk: 2, personnel: 1, clocks: 1, messages: 2, transport: 1, facilities: 2, documents: 1 }),
+  },
+  none: { label: 'Stage access only', perms: perms({}), contacts: false, locked: true },
 }
 
 export const STAGE_ROLES = { manager: 'Stage manager', crew: 'Stage crew' } as const
 
 /** What a stage-level role adds, for that stage only. `setup` opens Stage setup. */
 export const STAGE_LV: Record<keyof typeof STAGE_ROLES, Partial<Record<PermKey | 'setup', PermLevel>>> = {
-  manager: { show: 1, schedule: 2, artists: 2, personnel: 2, clocks: 2, messages: 2, riders_tech: 2, riders_hosp: 2, accommodation: 1, risk: 2, setup: 2 },
-  crew: { show: 1, schedule: 1, artists: 1, personnel: 1, clocks: 1, messages: 2, riders_tech: 1, risk: 1 },
+  manager: {
+    show: 1, schedule: 2, artists: 2, technical: 2, risk: 2, personnel: 2, clocks: 2, messages: 2, transport: 1,
+    accommodation: 1, facilities: 1, riders_tech: 2, riders_hosp: 2, documents: 2, setup: 2,
+  },
+  crew: { show: 1, schedule: 1, artists: 1, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, facilities: 1, riders_tech: 1, documents: 1 },
 }
 
 export const ACCRED = ['AAA', 'Production', 'Stage', 'Backstage', 'Artist', 'Site', 'Day pass'] as const
@@ -182,12 +201,62 @@ export const LOCATION_KINDS = {
 /** Run sheet kinds that move vehicles in or out. */
 export const TRUCK_KINDS = ['arrival', 'getin', 'loadin', 'loadout', 'departure'] as const
 
+/** Building blocks of a screen, in the order they're laid out. */
+export const SCREEN_BLOCKS = {
+  clock: 'Big clock',
+  nownext: 'Now and next per stage',
+  schedule: 'Running order',
+  messages: 'Latest messages',
+  trucks: 'Trucks due',
+} as const
+
+/** Stage plot items. Sizes are metres (width × depth) for a sensible default footprint. */
+export const PLOT_KINDS = {
+  drums: { label: 'Drum kit', w: 2.4, d: 2.4 },
+  riser: { label: 'Riser', w: 2.4, d: 2.4 },
+  amp: { label: 'Amp / cab', w: 0.8, d: 0.5 },
+  keys: { label: 'Keys', w: 1.4, d: 0.6 },
+  vocal: { label: 'Vocal mic', w: 0.5, d: 0.5 },
+  mic: { label: 'Instrument mic', w: 0.4, d: 0.4 },
+  monitor: { label: 'Wedge', w: 0.7, d: 0.5 },
+  di: { label: 'DI', w: 0.3, d: 0.3 },
+  power: { label: 'Power drop', w: 0.3, d: 0.3 },
+  person: { label: 'Musician', w: 0.7, d: 0.7 },
+  other: { label: 'Other', w: 1, d: 1 },
+} as const
+
+/** Standard riser decks: size in feet as the label, metres for the stage plot. */
+export const RISER_SIZES = {
+  '8x8': { w: 2.44, d: 2.44 },
+  '8x4': { w: 2.44, d: 1.22 },
+  '6x8': { w: 1.83, d: 2.44 },
+  '4x4': { w: 1.22, d: 1.22 },
+} as const
+
+export const TRANSFER_STATUS = ['planned', 'confirmed', 'en route', 'done', 'cancelled'] as const
+
+export const FACILITY_KINDS = {
+  dressing: 'Dressing room',
+  production: 'Production office',
+  catering: 'Catering',
+  green: 'Green room',
+  storage: 'Storage',
+  meeting: 'Meeting room',
+  other: 'Other',
+} as const
+
+export const FILE_CATEGORIES = ['Site plan', 'Safety', 'Technical', 'Contract', 'Schedule', 'Rider', 'Other'] as const
+
 /** Optional sections an event can switch on or off. Defined in src/shared/modules.ts. */
-export const MODULE_IDS = ['messages', 'clocks', 'display', 'personnel', 'accommodation', 'riders', 'risk', 'trucks'] as const
+export const MODULE_IDS = [
+  'messages', 'clocks', 'screens', 'display', 'personnel', 'accommodation', 'riders', 'risk', 'trucks',
+  'summary', 'lines', 'plots', 'risers', 'transport', 'facilities', 'documents',
+] as const
 
 /** Every record collection. `config/event` and `config/roles` are stored separately. */
 export const COLLECTIONS = [
   'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs', 'risks', 'locations',
+  'screens', 'lines', 'plots', 'risers', 'transfers', 'facilities', 'allocations', 'files',
 ] as const
 
 export function defaultDepts(): Dept[] {

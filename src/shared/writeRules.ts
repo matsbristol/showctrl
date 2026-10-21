@@ -15,8 +15,10 @@ export interface WriteRequest<K extends CollectionName = CollectionName> {
 }
 
 export interface WriteContext {
-  /** Looks up an artist's stage, for riders. */
+  /** Looks up an artist's stage (riders, risk, input lists, plots, transfers, documents). */
   artistStage: (artistId: Id) => Id | null | undefined
+  /** Looks up a facility's stage (allocations). */
+  facilityStage?: (facilityId: Id) => Id | null | undefined
 }
 
 export type WriteVerdict = { ok: true } | { ok: false; reason: string }
@@ -112,6 +114,45 @@ export function canWrite(a: Access, req: WriteRequest, ctx: WriteContext): Write
       // A stage's own load bay: that stage's schedule editors. Festival-wide places: festival schedule editors.
       const pr = prev as Collections['locations'] | null, nx = next as Collections['locations'] | null
       return check(onBothStages(a, 'schedule', pr?.stage, nx?.stage, p, n), 'No edit access to these locations.')
+    }
+
+    case 'lines':
+    case 'plots': {
+      const r = (next ?? prev) as { artist: Id }
+      if (req.id !== r.artist) return no('This record’s id must be the artist id.')
+      if (prev && next && (prev as { artist: Id }).artist !== r.artist) return no('It can’t move to another artist.')
+      return check(a.canW('technical', ctx.artistStage(r.artist) ?? null), 'No edit access to technical details on this stage.')
+    }
+
+    case 'risers': {
+      const r = (next ?? prev) as Collections['risers']
+      if (req.id !== r.stage) return no('Riser stock’s id must be the stage id.')
+      return check(a.canW('technical', r.stage), 'No edit access to this stage’s risers.')
+    }
+
+    case 'screens': {
+      const pr = prev as Collections['screens'] | null, nx = next as Collections['screens'] | null
+      return check(onBothStages(a, 'clocks', pr?.scope, nx?.scope, p, n), 'No edit access to these screens.')
+    }
+
+    case 'transfers': {
+      const stageOf = (t: Collections['transfers'] | null) => (t?.artist ? ctx.artistStage(t.artist) : null)
+      return check(onBothStages(a, 'transport', stageOf(prev as Collections['transfers'] | null), stageOf(next as Collections['transfers'] | null), p, n), 'No edit access to transport.')
+    }
+
+    case 'facilities': {
+      const pr = prev as Collections['facilities'] | null, nx = next as Collections['facilities'] | null
+      return check(onBothStages(a, 'facilities', pr?.stage, nx?.stage, p, n), 'No edit access to these facilities.')
+    }
+
+    case 'allocations': {
+      const stageOf = (x: Collections['allocations'] | null) => (x ? ctx.facilityStage?.(x.facility) ?? null : null)
+      return check(onBothStages(a, 'facilities', stageOf(prev as Collections['allocations'] | null), stageOf(next as Collections['allocations'] | null), p, n), 'No edit access to this facility’s bookings.')
+    }
+
+    case 'files': {
+      const stageOf = (f: Collections['files'] | null) => f?.stage ?? (f?.artist ? ctx.artistStage(f.artist) : null) ?? null
+      return check(onBothStages(a, 'documents', stageOf(prev as Collections['files'] | null), stageOf(next as Collections['files'] | null), p, n), 'No edit access to these documents.')
     }
 
     case 'hotels':

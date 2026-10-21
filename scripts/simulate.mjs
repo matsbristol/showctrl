@@ -28,7 +28,6 @@ const pick = arr => arr[Math.floor(Math.random() * arr.length)]
 const chance = p => Math.random() < p
 /** Stable per-item randomness, so an item's lateness doesn't change between ticks. */
 const hash = s => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296 }
-const hhmm = ms => new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Oslo' })
 const log = (...a) => { if (!QUIET) console.log(`[${new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/Oslo' })}]`, ...a) }
 
 /* ---------------- event ---------------- */

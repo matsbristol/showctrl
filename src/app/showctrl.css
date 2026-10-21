@@ -464,3 +464,62 @@
 /* ---------- side nav groups ---------- */
 .sc nav.side .navgroup { font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink3); padding: .9rem .7rem .25rem }
 @media (max-width: 860px) { .sc nav.side .navgroup { display: none } }
+
+/* ---------- screens (production office, FOH, dock monitors) ---------- */
+.sc .screenview { background: #05070C; color: #EEF1F7; border-radius: 10px; padding: clamp(.75rem, 1.6vw, 1.5rem); display: grid; gap: 1rem; grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 72vh }
+.sc .screenview.with-schedule { grid-template-columns: minmax(16rem, 28%) 1fr }
+.sc .screenview.with-schedule .sv-head { grid-column: 1 / -1 }
+.sc .sv-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid #1D2639; padding-bottom: .5rem }
+.sc .sv-name { font-family: var(--display); font-size: clamp(1.4rem, 2.4vw, 2.2rem); font-weight: 700; letter-spacing: .02em }
+.sc .sv-event { color: #8E9AB1; font-size: .95rem }
+.sc .sv-clock { margin-left: auto; font-family: var(--display); font-weight: 600; font-size: clamp(2.6rem, 6vw, 5.5rem); line-height: .9 }
+.sc .screenview h3 { font-family: var(--display); font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; color: #8E9AB1; margin-bottom: .4rem }
+.sc .sv-schedule { display: flex; flex-direction: column; min-height: 0 }
+.sc .sv-schedule ol { list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 64vh; scrollbar-width: thin }
+.sc .sv-schedule li { display: grid; grid-template-columns: 3.4rem 10px 1rem 1fr; gap: .45rem; align-items: center; padding: .32rem .3rem; border-bottom: 1px solid #141B29; font-size: clamp(.8rem, 1vw, .95rem) }
+.sc .sv-schedule li svg { width: 1rem; height: 1rem; color: var(--kc, #8E9AB1) }
+.sc .sv-schedule li .tape { width: 10px; height: 1.1rem }
+.sc .sv-schedule li.done { opacity: .38 }
+.sc .sv-schedule li.live { background: color-mix(in srgb, var(--kc, #45C982) 22%, transparent); border-radius: 4px }
+.sc .sv-schedule li.k-show .sv-what { font-weight: 700 }
+.sc .sv-time { color: #C9D1E0; font-weight: 700 }
+.sc .sv-what { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sc .sv-what small { display: block; color: #8E9AB1; font-size: .75em }
+.sc .sv-main { display: flex; flex-direction: column; gap: 1rem; min-width: 0 }
+.sc .sv-cards { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)) }
+.sc .sv-card { background: #0B101B; border-radius: 8px; border-top: 6px solid var(--c); padding: .7rem .9rem }
+.sc .sv-card h3 { color: #EEF1F7; font-size: 1.25rem; letter-spacing: .02em; text-transform: none; display: flex; gap: .6rem; align-items: baseline }
+.sc .sv-late { font-family: var(--body); font-size: .78rem; font-weight: 700; background: #D93A3A; color: #fff; border-radius: 4px; padding: 0 .4rem }
+.sc .sv-slot { display: grid; grid-template-columns: 3rem 1fr auto; gap: .5rem; align-items: baseline; padding: .25rem 0 }
+.sc .sv-lbl { font-size: .75rem; font-weight: 700; color: #8E9AB1; text-transform: uppercase }
+.sc .sv-ttl { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.95rem, 1.2vw, 1.15rem) }
+.sc .sv-cd { font-family: var(--display); font-weight: 600; font-size: clamp(1.6rem, 2.6vw, 2.4rem); font-variant-numeric: tabular-nums; line-height: 1 }
+.sc .sv-cd.warn { color: #FFC94A }
+.sc .sv-cd.over { color: #FF6E6B }
+.sc .sv-bottom { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) }
+.sc .sv-msgs p, .sc .sv-trucks p { margin: 0 0 .4rem; font-size: clamp(.85rem, 1.05vw, 1rem); line-height: 1.35 }
+.sc .sv-msgs p.urg { color: #FF8A86 }
+.sc .sv-trucks p svg { width: 1rem; height: 1rem; vertical-align: -.15em; color: var(--kc) }
+.sc.wallmode .screenview { min-height: calc(100vh - 2rem) }
+.sc.wallmode .sv-schedule ol { max-height: calc(100vh - 9rem) }
+@media (max-width: 860px) { .sc .screenview.with-schedule { grid-template-columns: 1fr } }
+.sc .screen-card .ph .small { margin-left: auto }
+
+/* ---------- technical summary ---------- */
+.sc .summary td { vertical-align: top }
+.sc .sum-act { display: flex; flex-direction: column; gap: .2rem; min-width: 11rem }
+.sc .sum-act a { color: var(--ink); text-decoration: none }
+.sc .sum-times { display: grid; grid-template-columns: auto auto; gap: .15rem .6rem; margin: 0 }
+.sc .sum-times > div { display: contents }
+.sc .sum-times dd { margin: 0; white-space: nowrap; font-size: .85rem }
+
+/* ---------- print: just the page content, black on white ---------- */
+@media print {
+  .sc { background: #fff !important; color: #000; --ink: #000; --ink2: #333; --ink3: #555; --surface: #fff; --surface2: #f1f1f1; --line: #bbb; --bg: #fff }
+  .sc .strip, .sc .ctxbar, .sc nav.side, .sc .urgent, .sc .preview, .sc .no-print, .sc .toasts, .sc .exitwall { display: none !important }
+  .sc .shell { display: block }
+  .sc main { padding: 0 }
+  .sc .panel { border-color: #bbb; break-inside: auto }
+  .sc tr { break-inside: avoid }
+  .sc a { color: #000 }
+}

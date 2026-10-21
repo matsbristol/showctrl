@@ -14,11 +14,13 @@ import { MessagesPage } from './MessagesPage'
 import { OverviewPage } from './OverviewPage'
 import { RidersPage } from './RidersPage'
 import { RiskPage } from './RiskPage'
+import { ScreenPage, ScreensPage } from './ScreensPage'
 import { TrucksPage } from './TrucksPage'
 import { RunSheetPage } from './RunSheetPage'
 import { PersonnelPage } from './PersonnelPage'
 import { SchedulePage } from './SchedulePage'
 import { SetupPage } from './SetupPage'
+import { SummaryPage } from './SummaryPage'
 import { TodayPage } from './TodayPage'
 import { NoAccess } from './NoAccess'
 
@@ -44,6 +46,8 @@ export function HqPage() {
     case 'artists': return <ArtistsPage sid={null} />
     case 'personnel': return <PersonnelPage sid={null} />
     case 'risk': return <RiskPage sid={null} />
+    case 'screens': return <ScreensPage sid={null} />
+    case 'summary': return <SummaryPage sid={null} />
     case 'trucks': return <TrucksPage sid={null} />
     case 'messages': return <MessagesPage sid={null} />
     case 'accommodation': return <AccommodationPage />
@@ -77,6 +81,8 @@ export function StagePage() {
     case 'artists': return <ArtistsPage sid={sid} />
     case 'personnel': return <PersonnelPage sid={sid} />
     case 'risk': return <RiskPage sid={sid} />
+    case 'screens': return <ScreensPage sid={sid} />
+    case 'summary': return <SummaryPage sid={sid} />
     case 'trucks': return <TrucksPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
     case 'messages': return <MessagesPage sid={sid} />
@@ -96,4 +102,15 @@ export function ArtistPage() {
   if (!artist) return <NoAccess message={`This ${t.performer.toLowerCase()} no longer exists.`} />
   if (a.lv('artists', artist.stage) < 1) return <NoAccess />
   return <ArtistDetail artist={artist} sid={stageId ?? null} />
+}
+
+/** `/hq/screens/:screenId` and `/s/:stageId/screens/:screenId` */
+export function ScreenRoute() {
+  const { stageId } = useParams()
+  const a = useAccess()
+  const cfg = useConfig('event')
+  const blocked = useStageGuard(stageId)
+  if (stageId && blocked) return blocked
+  const ok = stageId ? canOpenStageView(a, cfg, stageId, 'screens') : a.hqVisible() && canOpenHqView(a, cfg, 'screens')
+  return ok ? <ScreenPage /> : <NoAccess />
 }

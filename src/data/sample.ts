@@ -160,6 +160,11 @@ export function buildSample(t: number = Date.now()): LocalData {
     col.risks[aid] = { id: aid, artist: aid, level, factors, notes, by: 'demo-pm', at: t - (i % 5) * HOUR }
   })
 
+  // screens: the production office sees everything; each FOH desk follows its stage; the dock gate watches trucks
+  col.screens['scr-office'] = { id: 'scr-office', name: 'Production office', scope: null, stages: [], blocks: ['clock', 'nownext', 'schedule', 'messages'], order: 0 }
+  col.screens['scr-dock'] = { id: 'scr-dock', name: 'Dock gate', scope: null, stages: [], blocks: ['clock', 'trucks', 'schedule'], order: 1 }
+  for (const s of STG) col.screens[`scr-foh-${s.id}`] = { id: `scr-foh-${s.id}`, name: `FOH ${s.name}`, scope: s.id, stages: [s.id], blocks: ['clock', 'nownext', 'schedule'], order: 2 }
+
   // hotels & bookings
   col.hotels.h1 = { id: 'h1', name: 'Fjordhotellet', address: 'Strandgata 12', contact: 'Groups desk', phone: '+47 69 00 00 01', block: 30, notes: 'Late check-in until 04:00' }
   col.hotels.h2 = { id: 'h2', name: 'Harbour Inn', address: 'Brygga 3', contact: 'Reception', phone: '+47 69 00 00 02', block: 18, notes: 'Crew breakfast from 06:30' }

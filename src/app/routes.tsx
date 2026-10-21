@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { Navigate, Route } from 'react-router-dom'
 import { ShowctrlRoot } from './ShowctrlRoot'
-import { ArtistPage, HomeRedirect, HqPage, StagePage } from './pages/Workspace'
+import { ArtistPage, HomeRedirect, HqPage, ScreenRoute, StagePage } from './pages/Workspace'
 
 /**
  * showctrl's routes, to place inside the app's <Routes>:
@@ -18,9 +18,11 @@ export function showctrlRoutes(root: ReactNode = <ShowctrlRoot />) {
     <Route element={root}>
       <Route path="/hq" element={<HomeRedirect />} />
       <Route path="/hq/artists/:artistId" element={<ArtistPage />} />
+      <Route path="/hq/screens/:screenId" element={<ScreenRoute />} />
       <Route path="/hq/:view" element={<HqPage />} />
       <Route path="/s/:stageId" element={<Navigate to="today" replace />} />
       <Route path="/s/:stageId/artists/:artistId" element={<ArtistPage />} />
+      <Route path="/s/:stageId/screens/:screenId" element={<ScreenRoute />} />
       <Route path="/s/:stageId/:view" element={<StagePage />} />
     </Route>
   )

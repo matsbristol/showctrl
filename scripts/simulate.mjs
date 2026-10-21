@@ -8,7 +8,7 @@
 //   - starts and resets the Main Stage changeover timer around changeovers
 //   - throws in incidents (delays with a reason and an urgent message to that stage)
 //   - sends everyday messages, and acknowledges messages the way real crew do (most, not all, after a while)
-//   - confirms hotel bookings, checks artists in, and sources rider items
+//   - confirms hotel bookings and checks artists in (artist liaison), and sources hospitality riders
 //
 // Every write goes through the normal server permission checks, as the persona doing it.
 // Only works against `wrangler dev` (it signs in with ?as=, which production ignores).
@@ -84,9 +84,11 @@ const STAGES = Object.keys(state.col.stages)
 const sm = Object.fromEntries(STAGES.map(s => [s, connect(`demo-sm-${s}`)]))
 const pm = connect('demo-pm')
 const hosp = connect('demo-hosp')
+// Bookings need accommodation edit rights; in the default roles that's artist liaison, not hospitality.
+const al = connect('demo-al')
 const crew = Object.keys(state.col.members).filter(u => u.startsWith('demo-crew-')).map(u => connect(u))
-await Promise.all([...Object.values(sm), pm, hosp, ...crew].map(s => s.ready))
-log(`Connected as ${STAGES.length} stage managers, production, hospitality and ${crew.length} crew.`)
+await Promise.all([...Object.values(sm), pm, hosp, al, ...crew].map(s => s.ready))
+log(`Connected as ${STAGES.length} stage managers, production, hospitality, artist liaison and ${crew.length} crew.`)
 
 /* ---------------- run sheets ---------------- */
 
@@ -208,9 +210,9 @@ function scheduleAcks(m) {
 function hospitality(now) {
   const bookings = Object.values(state.col.bookings ?? {})
   const req = bookings.filter(b => b.status === 'requested')
-  if (req.length && chance(0.5)) { const b = pick(req); hosp.update('bookings', b.id, { status: 'confirmed' }); log(`Hospitality: booking confirmed for ${state.col.artists?.[b.artist]?.name ?? b.guest}`) }
+  if (req.length && chance(0.5)) { const b = pick(req); al.update('bookings', b.id, { status: 'confirmed' }); log(`Artist liaison: booking confirmed for ${state.col.artists?.[b.artist]?.name ?? b.guest}`) }
   const arrived = bookings.filter(b => b.status === 'confirmed' && b.artist && ['arrived', 'backstage', 'ready', 'on stage', 'done'].includes(state.col.artists?.[b.artist]?.status))
-  if (arrived.length) { const b = pick(arrived); hosp.update('bookings', b.id, { status: 'checked in' }); log(`Hospitality: ${state.col.artists[b.artist].name} checked in at ${state.col.hotels?.[b.hotel]?.name}`) }
+  if (arrived.length) { const b = pick(arrived); al.update('bookings', b.id, { status: 'checked in' }); log(`Artist liaison: ${state.col.artists[b.artist].name} checked in at ${state.col.hotels?.[b.hotel]?.name}`) }
   const riders = Object.values(state.col.riders ?? {}).filter(r => r.kind === 'hosp')
   for (const r of riders.sort(() => Math.random() - 0.5).slice(0, 2)) {
     const it = Object.values(r.items).find(x => x.status === 'requested' || x.status === 'agreed')

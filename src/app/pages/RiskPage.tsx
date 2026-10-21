@@ -67,7 +67,7 @@ export function RiskPage({ sid }: { sid: Id | null }) {
               return (
                 <tr key={s.id} className={r ? `risk-row-${r.level}` : undefined}>
                   <td className="num"><b>{fmtTime(eff(s).s, tz)}</b></td>
-                  {!sid && <td>{st && <span className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>}</td>}
+                  {!sid && <td>{st && <span className="row" style={{ flexWrap: 'nowrap', whiteSpace: 'nowrap' }}><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>}</td>}
                   <td><Link to={`${base}/artists/${art.id}`} style={{ color: 'inherit' }}><b>{art.name}</b></Link></td>
                   <td><RiskBadge level={r?.level ?? null} /></td>
                   <td className="small">{r?.factors.join(', ') || '—'}</td>

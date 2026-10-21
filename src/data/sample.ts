@@ -141,7 +141,8 @@ export function buildSample(t: number = Date.now()): LocalData {
     const trucks = parseTrucks(col.artists[r.artist].vehicles)
     if (!trucks) continue
     r.trucks = trucks
-    r.dest = r.kind === 'loadin' && trucks > 1 ? 'staging-n' : `lb-${r.stage}`
+    // Bigger productions wait in the staging area and are called to the load bay one truck at a time.
+    r.dest = trucks > 1 ? 'staging-n' : `lb-${r.stage}`
   }
 
   // risk assessments: mostly green, some orange, a few red, a few not assessed yet

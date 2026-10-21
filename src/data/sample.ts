@@ -3,6 +3,7 @@
 
 import { buildDaySheet } from '../lib/daySheet'
 import { parseTrucks } from '../lib/trucks'
+import { sampleLines, samplePlot, sampleRiserStock } from './sampleTech'
 import { addDays, festDay, fromLocal } from '../lib/time'
 import { DEFAULT_ROLES, DEFAULT_TPL, EVENT_TYPES, HOUR, KINDS, MIN, SCHEMA_VERSION, defaultDepts } from '../types/constants'
 import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RiskLevel, RosItem, TapeColor } from '../types/model'
@@ -159,6 +160,15 @@ export function buildSample(t: number = Date.now()): LocalData {
     const [level, factors, notes] = h < 13 ? ['green' as RiskLevel, [] as string[], ''] : RISK[(i * 7) % RISK.length]
     col.risks[aid] = { id: aid, artist: aid, level, factors, notes, by: 'demo-pm', at: t - (i % 5) * HOUR }
   })
+
+  // input lists, stage plots and riser stock (the last act of each stage and day is the headliner)
+  const headliners = new Set(STG.flatMap((_, si) => [0, 1, 2].map(dn => `a${dn * STG.length * 3 + si * 3 + 2}`)))
+  Object.values(col.artists).forEach((a, i) => {
+    if (i % 9 === 8) return // a few acts haven't sent their tech yet
+    col.lines[a.id] = sampleLines(a, i)
+    col.plots[a.id] = samplePlot(a, headliners.has(a.id), i)
+  })
+  for (const s of STG) col.risers[s.id] = sampleRiserStock(s.id)
 
   // screens: the production office sees everything; each FOH desk follows its stage; the dock gate watches trucks
   col.screens['scr-office'] = { id: 'scr-office', name: 'Production office', scope: null, stages: [], blocks: ['clock', 'nownext', 'schedule', 'messages'], order: 0 }

@@ -523,3 +523,56 @@
   .sc tr { break-inside: avoid }
   .sc a { color: #000 }
 }
+
+/* ---------- per-act pages: picker on the left ---------- */
+.sc .split { display: grid; grid-template-columns: 15rem minmax(0, 1fr); gap: 1rem; align-items: start }
+@media (max-width: 860px) { .sc .split { grid-template-columns: 1fr } }
+.sc .actpicker { display: flex; flex-direction: column; gap: 1px; padding: .35rem; max-height: 75vh; overflow: auto; position: sticky; top: calc(var(--strip-h) + 3.5rem) }
+.sc .actpicker button { display: grid; grid-template-columns: 6px 1fr auto; gap: .55rem; align-items: center; text-align: left; border: 0; background: none; padding: .45rem .5rem; border-radius: 4px; cursor: pointer; color: var(--ink2); font-weight: 700; font-size: .9rem }
+.sc .actpicker button .tape { width: 6px; height: 1.6rem }
+.sc .actpicker button[aria-pressed="true"] { background: var(--surface2); color: var(--ink) }
+.sc .ap-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sc .ap-name small { display: block; font-weight: 400; color: var(--ink3); font-size: .78rem }
+.sc .ap-badge { font-size: .75rem; color: var(--ink3); font-variant-numeric: tabular-nums }
+.sc .ap-sep { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ink3); padding: .7rem .5rem .2rem }
+
+/* ---------- input lists ---------- */
+.sc table.lines td { padding: .2rem .5rem }
+.sc table.lines th { padding: .45rem .5rem }
+.sc input.cell { width: 100%; min-width: 4rem; border: 1px solid transparent; background: transparent; padding: .3rem .35rem; border-radius: 4px }
+.sc input.cell:hover { border-color: var(--line) }
+.sc input.cell:focus { border-color: var(--accent); background: var(--bg) }
+.sc table.lines tr.dup td { background: var(--standby-soft) }
+@media print { .sc .split { display: block } .sc input.cell { border: 0 } }
+
+/* ---------- stage plots ---------- */
+.sc .plot-palette { display: flex; flex-wrap: wrap; gap: .35rem }
+.sc .plot-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .75rem }
+.sc svg.plot { width: 100%; height: auto; display: block; touch-action: none; user-select: none }
+.sc .plot-stage { fill: var(--surface2); stroke: var(--ink3); stroke-width: .04 }
+.sc .plot-grid { stroke: var(--line); stroke-width: .015 }
+.sc .plot-front { font-size: .32px; font-weight: 700; letter-spacing: .08px; fill: var(--ink3); text-anchor: middle }
+.sc .plot-side { font-size: .34px; font-weight: 700; fill: var(--ink3) }
+.sc .plot-item rect, .sc .plot-item ellipse { fill: color-mix(in srgb, var(--pc, var(--ink3)) 30%, var(--surface)); stroke: var(--pc, var(--ink3)); stroke-width: .04 }
+.sc .plot-item.movable { cursor: grab }
+.sc .plot-item.movable:active { cursor: grabbing }
+.sc .plot-item.sel rect, .sc .plot-item.sel ellipse { stroke: var(--accent); stroke-width: .08 }
+.sc .plot-label { font-size: .24px; font-weight: 700; fill: var(--ink); text-anchor: middle; dominant-baseline: middle; pointer-events: none }
+.sc .plot-sub { font-size: .18px; fill: var(--ink2); text-anchor: middle; pointer-events: none }
+.sc .pk-riser { --pc: #8B5E3C }
+.sc .pk-drums { --pc: #2F6FE0 }
+.sc .pk-amp { --pc: #6B7586 }
+.sc .pk-keys { --pc: #9B4FD3 }
+.sc .pk-vocal { --pc: #D93A3A }
+.sc .pk-mic { --pc: #D7860B }
+.sc .pk-monitor { --pc: #12949A }
+.sc .pk-di { --pc: #8F9C00 }
+.sc .pk-power { --pc: #C09A00 }
+.sc .pk-person { --pc: #23944F }
+.sc .pk-other { --pc: #7C879C }
+.sc .plot-palette .btn { border-left: 4px solid var(--pc) }
+.sc .plot-props { align-items: flex-end; gap: .75rem }
+.sc .plot-props .fld { min-width: 8rem }
+.sc .riser-stock { align-items: flex-end; gap: .75rem }
+.sc .riser-stock .fld { width: 7rem }
+.sc .over { color: var(--stop); font-weight: 700 }

@@ -367,7 +367,7 @@ export interface PlotItem {
   id: Id
   kind: PlotKind
   label: string
-  /** Position of the item's centre in metres from stage left (x) and the front edge (y). */
+  /** Position of the item's centre in metres: from the left edge as seen from FOH (x), and from the front edge (y). */
   x: number
   y: number
   w: number
@@ -383,6 +383,9 @@ export interface PlotItem {
 export interface Plot extends BaseDoc {
   artist: Id
   items: Record<Id, PlotItem>
+  /** Usable stage size in metres. */
+  width?: number
+  depth?: number
   notes?: string
   updated?: Ms
 }

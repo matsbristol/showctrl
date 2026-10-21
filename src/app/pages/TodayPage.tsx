@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useCollection } from '../../data/hooks'
+import { useCollection, useConfig } from '../../data/hooks'
+import { moduleOn } from '../../shared/modules'
 import { eff, itemsFor } from '../../lib/runsheet'
 import { peopleFor, stageLead } from '../../shared/people'
 import { TAPE } from '../../types/constants'
@@ -13,6 +14,7 @@ import { useNow, useTz } from '../session'
 /** A stage's start page: now and next, what's coming up, key contacts and messages. */
 export function TodayPage({ sid }: { sid: Id }) {
   const stages = useCollection('stages')
+  const cfg = useConfig('event')
   const ros = useCollection('ros')
   const members = useCollection('members')
   const people = useCollection('people')
@@ -30,7 +32,7 @@ export function TodayPage({ sid }: { sid: Id }) {
         <div><h1>{st.name}</h1><p>{sub}</p></div>
         <div className="actions">
           <DelayChip sid={sid} />
-          <Link className="btn" to={`/s/${sid}/display`}><Icon name="display" />Stage display</Link>
+          {moduleOn(cfg, 'display') && <Link className="btn" to={`/s/${sid}/display`}><Icon name="display" />Stage display</Link>}
         </div>
       </div>
       <div className="grid g2" style={{ marginBottom: '1rem' }}>
@@ -45,7 +47,7 @@ export function TodayPage({ sid }: { sid: Id }) {
         </section>
       </div>
       <div className="grid g2">
-        <section className="panel">
+        {moduleOn(cfg, 'personnel') && <section className="panel">
           <div className="ph"><h3>Key contacts</h3><div className="actions"><Link className="btn sm" to={`/s/${sid}/personnel`}>All crew</Link></div></div>
           {team.length ? team.map(p => (
             <div className="contact" key={p.id}>
@@ -53,7 +55,7 @@ export function TodayPage({ sid }: { sid: Id }) {
               <span className="c"><Tel phone={p.phone} /></span>
             </div>
           )) : <p className="empty">No crew listed yet.</p>}
-        </section>
+        </section>}
         <MsgBlock sid={sid} />
       </div>
     </>

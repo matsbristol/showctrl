@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, KINDS, LEGACY_KINDS,
+  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, KINDS, LEGACY_KINDS, MODULE_IDS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -28,6 +28,7 @@ export type ArtistStatus = (typeof ARTIST_STATUS)[number]
 export type BookingStatus = (typeof BOOKING_STATUS)[number]
 export type RiderStatus = (typeof RIDER_STATUS)[number]
 export type RiderKind = (typeof RIDER_KINDS)[number]
+export type ModuleId = (typeof MODULE_IDS)[number]
 export type MsgPriority = (typeof MSG_PRIORITY)[number]
 export type DayTemplate = { [K in keyof typeof DEFAULT_TPL]: number }
 
@@ -64,8 +65,8 @@ export interface EventConfig {
   end: DayKey
   visitors?: number | null
   terms: Terms
-  /** A module is on unless set to false. */
-  modules: { accommodation?: boolean; riders?: boolean }
+  /** Which optional modules are on. A missing entry uses the module's default (see src/shared/modules.ts). */
+  modules: Partial<Record<ModuleId, boolean>>
   depts: Dept[]
 }
 

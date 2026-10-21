@@ -7,7 +7,7 @@
 //  2. Stage role (manager or crew), applies to one stage only.
 
 import { DEFAULT_ROLES, STAGE_LV } from '../types/constants'
-import type { Artist, EventConfig, Id, Member, Msg, PermKey, PermLevel, RoleDef, RolesConfig, Stage, StageRole, StageTeam } from '../types/model'
+import type { Artist, Id, Member, Msg, PermKey, PermLevel, RoleDef, RolesConfig, Stage, StageRole, StageTeam } from '../types/model'
 
 /** An admin trying the app as someone else. */
 export type Preview =
@@ -46,11 +46,6 @@ export function stageRoleOf(
   if (members[uid]?.stages?.[sid] === 'manager') return 'manager'
   if (stageteam[sid]?.crew?.[uid]) return 'crew'
   return null
-}
-
-/** A module is on unless switched off. */
-export function moduleOn(cfg: EventConfig | null | undefined, id: keyof EventConfig['modules']): boolean {
-  return cfg?.modules?.[id] !== false
 }
 
 export function sortStages(stages: Readonly<Record<Id, Stage>>): Stage[] {

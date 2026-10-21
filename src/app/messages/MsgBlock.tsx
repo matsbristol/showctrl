@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useCollection } from '../../data/hooks'
+import { useCollection, useConfig } from '../../data/hooks'
+import { moduleOn } from '../../shared/modules'
 import { relTime } from '../../lib/time'
 import { initials, personColor, personName } from '../../shared/people'
 import type { Id } from '../../types/model'
@@ -14,7 +15,8 @@ export function MsgBlock({ sid }: { sid: Id | null }) {
   const people = useCollection('people')
   const now = useNow(30_000)
   const label = useTargetLabel()
-  if (a.lv('messages', sid) < 1) return null
+  const cfg = useConfig('event')
+  if (!moduleOn(cfg, 'messages') || a.lv('messages', sid) < 1) return null
   const list = Object.values(msgs)
     .filter(m => a.canSeeMsg(m))
     .filter(m => !sid || m.to?.t === 'all' || (m.to?.t === 'stage' && m.to.id === sid) || (m.to?.t === 'user' && m.to.id === a.me))

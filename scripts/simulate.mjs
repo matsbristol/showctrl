@@ -80,6 +80,9 @@ observer.onChanges = m => {
 }
 await observer.ready
 
+/** Leave switched-off modules alone (Admin → Modules). Read live: the server re-sends settings when they change. */
+const on = id => state.cfg?.modules?.[id] !== false
+
 const STAGES = Object.keys(state.col.stages)
 const sm = Object.fromEntries(STAGES.map(s => [s, connect(`demo-sm-${s}`)]))
 const pm = connect('demo-pm')
@@ -138,8 +141,8 @@ function driveRunSheets(now) {
         if (!catchUp) log(`${state.col.stages[stage].name}: ${i.kind} ${i.title} ${late >= 2 ? `went on ${late} min late` : 'started'}`)
         if (i.kind === 'show' && late >= 2) shiftFrom(stage, items.find(x => x.start > i.start && x.status !== 'done') ?? i, late * MIN, 'Started late')
         if (i.artist) setArtist(stage, i.artist, { arrival: 'arrived', getin: 'backstage', loadin: 'backstage', changeover: 'ready', show: 'on stage' }[i.kind] ?? null)
-        if (stage === 'main' && i.kind === 'changeover') sm.main.update('clocks', 'ct', { runningSince: now, accum: 0 })
-        if (stage === 'main' && i.kind === 'show') sm.main.update('clocks', 'ct', { runningSince: null, accum: 0 })
+        if (on('clocks') && stage === 'main' && i.kind === 'changeover') sm.main.update('clocks', 'ct', { runningSince: now, accum: 0 })
+        if (on('clocks') && stage === 'main' && i.kind === 'show') sm.main.update('clocks', 'ct', { runningSince: null, accum: 0 })
       } else if (i.status === 'live' && want !== 'done' && now >= e + overrun(i)) {
         requested.set(i.id, 'done')
         sm[stage].update('ros', i.id, { status: 'done', actualEnd: now })
@@ -171,7 +174,7 @@ function incident(now) {
   const [what, lo, hi] = pick(INCIDENTS)
   const mins = Math.round(rand(lo, hi))
   shiftFrom(stage, next, mins * MIN, what)
-  sm[stage].set('msgs', `sim-${Date.now()}`, { from: `demo-sm-${stage}`, to: { t: 'stage', id: stage }, text: `${what}. Running order pushed ${mins} min from ${next.title}.`, pri: 'urgent', at: now, acks: {} })
+  if (on('messages')) sm[stage].set('msgs', `sim-${Date.now()}`, { from: `demo-sm-${stage}`, to: { t: 'stage', id: stage }, text: `${what}. Running order pushed ${mins} min from ${next.title}.`, pri: 'urgent', at: now, acks: {} })
   log(`⚠ ${state.col.stages[stage].name}: ${what} (+${mins} min)`)
 }
 
@@ -187,6 +190,7 @@ const STAGE_NOTES = ['Line check for the next act in 10. Wedges patched please.'
 const HOSP_NOTES = ['Dressing rooms on Fjord Stage are ready.', 'Catering for the late acts served from 21:00.', 'Runner car back at the artist gate.', 'Extra towels delivered to Main Stage backstage.']
 
 function chatter(now) {
+  if (!on('messages')) return
   const r = Math.random()
   if (r < 0.25) pm.set('msgs', `sim-${Date.now()}`, { from: 'demo-pm', to: { t: 'all' }, text: pick(BROADCASTS), pri: chance(0.15) ? 'urgent' : 'normal', at: now, acks: {} })
   else if (r < 0.7) { const s = pick(STAGES); sm[s].set('msgs', `sim-${Date.now()}`, { from: `demo-sm-${s}`, to: { t: 'stage', id: s }, text: pick(STAGE_NOTES), pri: 'normal', at: now, acks: {} }) }
@@ -208,11 +212,16 @@ function scheduleAcks(m) {
 /* ---------------- hospitality ---------------- */
 
 function hospitality(now) {
+  if (on('riders')) sourceRiders(now)
+  if (!on('accommodation')) return
   const bookings = Object.values(state.col.bookings ?? {})
   const req = bookings.filter(b => b.status === 'requested')
   if (req.length && chance(0.5)) { const b = pick(req); al.update('bookings', b.id, { status: 'confirmed' }); log(`Artist liaison: booking confirmed for ${state.col.artists?.[b.artist]?.name ?? b.guest}`) }
   const arrived = bookings.filter(b => b.status === 'confirmed' && b.artist && ['arrived', 'backstage', 'ready', 'on stage', 'done'].includes(state.col.artists?.[b.artist]?.status))
   if (arrived.length) { const b = pick(arrived); al.update('bookings', b.id, { status: 'checked in' }); log(`Artist liaison: ${state.col.artists[b.artist].name} checked in at ${state.col.hotels?.[b.hotel]?.name}`) }
+}
+
+function sourceRiders(now) {
   const riders = Object.values(state.col.riders ?? {}).filter(r => r.kind === 'hosp')
   for (const r of riders.sort(() => Math.random() - 0.5).slice(0, 2)) {
     const it = Object.values(r.items).find(x => x.status === 'requested' || x.status === 'agreed')

@@ -5,16 +5,17 @@ import { LocalStore } from '../../data/localStore'
 import { blankEvent, buildSample } from '../../data/sample'
 import { dayLabel, eventDays, relTime } from '../../lib/time'
 import { rid } from '../../lib/id'
-import { moduleOn, stageRoleOf } from '../../shared/access'
+import { stageRoleOf } from '../../shared/access'
+import { MODULES, moduleOn, permHidden } from '../../shared/modules'
 import { initials, personColor, personName, peopleFor } from '../../shared/people'
 import { DEFAULT_ROLES, EVENT_TYPES, LEVELS, PERM_KEYS, TAPE } from '../../types/constants'
-import type { Dept, Id, PermKey, PermLevel, Stage } from '../../types/model'
+import type { Dept, Id, ModuleId, PermKey, PermLevel, Stage } from '../../types/model'
 import { AccessForm, DeptForm, EventForm, ManagerForm, RoleAddForm } from '../admin/forms'
 import { StageForm } from '../setup/forms'
 import { useAccess, useNow, useSession, useTerms } from '../session'
 import { useToast } from '../ui/toast'
 
-const TABS = ['stages', 'access', 'roles', 'event', 'depts'] as const
+const TABS = ['stages', 'access', 'roles', 'modules', 'event', 'depts'] as const
 type Tab = (typeof TABS)[number]
 
 type Dialog =
@@ -35,7 +36,7 @@ export function AdminPage() {
   const tab: Tab = want && TABS.includes(want) ? want : 'stages'
   const [dialog, setDialog] = useState<Dialog>(null)
   const w = a.canW('admin')
-  const labels: Record<Tab, string> = { stages: `${t.stages} & managers`, access: 'People with access', roles: 'Roles', event: 'Event', depts: 'Departments' }
+  const labels: Record<Tab, string> = { stages: `${t.stages} & managers`, access: 'People with access', roles: 'Roles', modules: 'Modules', event: 'Event', depts: 'Departments' }
   const close = () => setDialog(null)
 
   return (
@@ -51,6 +52,7 @@ export function AdminPage() {
       {tab === 'stages' && <StagesTab w={w} open={setDialog} />}
       {tab === 'access' && <AccessTab w={w} open={setDialog} />}
       {tab === 'roles' && <RolesTab w={w} open={setDialog} />}
+      {tab === 'modules' && <ModulesTab w={w} />}
       {tab === 'event' && <EventTab w={w} open={setDialog} />}
       {tab === 'depts' && <DeptsTab w={w} open={setDialog} />}
 
@@ -198,6 +200,8 @@ function RolesTab({ w, open }: TabProps) {
     delete roles[rk]
     await store.setConfig('roles', { roles })
   }
+  const cfg = useConfig('event')
+  const keys = PERM_KEYS.filter(p => !permHidden(cfg, p.key))
   const pv = !preview ? '' : preview.type === 'role' ? `role:${preview.role}` : `stage:${preview.level}:${preview.sid}`
 
   return (
@@ -209,7 +213,7 @@ function RolesTab({ w, open }: TabProps) {
         <div className="ph"><h3>Festival roles</h3>{w && <div className="actions"><button type="button" className="btn sm" onClick={() => open({ type: 'role' })}>+ Add role</button></div>}</div>
         <div className="tbl-wrap">
           <table className="matrix">
-            <thead><tr><th>Role</th>{PERM_KEYS.map(p => <th key={p.key}>{p.key === 'artists' ? t.performers : p.label}</th>)}<th>{t.performer} contacts</th></tr></thead>
+            <thead><tr><th>Role</th>{keys.map(p => <th key={p.key}>{p.key === 'artists' ? t.performers : p.label}</th>)}<th>{t.performer} contacts</th></tr></thead>
             <tbody>
               {Object.entries(a.roles).map(([rk, r]) => (
                 <tr key={rk}>
@@ -217,7 +221,7 @@ function RolesTab({ w, open }: TabProps) {
                     <b>{r.label}</b>
                     {w && !DEFAULT_ROLES[rk] && <> <button type="button" className="btn sm danger" onClick={() => void removeRole(rk)}>Remove</button></>}
                   </td>
-                  {PERM_KEYS.map(({ key }) => {
+                  {keys.map(({ key }) => {
                     const v = rk === 'admin' ? 2 : r.perms?.[key] ?? 0
                     return (
                       <td key={key}>
@@ -271,12 +275,46 @@ function RolesTab({ w, open }: TabProps) {
   )
 }
 
+/** Switch optional sections on or off for this event. */
+function ModulesTab({ w }: { w: boolean }) {
+  const store = useStore()
+  const cfg = useConfig('event')!
+  const t = useTerms()
+  const toggle = (id: ModuleId, on: boolean) => store.setConfig('event', { ...cfg, modules: { ...cfg.modules, [id]: on } })
+  return (
+    <>
+      <p className="muted" style={{ marginBottom: '1rem', maxWidth: '70ch' }}>
+        Switch on only what this event needs. A module that’s off disappears for everyone, including its pages and its columns under Roles. Its data is kept and comes back when you switch it on again.
+      </p>
+      <div className="grid g2">
+        {Object.values(MODULES).map(m => {
+          const on = moduleOn(cfg, m.id)
+          return (
+            <section key={m.id} className={`panel module${on ? ' on' : ''}`}>
+              <label className="pb row" style={{ alignItems: 'flex-start', cursor: w ? 'pointer' : 'default' }}>
+                <input type="checkbox" role="switch" checked={on} disabled={!w} aria-label={m.label} onChange={e => void toggle(m.id, e.target.checked)} />
+                <span className="stack">
+                  <b>{m.label}</b>
+                  <span className="small muted">{m.description}</span>
+                </span>
+                <span className={`chip ${on ? 'go' : ''}`} style={{ marginLeft: 'auto' }}>{on ? 'On' : 'Off'}</span>
+              </label>
+            </section>
+          )
+        })}
+      </div>
+      <p className="small muted" style={{ marginTop: '1rem' }}>
+        Always on: Overview, Running order and run sheets, {t.performers}, Stage setup and Admin.
+      </p>
+    </>
+  )
+}
+
 function EventTab({ w, open }: TabProps) {
   const store = useStore()
   const cfg = useConfig('event')!
   const t = useTerms()
   const days = eventDays(cfg)
-  const toggleModule = (k: 'accommodation' | 'riders', on: boolean) => store.setConfig('event', { ...cfg, modules: { ...cfg.modules, [k]: on } })
   return (
     <div className="grid g2">
       <section className="panel">
@@ -290,15 +328,6 @@ function EventTab({ w, open }: TabProps) {
             <dt>Vocabulary</dt><dd>{t.performer} / {t.stage}</dd>
           </dl>
         </div>
-      </section>
-      <section className="panel">
-        <div className="ph"><h3>Modules</h3></div>
-        <ul className="list">
-          {([['accommodation', 'Accommodation'], ['riders', 'Riders']] as const).map(([k, l]) => (
-            <li key={k}><label className="row"><input type="checkbox" checked={moduleOn(cfg, k)} disabled={!w} onChange={e => void toggleModule(k, e.target.checked)} /> <b>{l}</b></label></li>
-          ))}
-          <li className="small muted">Run sheets, clocks, personnel and messages are always on.</li>
-        </ul>
       </section>
       {store instanceof LocalStore && w && (
         <section className="panel">

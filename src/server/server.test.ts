@@ -204,3 +204,21 @@ describe('server: access changes and connections', () => {
     await admin.update('stages', 'main', { radio: 'Ch 7' })
   })
 })
+
+describe('server: modules', () => {
+  it('stops sending a switched-off module’s data, refuses writes, and restores it when switched back on', async () => {
+    const { client, core } = setup()
+    const admin = client('owner@example.com')
+    const sm = client('demo-sm-main')
+    await tick()
+    expect(Object.keys(sm.peek('clocks')!).length).toBeGreaterThan(0)
+    await admin.setConfig('event', { ...core.cfg!, modules: { ...core.cfg!.modules, clocks: false } })
+    await tick()
+    expect(sm.peek('clocks')).toEqual({})
+    await expect(sm.update('clocks', 'ct', { runningSince: 1 })).rejects.toMatchObject({ code: 'denied', message: 'Clocks is switched off for this event.' })
+    expect(Object.keys(core.col.clocks).length).toBeGreaterThan(0) // data kept
+    await admin.setConfig('event', { ...core.cfg!, modules: { ...core.cfg!.modules, clocks: true } })
+    await tick()
+    expect(Object.keys(sm.peek('clocks')!).length).toBeGreaterThan(0)
+  })
+})

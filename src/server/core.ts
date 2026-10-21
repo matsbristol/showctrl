@@ -11,6 +11,7 @@ import type { AuditEntry, DocChange } from '../data/store'
 import { createAccess, mergeRoles, type Access } from '../shared/access'
 import { decodePatch, type Snapshot, type WriteOp } from '../shared/protocol'
 import { canWrite, canWriteConfig } from '../shared/writeRules'
+import { MODULES, moduleOfCollection, moduleOn } from '../shared/modules'
 import { deepMerge } from '../lib/merge'
 import { COLLECTIONS, DEFAULT_ROLES, SCHEMA_VERSION } from '../types/constants'
 
@@ -82,6 +83,8 @@ export class EventCore {
     const a = this.access(email)
     if (op.kind === 'setConfig') return this.applyConfig(a, op.which, op.doc, now)
     if (!(COLLECTIONS as readonly string[]).includes(op.col)) return { ok: false, code: 'invalid', message: 'Unknown collection.' }
+    const mod = moduleOfCollection(op.col)
+    if (mod && !moduleOn(this.cfg, mod)) return { ok: false, code: 'denied', message: `${MODULES[mod].label} is switched off for this event.` }
 
     const docs: { id: Id; next: Record<string, unknown> | null }[] = []
     if (op.kind === 'set') docs.push({ id: op.id, next: op.doc })
@@ -175,6 +178,8 @@ export class EventCore {
   /** One record as a user may see it: null if hidden, otherwise possibly redacted. */
   viewDoc(a: Access, col: CollectionName, doc: Record<string, unknown>): Record<string, unknown> | null {
     const id = doc.id as Id
+    const mod = moduleOfCollection(col)
+    if (mod && !moduleOn(this.cfg, mod)) return null
     if (col === 'prefs') return id === a.me ? doc : null
     if (col === 'requests') {
       const stage = doc.stage as Id | null | undefined
@@ -214,7 +219,8 @@ export class EventCore {
 
   /** Whether these effects can change who sees what, so every viewer needs a fresh snapshot. */
   static changesAccess(effects: Effect[]): boolean {
-    return effects.some(e => e.kind === 'config' ? e.which === 'roles' : e.col === 'members' || e.col === 'stageteam')
+    // Event settings include which modules are on, which changes what gets sent.
+    return effects.some(e => e.kind === 'config' || e.col === 'members' || e.col === 'stageteam')
   }
 }
 

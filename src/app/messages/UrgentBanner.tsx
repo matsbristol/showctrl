@@ -1,4 +1,5 @@
-import { useCollection } from '../../data/hooks'
+import { useCollection, useConfig } from '../../data/hooks'
+import { moduleOn } from '../../shared/modules'
 import { fmtTime } from '../../lib/time'
 import { personName } from '../../shared/people'
 import { useTz } from '../session'
@@ -13,8 +14,9 @@ export function UrgentBanner() {
   const tz = useTz()
   const label = useTargetLabel()
   const { ack } = useMessageActions()
+  const cfg = useConfig('event')
   const u = urgent[0]
-  if (!u) return null
+  if (!u || !moduleOn(cfg, 'messages')) return null
   return (
     <div className="urgent" role="alert">
       <b>Urgent · {personName(u.from, members, people)} → {label(u.to)}</b>

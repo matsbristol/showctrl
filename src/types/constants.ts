@@ -155,6 +155,9 @@ export const CLOCK_KINDS = {
   stage: 'Follows a stage',
 } as const
 
+/** Optional sections an event can switch on or off. Defined in src/shared/modules.ts. */
+export const MODULE_IDS = ['messages', 'clocks', 'display', 'personnel', 'accommodation', 'riders'] as const
+
 /** Every record collection. `config/event` and `config/roles` are stored separately. */
 export const COLLECTIONS = [
   'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs',

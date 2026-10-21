@@ -118,6 +118,30 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 - **Delays:** "Delay" adds minutes to an item and everything after it on that stage and day. A checkbox decides whether dock items move too. "On stage" and "Done" record actual times and offer to shift the rest of the day when an act starts late or overruns.
 - **Now and next:** a stage's "now" is the live on-stage item. Its "next" is the next show not yet done. The stage display, stage clocks and overview cards all use these.
 
+## Modules
+
+showctrl is modular: each event switches optional sections on or off in **Admin → Modules**. The registry is `src/shared/modules.ts`.
+
+- **Core (always on):** Overview, Running order and run sheets, performers (Artists), Stage setup, Admin.
+- **Modules:** Messages, Clocks, Stage display, Personnel, Accommodation, Riders. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
+
+When a module is off:
+
+- **Pages:** its pages and nav entries disappear (`views.ts` checks `moduleOfView`).
+- **Panels:** blocks and panels elsewhere disappear. Each checks `moduleOn` (message blocks, the urgent banner, Today's contacts and display button, artist-page bookings and riders).
+- **Roles:** its permission columns disappear from the roles matrix (`permHidden`).
+- **Server:** stops sending the module's own collections and refuses writes to them (`EventCore`, `moduleOfCollection`). Changing event settings re-sends everyone a snapshot.
+- **Data:** kept, and back as soon as the module is switched on again.
+
+**Adding a module** (e.g. riser planning, transport, accreditation):
+
+1. Add its id to `MODULE_IDS` in `src/types/constants.ts`, and describe it in `MODULES` (`src/shared/modules.ts`). Give it a label, description, `defaultOn`, permission keys, the collections only it uses, and its HQ and stage views.
+2. **New data:** add the collection to `COLLECTIONS` and `Collections` (`src/types/`), and a case in `canWrite` (`src/shared/writeRules.ts`).
+3. **New permission:** add it to `PERM_KEYS`, `DEFAULT_ROLES` and, if stage roles get it, `STAGE_LV`.
+4. **Pages:** add the view names to `HQ_VIEWS`/`STAGE_VIEWS` and `canOpen*View` (`src/shared/views.ts`), nav entries in `src/app/nav.ts`, the page component, and a case in `src/app/pages/Workspace.tsx`.
+5. **Panels elsewhere** (artist page, Today, Overview) check `moduleOn(cfg, '<id>')`.
+6. Add tests next to the existing ones: `src/shared/modules.test.ts` already checks that every module is described and that its views exist.
+
 ## Browser independence
 
 Nothing a user does may depend on which browser or device they use. Per-user state (read markers, preferences) goes in the `prefs` collection, never `localStorage`. The only browser storage is demo mode itself: the demo data file and the demo persona picker, both replaced by the backend and sign-in.

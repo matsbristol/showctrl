@@ -40,12 +40,32 @@ describe('admin', () => {
     expect(nav().getByRole('link', { name: /Speakers/ })).toBeTruthy()
   })
 
-  it('turns a module off and hides it from the nav', async () => {
-    const store = mount('/hq/admin?tab=event', 'demo-admin')
+  it('turns a module off and hides it from the nav and the roles matrix', async () => {
+    const store = mount('/hq/admin?tab=modules', 'demo-admin')
     expect(nav().queryByRole('link', { name: /Riders/ })).toBeTruthy()
-    await click(screen.getByLabelText('Riders'))
+    await click(screen.getByRole('switch', { name: 'Riders' }))
     expect(store.peekConfig('event')?.modules.riders).toBe(false)
     expect(nav().queryByRole('link', { name: /Riders/ })).toBeNull()
+    await click(screen.getByRole('tab', { name: 'Roles' }))
+    const heads = [...document.querySelectorAll('table.matrix th')].map(th => th.textContent)
+    expect(heads).not.toContain('Technical riders')
+    expect(heads).toContain('Messages')
+  })
+
+  it('switches Messages off everywhere: nav, overview block and urgent banner', async () => {
+    const store = mount('/s/tent/today', 'demo-sm-tent')
+    expect(screen.getByRole('alert')).toBeTruthy() // urgent message for The Tent
+    await act(async () => { await store.setConfig('event', { ...store.peekConfig('event')!, modules: { messages: false } }) })
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(nav().queryByRole('link', { name: /Messages/ })).toBeNull()
+    expect(screen.queryByText('Messages for this stage')).toBeNull()
+  })
+
+  it('keeps the stage display working with Clocks switched off', async () => {
+    const store = mount('/s/main/display', 'demo-crew-main-3')
+    await act(async () => { await store.setConfig('event', { ...store.peekConfig('event')!, modules: { clocks: false } }) })
+    expect(nav().queryByRole('link', { name: /Clocks/ })).toBeNull()
+    expect(screen.getByRole('heading', { name: 'Stage display' })).toBeTruthy()
   })
 
   it('edits a role’s permission and adds and removes a custom role', async () => {

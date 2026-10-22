@@ -576,3 +576,10 @@
 .sc .riser-stock { align-items: flex-end; gap: .75rem }
 .sc .riser-stock .fld { width: 7rem }
 .sc .over { color: var(--stop); font-weight: 700 }
+
+/* ---------- documents ---------- */
+.sc .docs li { align-items: center }
+.sc .doc-icon { width: 2.2rem; height: 2.2rem; flex: none; display: grid; place-items: center; border-radius: 6px; background: var(--surface2); color: var(--ink2) }
+.sc .doc-icon svg { width: 1.2rem; height: 1.2rem }
+.sc .docs a { color: var(--ink); text-decoration: none }
+.sc .docs a:hover { text-decoration: underline }

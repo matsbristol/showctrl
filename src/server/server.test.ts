@@ -254,3 +254,30 @@ describe('server: risk assessment and locations', () => {
     await expect(sm.set('locations', 'park', { name: 'Park', kind: 'truckpark', stage: null })).rejects.toMatchObject({ code: 'denied' })
   })
 })
+
+describe('server: documents', () => {
+  it('accepts web links only, and stored files from this event only', async () => {
+    const { client } = setup()
+    const admin = client('owner@example.com')
+    await tick()
+    await admin.set('files', 'ok', { name: 'Site plan', category: 'Site plan', url: 'https://example.com/plan.pdf' })
+    await expect(admin.set('files', 'js', { name: 'x', category: 'Other', url: 'javascript:alert(1)' })).rejects.toMatchObject({ code: 'unknown' })
+    await expect(admin.set('files', 'other', { name: 'x', category: 'Other', blob: { key: 'other-event/123', size: 1, type: 'text/plain' } })).rejects.toMatchObject({ message: 'That file isn’t part of this event.' })
+  })
+
+  it('shows stage documents only to people on that stage', async () => {
+    const { client, core } = setup()
+    const admin = client('owner@example.com')
+    await tick()
+    await admin.set('files', 'tent-doc', { name: 'Tent drawings', category: 'Technical', stage: 'tent', url: 'https://example.com/t.pdf' })
+    await admin.set('files', 'event-doc', { name: 'Site plan', category: 'Site plan', stage: null, url: 'https://example.com/s.pdf' })
+    const mainCrew = client('demo-crew-main-3')
+    const tentCrew = client('demo-crew-tent-3')
+    await tick()
+    expect(core.col.files['tent-doc']).toBeDefined()
+    expect(mainCrew.peek('files')!['tent-doc']).toBeUndefined()
+    expect(tentCrew.peek('files')!['tent-doc']).toBeDefined()
+    expect(mainCrew.peek('files')!['event-doc']).toBeDefined() // event-wide documents are for everyone
+    expect(admin.peek('files')!['event-doc']).toBeDefined()
+  })
+})

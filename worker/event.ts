@@ -8,7 +8,8 @@ import { emptyCollections } from '../src/data/collections'
 import { EventCore, type CollectionData, type CoreData } from '../src/server/core'
 import { EventHub, type Peer } from '../src/server/hub'
 import { COLLECTIONS } from '../src/types/constants'
-import type { CollectionName, ConfigName, EventConfig, Id, RolesConfig } from '../src/types/model'
+import { moduleOn } from '../src/shared/modules'
+import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
 
 const EMAIL_HEADER = 'x-showctrl-email'
@@ -61,9 +62,11 @@ export class EventObject extends DurableObject<Env> {
       roles: cfgRow('roles') ? JSON.parse(cfgRow('roles')!) as RolesConfig : null,
       col,
       owner: this.meta('owner'),
+      blobPrefix: `${this.meta('eventId') ?? 'none'}/`,
     }
     const core = new EventCore(data, {
       putDoc: (c, id, doc) => {
+        if (c === 'files') this.dropReplacedBlob(id, doc as FileDoc | null)
         if (doc) this.sql.exec('INSERT OR REPLACE INTO docs (col, id, data) VALUES (?, ?, ?)', c, id, JSON.stringify(doc))
         else this.sql.exec('DELETE FROM docs WHERE col = ? AND id = ?', c, id)
       },
@@ -83,6 +86,30 @@ export class EventObject extends DurableObject<Env> {
       })),
       onMembersChanged: emails => this.ctx.waitUntil(this.syncMembers(emails)),
     })
+  }
+
+  /** A deleted document, or one whose file was replaced, takes its stored file with it. */
+  private dropReplacedBlob(id: Id, next: FileDoc | null) {
+    const row = this.sql.exec<{ data: string }>('SELECT data FROM docs WHERE col = ? AND id = ?', 'files', id).toArray()[0]
+    const key = row ? (JSON.parse(row.data) as FileDoc).blob?.key : undefined
+    if (key && key !== next?.blob?.key && !key.startsWith('data:')) this.ctx.waitUntil(this.env.FILES.delete(key))
+  }
+
+  /** Upload check: may this user add documents for the event, a stage or an act? */
+  async canUpload(email: Id, scope: { stage?: Id | null; artist?: Id | null }): Promise<boolean> {
+    const core = this.hub.core
+    if (!moduleOn(core.cfg, 'documents')) return false
+    const stage = scope.stage ?? (scope.artist ? core.col.artists[scope.artist]?.stage : null) ?? null
+    return core.access(email).canW('documents', stage)
+  }
+
+  /** Download check: the document with this stored file, if this user may see it. */
+  async fileFor(email: Id, key: string): Promise<{ name: string; type: string } | null> {
+    const core = this.hub.core
+    const doc = Object.values(core.col.files).find(f => f.blob?.key === key)
+    if (!doc || !moduleOn(core.cfg, 'documents')) return null
+    const seen = core.viewDoc(core.access(email), 'files', doc as unknown as Record<string, unknown>)
+    return seen ? { name: doc.name, type: doc.blob!.type } : null
   }
 
   private peer(ws: WebSocket): Peer {

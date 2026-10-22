@@ -4,6 +4,8 @@ export interface Env {
   ASSETS: Fetcher
   DB: D1Database
   EVENT: DurableObjectNamespace<EventObject>
+  /** Uploaded documents. Keys are `<eventId>/<uuid>`. */
+  FILES: R2Bucket
 
   /** e.g. https://yourteam.cloudflareaccess.com */
   ACCESS_TEAM_DOMAIN?: string

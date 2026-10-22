@@ -19,6 +19,9 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EventObject"] }],
 
+  // Uploaded documents. Create with: npx wrangler r2 bucket create showctrl-files
+  "r2_buckets": [{ "binding": "FILES", "bucket_name": "showctrl-files" }],
+
   // Create with: npx wrangler d1 create showctrl — then paste the id here.
   "d1_databases": [
     { "binding": "DB", "database_name": "showctrl", "database_id": "00000000-0000-0000-0000-000000000000" }

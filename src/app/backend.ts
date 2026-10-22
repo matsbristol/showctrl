@@ -48,6 +48,25 @@ export function rememberEvent(id: Id) {
 
 let current: { id: Id; store: CloudflareStore } | null = null
 
+/** Uploads a document file for the current event. Returns what to store in the document. */
+export async function uploadFile(file: File, scope: { stage?: Id | null; artist?: Id | null }): Promise<{ key: string; size: number; type: string }> {
+  if (!current) throw new Error('Not connected to an event.')
+  const q = new URLSearchParams({ name: file.name, ...(scope.stage ? { stage: scope.stage } : {}), ...(scope.artist ? { artist: scope.artist } : {}) })
+  const as = new URLSearchParams(location.search).get('as')
+  if (as) q.set('as', as)
+  const r = await fetch(`/api/events/${current.id}/files?${q}`, { method: 'POST', body: file, headers: { 'content-type': file.type || 'application/octet-stream' } })
+  const body = await r.json() as { key?: string; size?: number; type?: string; error?: string }
+  if (!r.ok || !body.key) throw new Error(body.error ?? 'Upload failed.')
+  return { key: body.key, size: body.size!, type: body.type! }
+}
+
+/** Where to open a stored document file. */
+export function fileUrl(key: string): string {
+  if (key.startsWith('data:')) return key
+  const [eventId, uuid] = key.split('/')
+  return `/api/events/${eventId}/files/${uuid}${devQuery()}`
+}
+
 /** The live store for an event. One at a time: opening another event closes the previous connection. */
 export function eventStore(id: Id): CloudflareStore {
   if (current?.id === id) return current.store

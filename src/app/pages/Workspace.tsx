@@ -10,6 +10,7 @@ import { ArtistDetail } from './ArtistPage'
 import { ArtistsPage } from './ArtistsPage'
 import { ClocksPage } from './ClocksPage'
 import { DisplayPage } from './DisplayPage'
+import { DocumentsPage } from './DocumentsPage'
 import { FacilitiesPage } from './FacilitiesPage'
 import { LinesPage } from './LinesPage'
 import { MessagesPage } from './MessagesPage'
@@ -58,6 +59,7 @@ export function HqPage() {
     case 'risers': return <RisersPage sid={null} />
     case 'transport': return <TransportPage sid={null} />
     case 'facilities': return <FacilitiesPage sid={null} />
+    case 'documents': return <DocumentsPage sid={null} />
     case 'trucks': return <TrucksPage sid={null} />
     case 'messages': return <MessagesPage sid={null} />
     case 'accommodation': return <AccommodationPage />
@@ -98,6 +100,7 @@ export function StagePage() {
     case 'risers': return <RisersPage sid={sid} />
     case 'transport': return <TransportPage sid={sid} />
     case 'facilities': return <FacilitiesPage sid={sid} />
+    case 'documents': return <DocumentsPage sid={sid} />
     case 'trucks': return <TrucksPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
     case 'messages': return <MessagesPage sid={sid} />

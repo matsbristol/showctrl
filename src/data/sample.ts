@@ -195,6 +195,17 @@ export function buildSample(t: number = Date.now()): LocalData {
     col.allocations[`al${i}`] = { id: `al${i}`, facility: `dr-${show.stage}-${n}`, artist: show.artist, from, to, notes: '' }
   })
 
+  // documents: links only in the sample (uploads need a real file)
+  const docs: [string, string, Id | null, string][] = [
+    ['Site plan', 'Site plan', null, 'Gates, stages, truck routes and emergency exits'],
+    ['Emergency and evacuation plan', 'Safety', null, 'Read before your first shift'],
+    ['Main Stage drawings', 'Technical', 'main', 'Roof, PA hangs and load bay'],
+    ['Radio channel list', 'Schedule', null, ''],
+  ]
+  docs.forEach(([name, category, stage, notes], i) => {
+    col.files[`doc${i}`] = { id: `doc${i}`, name, category, stage, url: `https://example.com/${name.toLowerCase().replace(/\W+/g, '-')}.pdf`, by: 'demo-pm', at: t - (i + 1) * 26 * HOUR, notes }
+  })
+
   // screens: the production office sees everything; each FOH desk follows its stage; the dock gate watches trucks
   col.screens['scr-office'] = { id: 'scr-office', name: 'Production office', scope: null, stages: [], blocks: ['clock', 'nownext', 'schedule', 'messages'], order: 0 }
   col.screens['scr-dock'] = { id: 'scr-dock', name: 'Dock gate', scope: null, stages: [], blocks: ['clock', 'trucks', 'schedule'], order: 1 }

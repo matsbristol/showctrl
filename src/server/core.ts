@@ -24,6 +24,8 @@ export interface CoreData {
   col: CollectionData
   /** The event owner's email. Always Festival admin. */
   owner: Id | null
+  /** Live: stored document files must have keys starting with this (the event's own folder). */
+  blobPrefix?: string
 }
 
 /** Persistence, called synchronously after each validated change (SQLite in the Durable Object). */
@@ -51,6 +53,7 @@ export class EventCore {
   roles: RolesConfig | null
   col: CollectionData
   owner: Id | null
+  private readonly blobPrefix: string | undefined
   private readonly storage: CoreStorage
 
   constructor(data: CoreData, storage: CoreStorage) {
@@ -58,6 +61,7 @@ export class EventCore {
     this.roles = data.roles
     this.col = { ...emptyCollections(), ...data.col }
     this.owner = data.owner
+    this.blobPrefix = data.blobPrefix
     this.storage = storage
   }
 
@@ -110,6 +114,7 @@ export class EventCore {
         if (!isPlain(raw)) return { ok: false, code: 'invalid', message: 'Bad record.' }
         next = this.keepHidden(a, op.col, prev as Record<string, unknown> | null, { ...raw, id })
         if (op.col === 'msgs' && !prev) next.at = now // the server's clock, not the sender's
+        if (op.col === 'files') { const bad = this.badFile(next); if (bad) return { ok: false, code: 'invalid', message: bad } }
         if (JSON.stringify(next).length > MAX_DOC_BYTES) return { ok: false, code: 'invalid', message: 'That record is too large.' }
       }
       const verdict = canWrite(a, { col: op.col, id, prev, next: next as { id: Id } | null } as Parameters<typeof canWrite>[1], {
@@ -155,6 +160,18 @@ export class EventCore {
     return { ok: true, effects: [{ kind: 'config', which }] }
   }
 
+  /** Links must be web links; stored files must live in this event's own storage folder. */
+  private badFile(doc: Record<string, unknown>): string | null {
+    const url = doc.url as string | undefined
+    if (url !== undefined && !/^https?:\/\//i.test(url)) return 'Links must start with https:// or http://.'
+    const key = (doc.blob as { key?: unknown } | undefined)?.key
+    if (key !== undefined) {
+      if (typeof key !== 'string') return 'Bad file.'
+      if (this.blobPrefix ? !key.startsWith(this.blobPrefix) : !key.startsWith('data:')) return 'That file isn’t part of this event.'
+    }
+    return null
+  }
+
   /**
    * A writer who can't see a field (redacted in what they were sent) mustn't wipe it.
    * Restores those fields from the stored record.
@@ -194,7 +211,8 @@ export class EventCore {
     if (col === 'allocations') return a.lv('facilities', this.col.facilities[doc.facility as Id]?.stage ?? null) >= 1 ? doc : null
     if (col === 'files') {
       const stage = (doc.stage as Id | null) ?? (doc.artist ? this.col.artists[doc.artist as Id]?.stage : null) ?? null
-      return a.lv('documents', stage) >= 1 ? doc : null
+      // Event-wide documents (site plan, safety) are for everyone with document access anywhere.
+      return (stage ? a.lv('documents', stage) : a.anyLv('documents')) >= 1 ? doc : null
     }
     if (col === 'msgs') return a.canSeeMsg(doc as unknown as Parameters<Access['canSeeMsg']>[0]) ? doc : null
     if (col === 'artists' && !a.artistContacts(doc as { stage: Id })) return { ...doc, contacts: [] }

@@ -4,6 +4,8 @@
 //   GET  /api/me                     who you are and your events
 //   POST /api/events                 create an event { name, sample? }
 //   POST /api/me/last-event          remember which event you opened { id }
+//   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)
+//   GET  /api/events/:id/files/:key  download one, if you may see its document
 //   GET  /api/events/:id/ws          WebSocket to the event's Durable Object
 //   everything else                  the built app (single-page fallback)
 
@@ -37,6 +39,10 @@ export default {
           .bind(me, id, Date.now()).run()
         return json({ ok: true })
       }
+      const up = url.pathname.match(/^\/api\/events\/([\w-]+)\/files$/)
+      if (up && request.method === 'POST') return await upload(request, env, me, up[1], url)
+      const down = url.pathname.match(/^\/api\/events\/([\w-]+)\/files\/([\w-]+)$/)
+      if (down && request.method === 'GET') return await download(env, me, down[1], `${down[1]}/${down[2]}`)
       const ws = url.pathname.match(/^\/api\/events\/([\w-]+)\/ws$/)
       if (ws) {
         if (request.headers.get('upgrade') !== 'websocket') return json({ error: 'Expected a WebSocket' }, 426)
@@ -84,4 +90,34 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
   await env.DB.prepare('INSERT INTO events (id, name, owner, created_at) VALUES (?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now()).run()
   await env.EVENT.getByName(id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
   return json({ id }, 201)
+}
+
+const MAX_UPLOAD = 25 * 1024 * 1024
+
+async function upload(request: Request, env: Env, me: string, eventId: string, url: URL): Promise<Response> {
+  const ok = await env.EVENT.getByName(eventId).canUpload(me, { stage: url.searchParams.get('stage'), artist: url.searchParams.get('artist') })
+  if (!ok) return json({ error: 'You can’t add documents here.' }, 403)
+  const size = Number(request.headers.get('content-length') ?? 0)
+  if (!size || size > MAX_UPLOAD) return json({ error: 'Files can be up to 25 MB.' }, 413)
+  const type = request.headers.get('content-type') || 'application/octet-stream'
+  const key = `${eventId}/${crypto.randomUUID()}`
+  await env.FILES.put(key, request.body, { httpMetadata: { contentType: type }, customMetadata: { by: me, name: url.searchParams.get('name') ?? '' } })
+  // The full key goes into the document; downloads only work through this event's own route.
+  return json({ key, size, type }, 201)
+}
+
+async function download(env: Env, me: string, eventId: string, key: string): Promise<Response> {
+  const meta = await env.EVENT.getByName(eventId).fileFor(me, key)
+  if (!meta) return json({ error: 'Not found' }, 404)
+  const obj = await env.FILES.get(key)
+  if (!obj) return json({ error: 'The file is missing.' }, 404)
+  const safe = meta.name.replace(/[^\w. -]+/g, '_')
+  return new Response(obj.body, {
+    headers: {
+      'content-type': meta.type,
+      'content-disposition': `inline; filename="${safe}"`,
+      'cache-control': 'private, no-store',
+      'x-content-type-options': 'nosniff',
+    },
+  })
 }

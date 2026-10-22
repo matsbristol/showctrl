@@ -10,6 +10,7 @@ import { ArtistDetail } from './ArtistPage'
 import { ArtistsPage } from './ArtistsPage'
 import { ClocksPage } from './ClocksPage'
 import { DisplayPage } from './DisplayPage'
+import { FacilitiesPage } from './FacilitiesPage'
 import { LinesPage } from './LinesPage'
 import { MessagesPage } from './MessagesPage'
 import { OverviewPage } from './OverviewPage'
@@ -18,6 +19,7 @@ import { RidersPage } from './RidersPage'
 import { RisersPage } from './RisersPage'
 import { RiskPage } from './RiskPage'
 import { ScreenPage, ScreensPage } from './ScreensPage'
+import { TransportPage } from './TransportPage'
 import { TrucksPage } from './TrucksPage'
 import { RunSheetPage } from './RunSheetPage'
 import { PersonnelPage } from './PersonnelPage'
@@ -54,6 +56,8 @@ export function HqPage() {
     case 'lines': return <LinesPage sid={null} />
     case 'plots': return <PlotsPage sid={null} />
     case 'risers': return <RisersPage sid={null} />
+    case 'transport': return <TransportPage sid={null} />
+    case 'facilities': return <FacilitiesPage sid={null} />
     case 'trucks': return <TrucksPage sid={null} />
     case 'messages': return <MessagesPage sid={null} />
     case 'accommodation': return <AccommodationPage />
@@ -92,6 +96,8 @@ export function StagePage() {
     case 'lines': return <LinesPage sid={sid} />
     case 'plots': return <PlotsPage sid={sid} />
     case 'risers': return <RisersPage sid={sid} />
+    case 'transport': return <TransportPage sid={sid} />
+    case 'facilities': return <FacilitiesPage sid={sid} />
     case 'trucks': return <TrucksPage sid={sid} />
     case 'setup': return <SetupPage sid={sid} />
     case 'messages': return <MessagesPage sid={sid} />

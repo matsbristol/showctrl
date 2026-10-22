@@ -170,6 +170,31 @@ export function buildSample(t: number = Date.now()): LocalData {
   })
   for (const s of STG) col.risers[s.id] = sampleRiserStock(s.id)
 
+  // transport: rides booked for day 1 arrivals, the rest still to do
+  Object.values(col.ros).filter(r => r.kind === 'arrival' && r.artist && festDay(r.start, tz) === d0).forEach((r, i) => {
+    if (i % 3 === 2) return
+    col.transfers[`tr${i}`] = {
+      id: `tr${i}`, artist: r.artist, pax: col.artists[r.artist!].party ?? 4, from: i % 2 ? 'Fjordhotellet' : 'Airport arrivals', to: 'Artist gate',
+      at: r.start - HOUR, vehicle: `Van ${(i % 4) + 1}`, driver: ['Ole', 'Kari', 'Sindre', 'Mona'][i % 4], phone: `+47 4${10 + i} 00 ${100 + i}`,
+      status: r.start - HOUR < t ? 'done' : i % 2 ? 'confirmed' : 'planned', item: r.id, notes: i % 2 ? '' : 'Flight DY 612, two guitar cases',
+    }
+  })
+
+  // facilities: three dressing rooms per stage (one per act on a day), a production office and catering; day 1 rooms booked for most acts
+  for (const s of STG) for (const n of [1, 2, 3]) col.facilities[`dr-${s.id}-${n}`] = { id: `dr-${s.id}-${n}`, name: `Dressing room ${n} · ${s.name}`, kind: 'dressing', stage: s.id, notes: n === 1 ? 'Shower, fridge' : '' }
+  col.facilities['office'] = { id: 'office', name: 'Production office', kind: 'production', stage: null, capacity: 20, notes: 'Container 4, behind Main Stage' }
+  col.facilities['catering'] = { id: 'catering', name: 'Crew catering', kind: 'catering', stage: null, capacity: 200, notes: 'Hot food 11–15 and 17–21' }
+  const perStage = new Map<Id, number>()
+  Object.values(col.ros).filter(r => r.kind === 'show' && r.artist && festDay(r.start, tz) === d0).sort((x, y) => x.start - y.start).forEach((show, i) => {
+    const n = (perStage.get(show.stage) ?? 0) + 1
+    perStage.set(show.stage, n)
+    if (i % 4 === 3) return // still to sort out
+    const mine = Object.values(col.ros).filter(r => r.artist === show.artist && festDay(r.start, tz) === d0).sort((x, y) => x.start - y.start)
+    const from = mine.find(r => r.kind === 'getin')?.start ?? show.start - 3 * HOUR
+    const to = mine.find(r => r.kind === 'departure')?.end ?? show.end + 2 * HOUR
+    col.allocations[`al${i}`] = { id: `al${i}`, facility: `dr-${show.stage}-${n}`, artist: show.artist, from, to, notes: '' }
+  })
+
   // screens: the production office sees everything; each FOH desk follows its stage; the dock gate watches trucks
   col.screens['scr-office'] = { id: 'scr-office', name: 'Production office', scope: null, stages: [], blocks: ['clock', 'nownext', 'schedule', 'messages'], order: 0 }
   col.screens['scr-dock'] = { id: 'scr-dock', name: 'Dock gate', scope: null, stages: [], blocks: ['clock', 'trucks', 'schedule'], order: 1 }

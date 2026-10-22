@@ -24,7 +24,7 @@ function NowNextCard({ st }: { st: Stage }) {
       <span className="sv-lbl">{label}</span>
       {it ? (
         <>
-          <span className="sv-ttl">{it.kind === 'show' ? it.title : `${kindLabel(it.kind)} · ${it.title}`}</span>
+          <span className="sv-ttl">{it.kind === 'show' || it.title.startsWith(kindLabel(it.kind)) ? it.title : `${kindLabel(it.kind)} · ${it.title}`}</span>
           {target != null && <span className={`sv-cd ${countdownState(target - t, it.kind === 'show' ? 10 : 5)}`}>{fmtCountdown(target - t)}</span>}
         </>
       ) : <span className="sv-ttl muted">—</span>}

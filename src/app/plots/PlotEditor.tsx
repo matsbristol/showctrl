@@ -105,8 +105,18 @@ export function PlotEditor({ artist }: { artist: Artist }) {
                 {round
                   ? <ellipse rx={it.w / 2} ry={it.d / 2} />
                   : <rect x={-it.w / 2} y={-it.d / 2} width={it.w} height={it.d} rx={0.06} />}
-                <text y={it.kind === 'riser' ? -it.d / 2 + 0.32 : 0.1} className="plot-label">{it.label}</text>
-                {it.kind === 'riser' && <text y={-it.d / 2 + 0.62} className="plot-sub">{it.size} · {it.height} cm{it.rolling ? ' · rolling' : ''}</text>}
+                {/* Small items are labelled underneath; riser labels are drawn last, on top. */}
+                {it.kind !== 'riser' && <text y={Math.min(it.w, it.d) < 0.6 ? it.d / 2 + 0.24 : 0.02} className="plot-label">{it.label}</text>}
+              </g>
+            )
+          })}
+          {ordered.filter(it => it.kind === 'riser').map(it => {
+            const x = drag?.id === it.id ? drag.x : it.x
+            const y = drag?.id === it.id ? drag.y : it.y
+            return (
+              <g key={`lbl-${it.id}`} transform={`translate(${x} ${D - y})`} className="plot-riser-label">
+                <text y={it.d / 2 + 0.26} className="plot-label">{it.label}</text>
+                <text y={it.d / 2 + 0.5} className="plot-sub">{it.size} · {it.height} cm{it.rolling ? ' · rolling' : ''}</text>
               </g>
             )
           })}

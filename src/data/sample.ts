@@ -176,7 +176,7 @@ export function buildSample(t: number = Date.now()): LocalData {
     col.transfers[`tr${i}`] = {
       id: `tr${i}`, artist: r.artist, pax: col.artists[r.artist!].party ?? 4, from: i % 2 ? 'Fjordhotellet' : 'Airport arrivals', to: 'Artist gate',
       at: r.start - HOUR, vehicle: `Van ${(i % 4) + 1}`, driver: ['Ole', 'Kari', 'Sindre', 'Mona'][i % 4], phone: `+47 4${10 + i} 00 ${100 + i}`,
-      status: r.start - HOUR < t ? 'done' : i % 2 ? 'confirmed' : 'planned', item: r.id, notes: i % 2 ? '' : 'Flight DY 612, two guitar cases',
+      status: r.start - HOUR < t ? 'done' : i % 2 ? 'confirmed' : 'planned', item: r.id, notes: i % 2 ? '' : `Flight DY ${612 + i * 7}${i % 4 === 0 ? ', two guitar cases' : ''}`,
     }
   })
 

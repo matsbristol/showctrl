@@ -9,6 +9,7 @@ import { BookingForm } from '../accommodation/forms'
 import { ArtistForm, ContactForm } from '../artists/forms'
 import { RiderPanel } from '../riders/RiderPanel'
 import { RiskPanel } from '../risk/RiskPanel'
+import { ProductionLinks } from '../artists/ProductionLinks'
 import { useDay } from '../day'
 import { DaySheetForm, ItemForm } from '../runsheet/forms'
 import { SheetRow, StatusChip, Tel } from '../runsheet/parts'
@@ -88,6 +89,7 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
 
         <div className="grid" style={{ alignContent: 'start' }}>
           <RiskPanel artist={artist} />
+          <ProductionLinks artist={artist} />
           <section className="panel">
             <div className="ph">
               <h3>Contacts</h3>

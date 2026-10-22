@@ -24,6 +24,7 @@ Inspiration: prodsync.no (artist overview, run sheets from setup to teardown, on
 | `src/lib/` | Pure helpers shared by client and (later) the Worker: time zones, day sheet generator, ids. |
 | `src/app/` | The new showctrl workspace UI: `ShowctrlRoot` (data + session + layout), `routes.tsx` (`/hq/...`, `/s/:stageId/...`), `session.ts` (`useAccess`, `useTerms`, `useNow`), styles scoped under `.sc`. Mounted from `src/main.tsx`; open `/hq` in `npm run dev`. |
 | `worker/`, `src/server/` | The Cloudflare backend. See "Backend" below. |
+| `src/app/acts/` | The act picker shared by per-act pages (input lists, stage plots); the selected act is `?act=` in the URL. |
 | `scripts/simulate.mjs` | Local festival simulator (`npm run simulate`). Drives a sample event in real time through `wrangler dev` as the demo personas, using the normal permission checks. |
 | `src/shared/` | Access rules shared by client and Worker: `createAccess()` (levels, visibility, messages), `views.ts` (which pages a user can open), `writeRules.ts` (`canWrite()`, which the Worker must call before every write). |
 
@@ -68,6 +69,20 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 **`risks`** (Risk assessment module; id = artist id): `artist`, `level` (green | orange | red), `factors` [strings, usually from `RISK_FACTORS`], `notes`, `by`, `at`. Permission key `risk` (Site & security and Production edit; stage managers edit their own stage). Shown as a chip or dot on run sheet shows, now/next cards, the artist list and page, and the Risk page.
 
 **`locations`** (Trucks & docks module): `name`, `kind` (loadbay | staging | truckpark | dock | other), `stage` (null = festival-wide), `capacity` (trucks at once; empty = 1 for bays and docks, unlimited otherwise), `notes`. Run sheet items in `TRUCK_KINDS` carry `trucks` and `dest` (a location). `src/lib/trucks.ts` finds clashes, where more trucks are booked into a location than it takes, across all stages.
+
+**`screens`** (Screens): `name`, `scope` (stage or null for HQ), `stages` [ids; empty = all], `blocks` [clock | nownext | schedule | messages | trucks]. Opened at `/hq/screens/:id` or `/s/:stage/screens/:id`, then wall mode.
+
+**`lines`** (Input lists; id = artist id): `inputs` {id: {ch, name, mic, stand, phantom, box, notes}}, `outputs` {id: {n, name, type, notes}}. Keyed maps so parallel edits to different channels don't collide. Paste parser in `src/lib/lines.ts`.
+
+**`plots`** (Stage plots; id = artist id): `items` {id: {kind, label, x, y (metres from the left as seen from FOH, and from the front edge), w, d, size?, height?, rolling?}}, `width`, `depth`.
+
+**`risers`** (Risers; id = stage id): `decks` {8x8 | 8x4 | 6x8 | 4x4: count}, `heights` [cm]. `src/lib/risers.ts` checks each act's plot against the stock in running order. The next act's rolling risers count as in use during the current show.
+
+**`transfers`** (Transport): `artist` or `guest`, `pax`, `from`, `to`, `at`, `vehicle`, `driver`, `phone`, `status` (planned | confirmed | en route | done | cancelled), `item` (the arrival or departure it serves). Permission key `transport`.
+
+**`facilities`** / **`allocations`** (Facilities): rooms with `kind`, `stage`, `capacity`; bookings with `facility`, `artist` or `label`, `from`, `to`. Double bookings come from `src/lib/facilities.ts`. Permission key `facilities`.
+
+**`files`** (Documents): `name`, `category`, `stage` or `artist` (neither = whole event), and either `url` (http/https only) or `blob` {key, size, type}. Live blobs are in R2 under `<eventId>/<uuid>`, uploaded and downloaded through the Worker with permission checks. Demo blobs are data URLs up to 1 MB. Event-wide documents are visible to anyone with document access on any stage. Permission key `documents`.
 
 **`prefs`** (keyed by user id, written only by that user): `lastRead` (ms). Per-user state that must follow the user across devices.
 
@@ -127,7 +142,9 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 showctrl is modular: each event switches optional sections on or off in **Admin → Modules**. The registry is `src/shared/modules.ts`.
 
 - **Core (always on):** Overview, Running order and run sheets, performers (Artists), Stage setup, Admin.
-- **Modules:** Messages, Clocks, Stage display, Personnel, Accommodation, Riders, Risk assessment, Trucks & docks. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
+- **Modules:** Messages, Clocks, Screens, Stage display, Personnel, Accommodation, Riders, Risk assessment, Trucks & docks, Technical summary, Input lists, Stage plots, Risers, Transport, Facilities, Documents.
+- **Side-nav groups:** Live, Production, Logistics and Team, from `NAV_GROUPS` and `NavMeta.group` in `src/app/nav.ts`. The order comes from `HQ_VIEWS`/`STAGE_VIEWS`.
+- **Permission keys:** a key can belong to several modules (`technical` covers input lists, plots and risers), and its roles column stays visible while any of them is on. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
 
 When a module is off:
 

@@ -21,11 +21,15 @@ You need a Cloudflare account with Workers, plus Zero Trust for Access. Zero Tru
    npx wrangler d1 create showctrl
    ```
    Copy the `database_id` it prints into `wrangler.jsonc`, replacing the zeros.
-3. Create the tables:
+3. Create the storage bucket for uploaded documents:
+   ```sh
+   npx wrangler r2 bucket create showctrl-files
+   ```
+4. Create the tables:
    ```sh
    npm run db:init
    ```
-4. Deploy:
+5. Deploy:
    ```sh
    npm run deploy
    ```

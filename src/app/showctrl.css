@@ -412,7 +412,7 @@
 
 /* ---------- trucks & docks ---------- */
 .sc .truckline { font-size: .8rem; color: var(--ink2); margin-top: .15rem }
-.sc .truckline::before { content: "🚚 "; }
+.sc .truckline svg { width: .95rem; height: .95rem; vertical-align: -.2em; margin-right: .25rem }
 .sc .truckline.clash { color: var(--stop) }
 .sc tr.clash td { background: var(--stop-soft) }
 .sc tr.soon td:first-child { box-shadow: inset 5px 0 0 var(--standby) }
@@ -583,3 +583,6 @@
 .sc .doc-icon svg { width: 1.2rem; height: 1.2rem }
 .sc .docs a { color: var(--ink); text-decoration: none }
 .sc .docs a:hover { text-decoration: underline }
+.sc .prodlinks li { display: grid; grid-template-columns: 6.5rem 1fr; gap: .6rem; font-size: .9rem }
+.sc .pl-k { color: var(--ink2); font-weight: 700; font-size: .82rem; padding-top: .05rem }
+.sc .pl-line { display: block }

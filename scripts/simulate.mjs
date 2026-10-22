@@ -9,6 +9,7 @@
 //   - throws in incidents (delays with a reason and an urgent message to that stage)
 //   - sends everyday messages, and acknowledges messages the way real crew do (most, not all, after a while)
 //   - confirms hotel bookings and checks artists in (artist liaison), and sources hospitality riders
+//   - drives transfers: en route at pickup time, done about 45 minutes later
 //
 // Every write goes through the normal server permission checks, as the persona doing it.
 // Only works against `wrangler dev` (it signs in with ?as=, which production ignores).
@@ -212,12 +213,21 @@ function scheduleAcks(m) {
 
 function hospitality(now) {
   if (on('riders')) sourceRiders(now)
+  if (on('transport')) driveTransfers(now)
   if (!on('accommodation')) return
   const bookings = Object.values(state.col.bookings ?? {})
   const req = bookings.filter(b => b.status === 'requested')
   if (req.length && chance(0.5)) { const b = pick(req); al.update('bookings', b.id, { status: 'confirmed' }); log(`Artist liaison: booking confirmed for ${state.col.artists?.[b.artist]?.name ?? b.guest}`) }
   const arrived = bookings.filter(b => b.status === 'confirmed' && b.artist && ['arrived', 'backstage', 'ready', 'on stage', 'done'].includes(state.col.artists?.[b.artist]?.status))
   if (arrived.length) { const b = pick(arrived); al.update('bookings', b.id, { status: 'checked in' }); log(`Artist liaison: ${state.col.artists[b.artist].name} checked in at ${state.col.hotels?.[b.hotel]?.name}`) }
+}
+
+/** Cars leave at pickup time and arrive about 45 minutes later. */
+function driveTransfers(now) {
+  for (const x of Object.values(state.col.transfers ?? {})) {
+    if ((x.status === 'planned' || x.status === 'confirmed') && now >= x.at) { al.update('transfers', x.id, { status: 'en route' }); log(`Transport: ${state.col.artists?.[x.artist]?.name ?? x.guest} picked up (${x.from} → ${x.to})`) }
+    else if (x.status === 'en route' && now >= x.at + 45 * MIN) al.update('transfers', x.id, { status: 'done' })
+  }
 }
 
 function sourceRiders(now) {

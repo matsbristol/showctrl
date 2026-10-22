@@ -6,6 +6,7 @@ import { truckMoves } from '../../lib/trucks'
 import { moduleOn } from '../../shared/modules'
 import { HOUR, MIN } from '../../types/constants'
 import type { Id, RosItem } from '../../types/model'
+import { Icon } from '../Icon'
 import { KindTag } from '../runsheet/parts'
 import { useNow, useTz } from '../session'
 
@@ -17,7 +18,7 @@ export function TruckLine({ item, clash }: { item: RosItem; clash?: boolean }) {
   const dest = item.dest ? locations[item.dest]?.name : null
   return (
     <div className={`truckline${clash ? ' clash' : ''}`}>
-      {item.trucks} {item.trucks === 1 ? 'truck' : 'trucks'}{dest ? ` → ${dest}` : ' · no location set'}
+      <Icon name="truck" />{item.trucks} {item.trucks === 1 ? 'truck' : 'trucks'}{dest ? ` → ${dest}` : ' · no location set'}
       {clash && <b> · clash</b>}
     </div>
   )

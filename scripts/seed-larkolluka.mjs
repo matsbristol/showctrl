@@ -1,5 +1,8 @@
 // Creates "Larkolluka 2026" as its own event on `wrangler dev`, separate from any demo event.
 //
+// Larkolluka has one stage, Park Lane. Activities elsewhere in the village (parade,
+// fishing, church concert, morning exercise) are not stage items, so they're left out.
+//
 // Programme from public listings (moss-avis.no, konserterinorge.no, ticketmaster.no,
 // visitoestfold.com). Where listings disagreed, the most specific source was used:
 // set times for the family concert and Friday are Moss Avis; Tuesday's running order
@@ -31,9 +34,6 @@ const rid = () => Math.random().toString(36).slice(2, 10)
 /* ---------- the festival ---------- */
 const stages = [
   { id: 'parklane', name: 'Park Lane', tape: 'red', order: 0, location: 'Larkollen sentrum', radio: 'Ch 1' },
-  { id: 'plassen', name: 'Festivalplassen', tape: 'yellow', order: 1, location: 'Larkollen sentrum', radio: 'Ch 2' },
-  { id: 'kirka', name: 'Larkollen kirke', tape: 'purple', order: 2, location: 'Larkollen kirke', radio: 'Ch 3' },
-  { id: 'molo', name: 'Støtvigmoloen', tape: 'teal', order: 3, location: 'Støtvigmoloen', radio: 'Ch 4' },
 ]
 
 // [day index, stage, artist, on stage, minutes, genre, note]
@@ -41,7 +41,6 @@ const shows = [
   [2, 'parklane', '06 Boys', '19:00', 60, 'Hip-hop', 'Tirsdagskonsert 18+. Running order not published: adjust.'],
   [2, 'parklane', 'GOLF', '20:30', 60, 'Pop', 'Tirsdagskonsert 18+. Running order not published: adjust.'],
   [2, 'parklane', 'Stig Brenner', '22:00', 75, 'Pop', 'Tirsdagskonsert 18+. Running order not published: adjust.'],
-  [2, 'kirka', 'Ensemble Forte', '19:00', 75, 'Klassisk', 'Klassisk aften'],
   [3, 'parklane', 'eMMa', '18:30', 60, 'Pop', 'Familiekonsert'],
   [3, 'parklane', 'Ylva', '20:00', 60, 'Pop', 'Familiekonsert'],
   [3, 'parklane', 'Ramón', '21:45', 75, 'Pop', 'Familiekonsert'],
@@ -52,19 +51,14 @@ const shows = [
 
 // Other programme items: [day, stage, kind, title, start, end?, note]
 const events = [
-  [0, 'plassen', 'other', 'Karnevalstog fra Joker Thorvaldsen', '12:00', '13:00', 'Ends at Park Lane'],
   [0, 'parklane', 'doors', 'Musikk på Park Lane', '19:00', null, ''],
   [1, 'parklane', 'other', 'Familiekino: Flåklypa', '17:00', '18:30', 'Utekino'],
-  [1, 'molo', 'other', 'Fiskekonkurranse', '19:00', '21:00', 'Fra Støtvigmoloen'],
   [1, 'parklane', 'other', 'Utekino: Forrest Gump', '21:30', '23:55', ''],
-  [2, 'plassen', 'other', 'Morgentrim', '10:00', '10:45', ''],
   [2, 'parklane', 'doors', 'Dørene åpner (18+)', '18:00', null, ''],
   [2, 'parklane', 'curfew', 'Stengetid', '23:30', null, ''],
-  [3, 'plassen', 'other', 'Morgentrim', '10:00', '10:45', ''],
   [3, 'parklane', 'doors', 'Dørene åpner (familiekonsert)', '17:00', null, 'Ingen aldersgrense'],
   [3, 'parklane', 'curfew', 'Stengetid', '23:15', null, ''],
   [4, 'parklane', 'other', 'Silent Disco', '22:00', '23:59', ''],
-  [5, 'plassen', 'other', 'Barneklasse', '14:00', '15:00', ''],
   [5, 'parklane', 'doors', 'Dørene åpner (18+)', '18:00', null, ''],
   [5, 'parklane', 'curfew', 'Stengetid', '00:00', null, 'Midnight'],
 ]

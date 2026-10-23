@@ -133,7 +133,7 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 
 - **Festival day:** a show day runs until 06:00, so `festDay(ms) = dayKey(ms − 6 h)`.
 - **Time zones:** all display and input conversion uses the event time zone via `Intl.DateTimeFormat` (`P`, `fromLocal`, `toLocal`), never the device's zone.
-- **Clock sync:** the client reads the `Date` header from a HEAD request every 10 minutes. If the device is more than 1.5 s off, it applies the offset and shows "Corrected"; otherwise "Synced".
+- **Clock sync:** the client reads the Worker's `/time` (`{ now, colo }`) five times every 10 minutes, and again when a tab wakes up or the network returns. It keeps the reading with the fastest round trip and always applies that offset, to the millisecond. The top bar shows "Synced ±N ms", or "Corrected" if the device was more than 1.5 s off. The server clock is Cloudflare's own NTP-synced time; browsers and Workers can't use NTP directly. Without `/time`, it falls back to the `Date` header (1 s steps).
 - **Delays:** "Delay" adds minutes to an item and everything after it on that stage and day. A checkbox decides whether dock items move too. "On stage" and "Done" record actual times and offer to shift the rest of the day when an act starts late or overruns.
 - **Now and next:** a stage's "now" is the live on-stage item. Its "next" is the next show not yet done. The stage display, stage clocks and overview cards all use these.
 

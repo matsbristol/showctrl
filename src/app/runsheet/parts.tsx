@@ -154,7 +154,7 @@ export function Lanes({ lanes, day, onPick }: { lanes: Lane[]; day: DayKey; onPi
                 {out.map(([i, r]) => {
                   const e = eff(i)
                   // The colour and icon carry the kind, so the text can name the act.
-                  const text = ln.short ? (i.kind === 'show' ? i.title : kindLabel(i.kind)) : (i.artist && artists[i.artist]?.name) || i.title
+                  const text = ln.short ? (i.kind === 'show' || i.kind === 'other' || i.kind === 'meeting' ? i.title : kindLabel(i.kind)) : (i.artist && artists[i.artist]?.name) || i.title
                   const props = {
                     className: `blk ${kindClass(i.kind)} ${i.status ?? ''}`,
                     style: { left: pct(e.s), width: `max(30px, calc(${((e.e - e.s) / span * 100).toFixed(3)}% - 2px))`, top: 5 + r * 28, ['--c' as string]: ln.color ?? 'var(--accent)' },

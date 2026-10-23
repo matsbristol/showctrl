@@ -28,7 +28,7 @@ export function Layout() {
   return (
     <>
       <header className="strip">
-        <div className="brand"><i />showctrl</div>
+        <div className="brand"><img src="/logo.png" alt="showctrl" /></div>
         <EventName />
         <MasterClock />
         <Who />

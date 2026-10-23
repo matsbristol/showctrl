@@ -51,7 +51,7 @@
 /* ---------- strip ---------- */
 .sc .strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--strip); color: var(--strip-ink); display: flex; align-items: center; gap: 1.25rem; padding: .5rem 1rem; min-height: var(--strip-h); flex-wrap: wrap }
 .sc .brand { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .06em; display: flex; align-items: center; gap: .5rem; white-space: nowrap }
-.sc .brand i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3E63FF; box-shadow: 0 0 0 3px rgba(62, 99, 255, .25) }
+.sc .brand img { display: block; height: 24px; width: auto }
 .sc .ev { min-width: 0; line-height: 1.2 }
 .sc .ev b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 26ch }
 .sc .ev span { color: var(--strip-ink2); font-size: .85rem }

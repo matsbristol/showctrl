@@ -95,6 +95,7 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
 const MAX_UPLOAD = 25 * 1024 * 1024
 
 async function upload(request: Request, env: Env, me: string, eventId: string, url: URL): Promise<Response> {
+  if (!env.FILES) return json({ error: 'File uploads aren’t switched on for this site yet. Add a link instead.' }, 503)
   const ok = await env.EVENT.getByName(eventId).canUpload(me, { stage: url.searchParams.get('stage'), artist: url.searchParams.get('artist') })
   if (!ok) return json({ error: 'You can’t add documents here.' }, 403)
   const size = Number(request.headers.get('content-length') ?? 0)
@@ -109,7 +110,7 @@ async function upload(request: Request, env: Env, me: string, eventId: string, u
 async function download(env: Env, me: string, eventId: string, key: string): Promise<Response> {
   const meta = await env.EVENT.getByName(eventId).fileFor(me, key)
   if (!meta) return json({ error: 'Not found' }, 404)
-  const obj = await env.FILES.get(key)
+  const obj = await env.FILES?.get(key)
   if (!obj) return json({ error: 'The file is missing.' }, 404)
   const safe = meta.name.replace(/[^\w. -]+/g, '_')
   return new Response(obj.body, {

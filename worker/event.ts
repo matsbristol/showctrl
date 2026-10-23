@@ -92,7 +92,7 @@ export class EventObject extends DurableObject<Env> {
   private dropReplacedBlob(id: Id, next: FileDoc | null) {
     const row = this.sql.exec<{ data: string }>('SELECT data FROM docs WHERE col = ? AND id = ?', 'files', id).toArray()[0]
     const key = row ? (JSON.parse(row.data) as FileDoc).blob?.key : undefined
-    if (key && key !== next?.blob?.key && !key.startsWith('data:')) this.ctx.waitUntil(this.env.FILES.delete(key))
+    if (key && key !== next?.blob?.key && !key.startsWith('data:')) this.ctx.waitUntil(this.env.FILES?.delete(key) ?? Promise.resolve())
   }
 
   /** Upload check: may this user add documents for the event, a stage or an act? */

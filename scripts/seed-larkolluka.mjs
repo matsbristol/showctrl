@@ -12,10 +12,19 @@
 // countdowns and the run sheet are live. Pass --real-dates to use 12–18 July 2026.
 //
 //   node scripts/seed-larkolluka.mjs [--real-dates] [--base http://localhost:8787]
+//
+// Against the deployed site (behind Cloudflare Access), sign in with cloudflared first:
+//   cloudflared access login https://<host>
+//   node scripts/seed-larkolluka.mjs --base https://<host> --token "$(cloudflared access token -app=https://<host>)" \
+//     --admins morten@larkolluka.no,andre@larkolluka.no
 
 const args = process.argv.slice(2)
 const BASE = args.includes('--base') ? args[args.indexOf('--base') + 1] : 'http://localhost:8787'
 const REAL = args.includes('--real-dates')
+const opt = name => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
+const TOKEN = opt('--token')
+const ADMINS = (opt('--admins') ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+const auth = TOKEN ? { 'cf-access-token': TOKEN } : {}
 const TZ = 'Europe/Oslo'
 const MIN = 60_000
 
@@ -98,12 +107,12 @@ const screens = [
 
 /* ---------- send ---------- */
 const api = async (path, body) => {
-  const r = await fetch(`${BASE}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+  const r = await fetch(`${BASE}${path}`, { method: 'POST', headers: { 'content-type': 'application/json', ...auth }, body: JSON.stringify(body) })
   if (!r.ok) throw new Error(`${path}: ${r.status} ${await r.text()}`)
   return r.json()
 }
 const { id: eventId } = await api('/api/events', { name: 'Larkolluka 2026', sample: false })
-const ws = new WebSocket(`${BASE.replace(/^http/, 'ws')}/api/events/${eventId}/ws`)
+const ws = new WebSocket(`${BASE.replace(/^http/, 'ws')}/api/events/${eventId}/ws`, { headers: auth })
 const inbox = new Map()
 let snapshot
 await new Promise((resolve, reject) => {
@@ -129,6 +138,7 @@ await send({ kind: 'setMany', col: 'artists', docs: artists })
 for (let i = 0; i < ros.length; i += 200) await send({ kind: 'setMany', col: 'ros', docs: ros.slice(i, i + 200) })
 await send({ kind: 'setMany', col: 'clocks', docs: clocks })
 await send({ kind: 'setMany', col: 'screens', docs: screens })
+if (ADMINS.length) await send({ kind: 'setMany', col: 'members', docs: ADMINS.map(id => ({ id, name: id, role: 'admin', person: null, depts: [], stages: {} })) })
 await api('/api/me/last-event', { id: eventId })
 ws.close()
 

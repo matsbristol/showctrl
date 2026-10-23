@@ -89,13 +89,28 @@ describe('measureOffset', () => {
   it('prefers a JSON { now } body', async () => {
     let t = 1_000_000
     const r = await measureOffset('/time', res({ 'content-type': 'application/json' }, { now: 1_010_000 }), () => (t += 0))
-    expect(r).toEqual({ offset: 10_000, state: 'corrected' })
+    expect(r).toMatchObject({ offset: 10_000, state: 'corrected', error: 1 })
+  })
+
+  it('keeps the reading with the fastest round trip and applies small offsets', async () => {
+    // Round trips of 400, 40 and 200 ms; the server is 120 ms ahead of the device.
+    const rtts = [400, 40, 200]
+    let t = 0, k = 0
+    const clock = () => t
+    const fetchFn = (async () => {
+      const rtt = rtts[k++]
+      const server = t + rtt / 2 + 120
+      t += rtt
+      return new Response(JSON.stringify({ now: server, colo: 'ARN' }), { headers: { 'content-type': 'application/json' } })
+    }) as unknown as typeof fetch
+    const r = await measureOffset('/time', fetchFn, clock, 3)
+    expect(r).toMatchObject({ offset: 120, state: 'ok', error: 20, source: 'ARN' })
   })
 
   it('falls back to the Date header, and calls small offsets in sync', async () => {
     const now = Date.UTC(2026, 6, 10, 18, 0, 0)
     const r = await measureOffset('/', res({ date: new Date(now).toUTCString() }), () => now)
-    expect(r).toEqual({ offset: 0, state: 'ok' })
+    expect(r).toMatchObject({ offset: 0, state: 'ok', error: 1000 })
   })
 
   it('stays on device time when the request fails', async () => {

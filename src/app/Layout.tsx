@@ -64,16 +64,20 @@ function EventName() {
 function MasterClock() {
   const tz = useTz()
   const now = useNow()
-  const { state, offset } = useSyncState()
+  const { state, offset, error, source, at } = useSyncState()
   const conn = useConnection()
   const city = tzCity(tz)
   const offline = conn === 'offline'
-  const label = offline ? 'Offline · reconnecting' : state === 'ok' ? `Synced · ${city}` : state === 'corrected' ? `Corrected ${Math.round(offset / 1000)}s · ${city}` : `Device time · ${city}`
+  const within = error != null && error < 1000 ? ` ±${error} ms` : ''
+  const label = offline ? 'Offline · reconnecting' : state === 'ok' ? `Synced${within} · ${city}` : state === 'corrected' ? `Corrected ${Math.round(offset / 1000)}s · ${city}` : `Device time · ${city}`
+  const detail = state === 'device'
+    ? 'Could not reach the server clock, so this is the device’s own time.'
+    : `Server time${source ? ` from Cloudflare ${source}` : ''}. This device was ${Math.abs(offset)} ms ${offset >= 0 ? 'behind' : 'ahead'}${error != null ? `, now within ±${error} ms` : ''}.${at ? ` Checked ${fmtTime(at, tz, true)}.` : ''}`
   const color = offline ? '#FF6764' : state === 'device' ? '#8E9AB1' : state === 'corrected' ? '#F1B734' : '#45C982'
   return (
     <div className="master">
       <span className="t" aria-label="Current time">{fmtTime(now, tz, true)}</span>
-      <span className="sync" style={{ ['--c' as string]: color }} role="status">{label}</span>
+      <span className="sync" style={{ ['--c' as string]: color }} role="status" title={detail}>{label}</span>
     </div>
   )
 }

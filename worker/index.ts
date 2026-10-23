@@ -22,7 +22,8 @@ const json = (body: unknown, status = 200) => Response.json(body, { status, head
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url)
-    if (url.pathname === '/time') return json({ now: Date.now() })
+    // `colo` is the Cloudflare data centre that answered; its clock is Cloudflare's NTP-synced time.
+    if (url.pathname === '/time') return json({ now: Date.now(), colo: (request.cf?.colo as string | undefined) ?? null })
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request)
 
     const auth = await authenticate(request, env)

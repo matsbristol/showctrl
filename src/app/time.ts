@@ -2,12 +2,9 @@
 // the server offset applied, so every component shows the same second.
 
 import { createContext, useCallback, useContext, useSyncExternalStore } from 'react'
-import type { SyncState } from '../lib/clockSync'
+import type { SyncResult } from '../lib/clockSync'
 
-export interface TimeSync {
-  offset: number
-  state: SyncState
-}
+export type TimeSync = SyncResult
 
 export const TimeContext = createContext<TimeSync>({ offset: 0, state: 'device' })
 
@@ -15,13 +12,17 @@ export const TimeContext = createContext<TimeSync>({ offset: 0, state: 'device' 
 
 const listeners = new Set<() => void>()
 let timer: ReturnType<typeof setTimeout> | null = null
+let tickOffset = 0
+
+/** The ticker fires on the server's whole seconds, so every device flips its displays together. */
+export function setTickOffset(ms: number) { tickOffset = ms }
 
 function schedule() {
-  // Fire just after each whole second, so displays flip together.
+  const now = Date.now() + tickOffset
   timer = setTimeout(() => {
     listeners.forEach(l => l())
     schedule()
-  }, 1000 - (Date.now() % 1000) + 5)
+  }, 1000 - (((now % 1000) + 1000) % 1000) + 5)
 }
 
 function subscribeTick(l: () => void) {

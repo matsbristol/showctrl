@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import App from './App'
 import LandingPage from './pages/LandingPage'
 import EventsPage from './pages/EventsPage'
@@ -46,7 +46,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         <DepartmentStatusProvider>
                       <BrowserRouter>
                         <Routes>
-            <Route index element={<LandingPage />} />
+            <Route index element={<Navigate to="/hq" replace />} />
+            <Route path="/old" element={<LandingPage />} />
             {showctrlRoutes()}
             <Route element={<App />}>
               <Route path="/events" element={<EventsPage />} />

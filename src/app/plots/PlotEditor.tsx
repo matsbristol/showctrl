@@ -13,6 +13,14 @@ import { useServerTime } from '../time'
 const DEFAULT_W = 14
 const DEFAULT_D = 9
 const round = (n: number) => Math.round(n * 10) / 10
+const ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
+
+/** Half the width and depth of the box around an item once rotated, for placing its label. */
+function halfExtent(it: Pick<PlotItem, 'w' | 'd' | 'rot'>) {
+  const r = ((it.rot ?? 0) * Math.PI) / 180
+  const c = Math.abs(Math.cos(r)), s = Math.abs(Math.sin(r))
+  return { hw: (it.w / 2) * c + (it.d / 2) * s, hd: (it.w / 2) * s + (it.d / 2) * c }
+}
 
 export function PlotEditor({ artist }: { artist: Artist }) {
   const a = useAccess()
@@ -40,6 +48,8 @@ export function PlotEditor({ artist }: { artist: Artist }) {
     if (!plot) await store.set('plots', artist.id, { artist: artist.id, items: {}, width: W, depth: D, notes: '', updated: now() })
   }
   const patch = (id: Id, p: Partial<PlotItem>) => store.update('plots', artist.id, { items: { [id]: p }, updated: now() })
+
+  const rotate = (it: PlotItem, by: number) => patch(it.id, { rot: (((it.rot ?? 0) + by) % 360 + 360) % 360 })
 
   const add = async (kind: PlotKind) => {
     await ensure()
@@ -100,14 +110,20 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             const x = drag?.id === it.id ? drag.x : it.x
             const y = drag?.id === it.id ? drag.y : it.y
             const round = it.kind === 'vocal' || it.kind === 'mic' || it.kind === 'person'
+            const { hd } = halfExtent(it)
             return (
               <g key={it.id} className={`plot-item pk-${it.kind}${sel === it.id ? ' sel' : ''}${w ? ' movable' : ''}`}
-                transform={`translate(${x} ${D - y})`} onPointerDown={e => down(e, it)} tabIndex={0} aria-label={it.label}>
-                {round
-                  ? <ellipse rx={it.w / 2} ry={it.d / 2} />
-                  : <rect x={-it.w / 2} y={-it.d / 2} width={it.w} height={it.d} rx={0.06} />}
-                {/* Small items are labelled underneath; riser labels are drawn last, on top. */}
-                {it.kind !== 'riser' && <text y={Math.min(it.w, it.d) < 0.6 ? it.d / 2 + 0.24 : 0.02} className="plot-label">{it.label}</text>}
+                transform={`translate(${x} ${D - y})`} onPointerDown={e => down(e, it)} tabIndex={0} aria-label={it.label}
+                onKeyDown={e => { if (w && (e.key === 'r' || e.key === 'R')) { e.preventDefault(); void rotate(it, e.shiftKey ? -90 : 90) } }}>
+                <g transform={it.rot ? `rotate(${it.rot})` : undefined}>
+                  {round
+                    ? <ellipse rx={it.w / 2} ry={it.d / 2} />
+                    : <rect x={-it.w / 2} y={-it.d / 2} width={it.w} height={it.d} rx={0.06} />}
+                  {/* A notch on the front edge, so you can see which way an item faces. */}
+                  {!round && it.kind !== 'power' && it.kind !== 'di' && <line x1={-Math.min(it.w, 0.6) / 2} x2={Math.min(it.w, 0.6) / 2} y1={it.d / 2 - 0.05} y2={it.d / 2 - 0.05} className="plot-front-edge" />}
+                </g>
+                {/* Labels stay upright. Small items are labelled underneath; riser labels are drawn last, on top. */}
+                {it.kind !== 'riser' && <text y={Math.min(it.w, it.d) < 0.6 ? hd + 0.24 : 0.02} className="plot-label">{it.label}</text>}
               </g>
             )
           })}
@@ -116,8 +132,8 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             const y = drag?.id === it.id ? drag.y : it.y
             return (
               <g key={`lbl-${it.id}`} transform={`translate(${x} ${D - y})`} className="plot-riser-label">
-                <text y={it.d / 2 + 0.26} className="plot-label">{it.label}</text>
-                <text y={it.d / 2 + 0.5} className="plot-sub">{it.size} · {it.height} cm{it.rolling ? ' · rolling' : ''}</text>
+                <text y={halfExtent(it).hd + 0.26} className="plot-label">{it.label}</text>
+                <text y={halfExtent(it).hd + 0.5} className="plot-sub">{it.size} · {it.height} cm{it.rolling ? ' · rolling' : ''}</text>
               </g>
             )
           })}
@@ -125,7 +141,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
       </div>
       {selected && (
         <section className="panel no-print">
-          <div className="ph"><h3>{selected.label}</h3><span className="small muted">{PLOT_KINDS[selected.kind].label} · {selected.x} m from left, {selected.y} m from the front</span></div>
+          <div className="ph"><h3>{selected.label}</h3><span className="small muted">{PLOT_KINDS[selected.kind].label} · {selected.x} m from left, {selected.y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</span></div>
           {w ? (
             <div className="pb row plot-props">
               <label className="fld"><span>Label</span><input defaultValue={selected.label} key={`l${selected.id}`} onBlur={e => void patch(selected.id, { label: e.target.value || PLOT_KINDS[selected.kind].label })} /></label>
@@ -145,6 +161,13 @@ export function PlotEditor({ artist }: { artist: Artist }) {
                   <label className="fld"><span>Depth (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.d} key={`d${selected.id}`} onBlur={e => void patch(selected.id, { d: Number(e.target.value) || selected.d })} /></label>
                 </>
               )}
+              <label className="fld"><span>Rotation</span>
+                <select value={selected.rot ?? 0} onChange={e => void patch(selected.id, { rot: Number(e.target.value) })}>
+                  {ANGLES.map(a => <option key={a} value={a}>{a}°</option>)}
+                  {!ANGLES.includes(selected.rot ?? 0) && <option value={selected.rot}>{selected.rot}°</option>}
+                </select>
+              </label>
+              <button type="button" className="btn" style={{ alignSelf: 'flex-end' }} title="Shortcut: R (Shift+R turns the other way)" onClick={() => void rotate(selected, 90)}>Rotate 90°</button>
               <button type="button" className="btn danger" style={{ marginLeft: 'auto', alignSelf: 'flex-end' }} onClick={() => { void store.update('plots', artist.id, { items: { [selected.id]: undefined } }); setSel(null) }}>Remove</button>
             </div>
           ) : null}

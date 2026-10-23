@@ -377,6 +377,8 @@ export interface PlotItem {
   height?: number
   /** Risers: on wheels, so it can be built off stage and rolled on. */
   rolling?: boolean
+  /** Rotation in degrees, clockwise as drawn on the plot. */
+  rot?: number
 }
 
 /** A performer's stage plot. Id is the artist id. */

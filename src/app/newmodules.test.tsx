@@ -83,6 +83,22 @@ describe('input lists and plots', () => {
     expect(Object.values(store.peek('plots').a14.items).find(i => i.kind === 'riser' && i.height === 60)).toBeTruthy()
   })
 
+  it('rotates a riser with the button, the angle list and the R key', async () => {
+    const store = mount('/s/forest/plots?act=a14', 'demo-sm-forest')
+    await click(screen.getByRole('button', { name: '+ Riser' }))
+    const riser = () => Object.values(store.peek('plots').a14.items).find(i => i.kind === 'riser' && i.label === 'Riser')!
+    await click(screen.getByRole('button', { name: 'Rotate 90°' }))
+    expect(riser().rot).toBe(90)
+    await act(async () => { fireEvent.change(screen.getByLabelText('Rotation'), { target: { value: '45' } }) })
+    expect(riser().rot).toBe(45)
+    const g = document.querySelector<SVGGElement>(`g.plot-item[aria-label="Riser"]`)!
+    await act(async () => { fireEvent.keyDown(g, { key: 'r' }) })
+    expect(riser().rot).toBe(135)
+    await act(async () => { fireEvent.keyDown(g, { key: 'R', shiftKey: true }) })
+    expect(riser().rot).toBe(45)
+    expect(g.querySelector('g')?.getAttribute('transform')).toBe('rotate(45)')
+  })
+
   it('checks riser stock against the plots and flags shortages', async () => {
     const store = mount('/s/tent/risers', 'demo-sm-tent')
     await blur(screen.getByLabelText('8x8 ft decks'), '0')

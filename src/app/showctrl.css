@@ -590,3 +590,4 @@
    Plot items show focus the same way as selection instead. */
 .sc .plot-item:focus, .sc .plot-item:focus-visible { outline: none }
 .sc .plot-item:focus-visible rect, .sc .plot-item:focus-visible ellipse { stroke: var(--accent); stroke-width: .08 }
+.sc .plot-front-edge { stroke: var(--pc, var(--ink3)); stroke-width: .07; stroke-linecap: round; pointer-events: none }

@@ -1,11 +1,13 @@
 import { useRunOfShow } from '../context/RunOfShowContext'
 import { usePerformerReadiness } from '../context/PerformerReadinessContext'
 import { usePerformersContext } from '../context/PerformersContext'
+import { useStages } from '../context/StagesContext'
 
 export default function CuesPage() {
   const { currentRunOfShow } = useRunOfShow()
   const { cues, updateCueStatus } = usePerformerReadiness()
   const { getArtistName } = usePerformersContext()
+  const { getStageName } = useStages()
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp)
@@ -93,20 +95,22 @@ export default function CuesPage() {
                     <span className="label">Start Time:</span>
                     <span className="value">{formatTime(item.startTime)}</span>
                   </div>
-                  <div className="cue-detail">
-                    <span className="label">Duration:</span>
-                    <span className="value">
-                      {Math.floor(item.duration / 1000 / 60)} min
-                    </span>
-                  </div>
+                  {item.endTime && (
+                    <div className="cue-detail">
+                      <span className="label">End Time:</span>
+                      <span className="value">{formatTime(item.endTime)}</span>
+                    </div>
+                  )}
                   <div className="cue-detail">
                     <span className="label">Stage:</span>
-                    <span className="value">{item.stage}</span>
+                    <span className="value">{getStageName(item.stage) || item.stage}</span>
                   </div>
-                  <div className="cue-detail">
-                    <span className="label">Department:</span>
-                    <span className="value">{item.department}</span>
-                  </div>
+                  {item.departments.length > 0 && (
+                    <div className="cue-detail">
+                      <span className="label">Departments:</span>
+                      <span className="value">{item.departments.map((d) => d.replace('-', ' ')).join(', ')}</span>
+                    </div>
+                  )}
                 </div>
 
                 {item.performers.length > 0 && (

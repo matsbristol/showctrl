@@ -45,6 +45,10 @@ export default function Sidebar() {
             <span className="sidebar-icon">○</span>
             Hospitality
           </Link>
+          <Link to="/department-status" className="sidebar-link">
+            <span className="sidebar-icon">◈</span>
+            Dept Status
+          </Link>
         </div>
         <div className="sidebar-section sidebar-section-admin">
           <Link to="/admin/settings" className={`sidebar-link ${isActive('/admin/settings')}`}>

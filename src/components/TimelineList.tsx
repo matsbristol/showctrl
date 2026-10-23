@@ -1,5 +1,6 @@
 import { useRunOfShow, type TimelineItem } from '../context/RunOfShowContext'
 import { usePerformersContext } from '../context/PerformersContext'
+import { useStages } from '../context/StagesContext'
 
 interface TimelineListProps {
   items: TimelineItem[]
@@ -9,6 +10,7 @@ interface TimelineListProps {
 export default function TimelineList({ items, onEdit }: TimelineListProps) {
   const { deleteTimelineItem } = useRunOfShow()
   const { getArtistName } = usePerformersContext()
+  const { getStageName } = useStages()
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp)
@@ -54,6 +56,10 @@ export default function TimelineList({ items, onEdit }: TimelineListProps) {
     return colors[dept] || '#6b7280'
   }
 
+  const getPrimaryDepartmentColor = (departments: string[]) => {
+    return departments.length > 0 ? getDepartmentColor(departments[0]) : '#6b7280'
+  }
+
   const totalDuration = items.length > 0
     ? items[items.length - 1].endTime || items[items.length - 1].startTime
     : 0
@@ -76,7 +82,7 @@ export default function TimelineList({ items, onEdit }: TimelineListProps) {
           <div key={item.id} className="timeline-item">
             <div className="item-index">{index + 1}</div>
 
-            <div className="item-marker" style={{ borderLeftColor: getDepartmentColor(item.department) }}>
+            <div className="item-marker" style={{ borderLeftColor: getPrimaryDepartmentColor(item.departments) }}>
               <div className="item-type-icon">{getItemTypeIcon(item.type)}</div>
             </div>
 
@@ -101,17 +107,24 @@ export default function TimelineList({ items, onEdit }: TimelineListProps) {
                 )}
                 <div className="meta-row">
                   <span className="meta-label">Stage:</span>
-                  <span className="meta-value">{item.stage}</span>
+                  <span className="meta-value">{getStageName(item.stage) || item.stage}</span>
                 </div>
-                <div className="meta-row">
-                  <span className="meta-label">Department:</span>
-                  <span
-                    className="meta-badge"
-                    style={{ background: getDepartmentColor(item.department) }}
-                  >
-                    {item.department}
-                  </span>
-                </div>
+                {item.departments.length > 0 && (
+                  <div className="meta-row">
+                    <span className="meta-label">Depts:</span>
+                    <div className="departments-list">
+                      {item.departments.map((dept) => (
+                        <span
+                          key={dept}
+                          className="meta-badge"
+                          style={{ background: getDepartmentColor(dept) }}
+                        >
+                          {dept.replace('-', ' ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {item.performers.length > 0 && (
@@ -119,8 +132,6 @@ export default function TimelineList({ items, onEdit }: TimelineListProps) {
                   <strong>Artists:</strong> {item.performers.map((perfId) => getArtistName(perfId) || perfId).join(', ')}
                 </div>
               )}
-
-              {item.notes && <div className="item-notes">{item.notes}</div>}
             </div>
 
             <div className="item-actions">

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useRunOfShow, type TimelineItem, type TimelineItemType } from '../context/RunOfShowContext'
 import { usePerformersContext } from '../context/PerformersContext'
+import { useStages } from '../context/StagesContext'
 
 const DEPARTMENTS = [
   'stage-manager',
@@ -13,8 +14,6 @@ const DEPARTMENTS = [
   'talent-liaison',
 ]
 
-const STAGES = ['main', 'secondary', 'vip-lounge', 'outdoor']
-
 const ITEM_TYPES: TimelineItemType[] = ['transition', 'performer-entry', 'technical', 'break']
 
 interface TimelineItemFormProps {
@@ -25,13 +24,16 @@ interface TimelineItemFormProps {
 export default function TimelineItemForm({ item, onClose }: TimelineItemFormProps) {
   const { addTimelineItem, updateTimelineItem, currentRunOfShow } = useRunOfShow()
   const { artists } = usePerformersContext()
+  const { stages } = useStages()
+  const defaultStageId = stages.length > 0 ? stages[0].id : 'main'
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     clockTime: '14:00',
     endClockTime: '',
-    department: 'stage-manager',
-    stage: 'main',
+    departments: [] as string[],
+    stage: defaultStageId,
     performers: [] as string[],
     notes: '',
     type: 'performer-entry' as TimelineItemType,
@@ -58,7 +60,7 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
         description: item.description || '',
         clockTime,
         endClockTime,
-        department: item.department,
+        departments: item.departments,
         stage: item.stage,
         performers: item.performers,
         notes: item.notes || '',
@@ -106,7 +108,7 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
         description: formData.description,
         startTime: startTimeMs,
         endTime: endTimeMs,
-        department: formData.department,
+        departments: formData.departments,
         stage: formData.stage,
         performers: formData.performers,
         notes: formData.notes,
@@ -118,7 +120,7 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
         description: formData.description,
         startTime: startTimeMs,
         endTime: endTimeMs,
-        department: formData.department,
+        departments: formData.departments,
         stage: formData.stage,
         performers: formData.performers,
         notes: formData.notes,
@@ -131,8 +133,8 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
       description: '',
       clockTime: '14:00',
       endClockTime: '',
-      department: 'stage-manager',
-      stage: 'main',
+      departments: [],
+      stage: defaultStageId,
       performers: [],
       notes: '',
       type: 'performer-entry',
@@ -187,6 +189,14 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
     setFormData({
       ...formData,
       performers: selectedOptions,
+    })
+  }
+
+  const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
+    setFormData({
+      ...formData,
+      departments: selectedOptions,
     })
   }
 
@@ -258,23 +268,30 @@ export default function TimelineItemForm({ item, onClose }: TimelineItemFormProp
         <div className="form-group">
           <label>Stage *</label>
           <select name="stage" value={formData.stage} onChange={handleChange} required>
-            {STAGES.map((stage) => (
-              <option key={stage} value={stage}>
-                {stage.charAt(0).toUpperCase() + stage.slice(1).replace('-', ' ')}
+            {stages.map((stage) => (
+              <option key={stage.id} value={stage.id}>
+                {stage.name}
               </option>
             ))}
           </select>
         </div>
-        <div className="form-group">
-          <label>Department</label>
-          <select name="department" value={formData.department} onChange={handleChange}>
-            {DEPARTMENTS.map((dept) => (
-              <option key={dept} value={dept}>
-                {dept.charAt(0).toUpperCase() + dept.slice(1).replace('-', ' ')}
-              </option>
-            ))}
-          </select>
-        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Departments</label>
+        <select
+          multiple
+          value={formData.departments}
+          onChange={handleDepartmentChange}
+          className="form-select-multiple"
+        >
+          {DEPARTMENTS.map((dept) => (
+            <option key={dept} value={dept}>
+              {dept.charAt(0).toUpperCase() + dept.slice(1).replace('-', ' ')}
+            </option>
+          ))}
+        </select>
+        <div className="form-help">Hold Ctrl/Cmd to select multiple departments</div>
       </div>
 
       <div className="form-group">

@@ -4,6 +4,7 @@ import { useHospitality } from '../context/HospitalityContext'
 import { useTravel } from '../context/TravelContext'
 import { useCrew } from '../context/CrewContext'
 import { useRiserPlanning } from '../context/RiserPlanningContext'
+import { useStages } from '../context/StagesContext'
 
 export default function OperationsDashboard() {
   const { currentRunOfShow } = useRunOfShow()
@@ -12,6 +13,7 @@ export default function OperationsDashboard() {
   const { travelEntries } = useTravel()
   const { crew } = useCrew()
   const { risers } = useRiserPlanning()
+  const { getStageName } = useStages()
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp)
@@ -64,7 +66,7 @@ export default function OperationsDashboard() {
                   <div className="operation-header">
                     <div className="operation-artist">
                       <h3>{artistName}</h3>
-                      <span className="stage-badge">{item.stage}</span>
+                      <span className="stage-badge">{getStageName(item.stage) || item.stage}</span>
                     </div>
                     <div className="operation-time">
                       <span className="time-display">{formatTime(item.startTime)}</span>
@@ -79,14 +81,18 @@ export default function OperationsDashboard() {
                         <span className="label">Event:</span>
                         <span className="value">{item.name}</span>
                       </div>
-                      <div className="info-item">
-                        <span className="label">Duration:</span>
-                        <span className="value">{Math.floor(item.duration / 1000 / 60)} min</span>
-                      </div>
-                      <div className="info-item">
-                        <span className="label">Department:</span>
-                        <span className="value">{item.department}</span>
-                      </div>
+                      {item.endTime && (
+                        <div className="info-item">
+                          <span className="label">Duration:</span>
+                          <span className="value">{Math.floor((item.endTime - item.startTime) / 1000 / 60)} min</span>
+                        </div>
+                      )}
+                      {item.departments.length > 0 && (
+                        <div className="info-item">
+                          <span className="label">Departments:</span>
+                          <span className="value">{item.departments.map((d) => d.replace('-', ' ')).join(', ')}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 

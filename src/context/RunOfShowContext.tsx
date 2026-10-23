@@ -9,7 +9,7 @@ export interface TimelineItem {
   description?: string
   startTime: number // Unix timestamp
   endTime?: number // Unix timestamp, optional
-  department: string
+  departments: string[] // department names
   stage: string
   performers: string[] // artist IDs
   notes?: string
@@ -41,7 +41,17 @@ const RunOfShowContext = createContext<RunOfShowContextType | undefined>(undefin
 export function RunOfShowProvider({ children }: { children: ReactNode }) {
   const [currentRunOfShow, setCurrentRunOfShow] = useState<RunOfShow | null>(() => {
     const stored = localStorage.getItem('showctrl_runofshow')
-    if (stored) return JSON.parse(stored)
+    if (stored) {
+      const data = JSON.parse(stored)
+      // Migrate old department field to departments array
+      if (data.items) {
+        data.items = data.items.map((item: any) => ({
+          ...item,
+          departments: item.departments || (item.department ? [item.department] : []),
+        }))
+      }
+      return data
+    }
 
     // Seed data for testing
     return {
@@ -58,7 +68,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           description: 'House opens, audience entry begins',
           startTime: 0,
           endTime: 900000,
-          department: 'venue',
+          departments: ['stage-manager', 'security'],
           stage: 'main',
           performers: [],
           notes: 'Full capacity: 5000 people'
@@ -70,7 +80,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           description: 'First performance of the day',
           startTime: 900000,
           endTime: 2700000,
-          department: 'stage',
+          departments: ['stage-manager', 'tech-lead', 'lighting', 'sound'],
           stage: 'main',
           performers: ['artist-1'],
           notes: 'Sound check at 10 mins before'
@@ -82,7 +92,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           description: 'Stage reset for headliner',
           startTime: 2700000,
           endTime: 3300000,
-          department: 'technical',
+          departments: ['tech-lead', 'lighting', 'stagehands'],
           stage: 'main',
           performers: [],
           notes: 'Lighting reset, stage setup'
@@ -94,7 +104,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           description: 'Main headline act',
           startTime: 3300000,
           endTime: 6900000,
-          department: 'stage',
+          departments: ['stage-manager', 'tech-lead', 'lighting', 'sound', 'talent-liaison'],
           stage: 'main',
           performers: ['artist-2'],
           notes: 'VIP meet & greet after show'
@@ -105,7 +115,7 @@ export function RunOfShowProvider({ children }: { children: ReactNode }) {
           type: 'break',
           description: 'Event wrap-up',
           startTime: 6900000,
-          department: 'venue',
+          departments: ['stage-manager', 'stagehands', 'security'],
           stage: 'main',
           performers: [],
           notes: 'Expected completion 8:45 PM'

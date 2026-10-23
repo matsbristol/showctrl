@@ -14,6 +14,7 @@ import AdminSettingsPage from './pages/AdminSettingsPage'
 import StageManagerPage from './pages/StageManagerPage'
 import HospitalityPage from './pages/HospitalityPage'
 import OperationsDashboard from './pages/OperationsDashboard'
+import DepartmentStatusPage from './pages/DepartmentStatusPage'
 import { ClockProvider } from './context/ClockContext'
 import { SettingsProvider } from './context/SettingsContext'
 import { RunOfShowProvider } from './context/RunOfShowContext'
@@ -25,6 +26,7 @@ import { TravelProvider } from './context/TravelContext'
 import { HospitalityProvider } from './context/HospitalityContext'
 import { PerformersContextProvider } from './context/PerformersContext'
 import { StagesProvider } from './context/StagesContext'
+import { DepartmentStatusProvider } from './context/DepartmentStatusContext'
 import { showctrlRoutes } from './app/routes'
 import './index.css'
 
@@ -41,6 +43,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <RiserPlanningProvider>
                     <TravelProvider>
                       <HospitalityProvider>
+                        <DepartmentStatusProvider>
                       <BrowserRouter>
                         <Routes>
             <Route index element={<LandingPage />} />
@@ -56,10 +59,12 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/cues" element={<CuesPage />} />
               <Route path="/hospitality" element={<HospitalityPage />} />
               <Route path="/operations" element={<OperationsDashboard />} />
+              <Route path="/department-status" element={<DepartmentStatusPage />} />
               <Route path="/admin/settings" element={<AdminSettingsPage />} />
             </Route>
                         </Routes>
                       </BrowserRouter>
+                        </DepartmentStatusProvider>
                     </HospitalityProvider>
                   </TravelProvider>
                 </RiserPlanningProvider>

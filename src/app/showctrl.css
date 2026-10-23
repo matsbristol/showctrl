@@ -586,3 +586,7 @@
 .sc .prodlinks li { display: grid; grid-template-columns: 6.5rem 1fr; gap: .6rem; font-size: .9rem }
 .sc .pl-k { color: var(--ink2); font-weight: 700; font-size: .82rem; padding-top: .05rem }
 .sc .pl-line { display: block }
+/* The browser's focus ring would be drawn in plot units (metres), i.e. several metres wide.
+   Plot items show focus the same way as selection instead. */
+.sc .plot-item:focus, .sc .plot-item:focus-visible { outline: none }
+.sc .plot-item:focus-visible rect, .sc .plot-item:focus-visible ellipse { stroke: var(--accent); stroke-width: .08 }

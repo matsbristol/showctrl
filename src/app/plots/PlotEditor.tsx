@@ -74,8 +74,9 @@ export function PlotEditor({ artist }: { artist: Artist }) {
     setDrag(null)
   }
 
-  // Draw risers first, so instruments sit on top of them.
-  const ordered = [...items].sort((x, y) => (x.kind === 'riser' ? 0 : 1) - (y.kind === 'riser' ? 0 : 1))
+  // Draw risers first so instruments sit on top of them, and the item being moved or selected last, on top of everything.
+  const layer = (i: PlotItem) => (i.id === drag?.id || i.id === sel ? 2 : i.kind === 'riser' ? 0 : 1)
+  const ordered = [...items].sort((x, y) => layer(x) - layer(y))
 
   return (
     <div className="stack" style={{ gap: '1rem', minWidth: 0 }}>

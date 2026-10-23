@@ -591,3 +591,19 @@
 .sc .plot-item:focus, .sc .plot-item:focus-visible { outline: none }
 .sc .plot-item:focus-visible rect, .sc .plot-item:focus-visible ellipse { stroke: var(--accent); stroke-width: .08 }
 .sc .plot-front-edge { stroke: var(--pc, var(--ink3)); stroke-width: .07; stroke-linecap: round; pointer-events: none }
+
+/* Item editor that pops up next to the selected plot item */
+.sc .plot-wrap { position: relative }
+.sc .plot-pop { position: absolute; left: 0; top: 0; z-index: 5; width: 17.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .65rem .75rem .75rem; box-shadow: 0 10px 28px rgba(0, 0, 0, .35) }
+.sc .plot-pop::before { content: ""; position: absolute; top: 50%; width: 10px; height: 10px; background: var(--surface); border: 1px solid var(--line); transform: translateY(-50%) rotate(45deg) }
+.sc .plot-pop[data-side="right"]::before { left: -6px; border-right: 0; border-top: 0 }
+.sc .plot-pop[data-side="left"]::before { right: -6px; border-left: 0; border-bottom: 0 }
+.sc .plot-pop[data-side="below"]::before { top: -6px; left: calc(50% - 5px); transform: rotate(45deg); border-right: 0; border-bottom: 0 }
+.sc .pp-head { display: flex; align-items: center; gap: .5rem }
+.sc .pp-head b { font-family: var(--display); font-size: 1.1rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sc .pp-close { margin-left: auto; background: none; border: 0; color: var(--ink2); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0 .2rem }
+.sc .plot-pop > p { margin: .1rem 0 .55rem }
+.sc .pp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .6rem }
+.sc .pp-grid .pp-full { grid-column: 1 / -1 }
+.sc .pp-grid .fld input, .sc .pp-grid .fld select { padding: .35rem .45rem }
+.sc .pp-actions { display: flex; justify-content: flex-end; margin-top: .6rem; padding-top: .55rem; border-top: 1px solid var(--line) }

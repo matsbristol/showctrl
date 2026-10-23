@@ -1,7 +1,7 @@
 // A stage plot, to scale, seen from FOH (audience at the bottom). Items are dragged into place;
 // a move is saved when the drag ends, one item at a time, so two people can work on one plot.
 
-import { useRef, useState, type PointerEvent as RPointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react'
 import { useCollection, useStore } from '../../data/hooks'
 import { rid } from '../../lib/id'
 import { riserText } from '../../lib/summary'
@@ -35,7 +35,37 @@ export function PlotEditor({ artist }: { artist: Artist }) {
   const [sel, setSel] = useState<Id | null>(null)
   const [drag, setDrag] = useState<{ id: Id; dx: number; dy: number; x: number; y: number } | null>(null)
   const svg = useRef<SVGSVGElement>(null)
+  const wrap = useRef<HTMLDivElement>(null)
+  const pop = useRef<HTMLDivElement>(null)
   const selected = sel ? plot?.items[sel] : undefined
+
+  // Place the item editor next to the selected item: right of it, else left, else underneath
+  // (narrow screens), kept inside the plot area. Positioned directly, so it follows every change.
+  const place = () => {
+    const el = pop.current, box = wrap.current, m = svg.current?.getScreenCTM()
+    if (!el || !box || !m || !selected) return
+    const { hw, hd } = halfExtent(selected)
+    const pt = (x: number, y: number) => new DOMPoint(x, y).matrixTransform(m)
+    const cx = selected.x, cy = D - selected.y
+    const right = pt(cx + hw, cy), left = pt(cx - hw, cy), below = pt(cx, cy + hd)
+    const b = box.getBoundingClientRect()
+    const pw = el.offsetWidth, ph = el.offsetHeight, gap = 14
+    let x: number, y: number, side: string
+    if (right.x + gap + pw <= b.right - 8) { x = right.x + gap - b.left; y = right.y - b.top - ph / 2; side = 'right' }
+    else if (left.x - gap - pw >= b.left + 8) { x = left.x - gap - pw - b.left; y = left.y - b.top - ph / 2; side = 'left' }
+    else { x = below.x - b.left - pw / 2; y = below.y - b.top + gap; side = 'below' }
+    el.style.left = `${Math.max(8, Math.min(x, b.width - pw - 8))}px`
+    el.style.top = `${Math.max(8, Math.min(y, b.height - ph - 8))}px`
+    el.dataset.side = side
+  }
+  useLayoutEffect(place)
+  useEffect(() => {
+    if (!selected) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSel(null) }
+    window.addEventListener('resize', place)
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('resize', place); window.removeEventListener('keydown', onKey) }
+  })
 
   const toStage = (e: { clientX: number; clientY: number }) => {
     const m = svg.current?.getScreenCTM()
@@ -97,7 +127,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
           ))}
         </div>
       )}
-      <div className="plot-wrap">
+      <div className="plot-wrap" ref={wrap}>
         <svg ref={svg} className="plot" viewBox={`-0.5 -0.5 ${W + 1} ${D + 1.6}`} onPointerMove={move} onPointerUp={up} onPointerLeave={up}
           role="img" aria-label={`Stage plot for ${artist.name}, ${W} by ${D} metres`}>
           <rect x={0} y={0} width={W} height={D} className="plot-stage" onPointerDown={() => setSel(null)} />
@@ -138,41 +168,49 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             )
           })}
         </svg>
-      </div>
-      {selected && (
-        <section className="panel no-print">
-          <div className="ph"><h3>{selected.label}</h3><span className="small muted">{PLOT_KINDS[selected.kind].label} · {selected.x} m from left, {selected.y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</span></div>
-          {w ? (
-            <div className="pb row plot-props">
-              <label className="fld"><span>Label</span><input defaultValue={selected.label} key={`l${selected.id}`} onBlur={e => void patch(selected.id, { label: e.target.value || PLOT_KINDS[selected.kind].label })} /></label>
-              {selected.kind === 'riser' ? (
-                <>
-                  <label className="fld"><span>Deck</span>
-                    <select value={selected.size} onChange={e => { const s = e.target.value as RiserSize; void patch(selected.id, { size: s, w: RISER_SIZES[s].w, d: RISER_SIZES[s].d }) }}>
-                      {(Object.keys(RISER_SIZES) as RiserSize[]).map(s => <option key={s} value={s}>{s} ft</option>)}
+        {selected && !drag && (
+          <div ref={pop} className="plot-pop no-print" role="dialog" aria-label={`Edit ${selected.label}`}>
+            <div className="pp-head">
+              <b>{selected.label}</b>
+              <button type="button" className="pp-close" aria-label="Close" onClick={() => setSel(null)}>×</button>
+            </div>
+            <p className="small muted">{PLOT_KINDS[selected.kind].label} · {selected.x} m from left, {selected.y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</p>
+            {w && (
+              <>
+                <div className="pp-grid">
+                  <label className="fld pp-full"><span>Label</span><input defaultValue={selected.label} key={`l${selected.id}`} onBlur={e => void patch(selected.id, { label: e.target.value || PLOT_KINDS[selected.kind].label })} /></label>
+                  {selected.kind === 'riser' ? (
+                    <>
+                      <label className="fld"><span>Deck</span>
+                        <select value={selected.size} onChange={e => { const sz = e.target.value as RiserSize; void patch(selected.id, { size: sz, w: RISER_SIZES[sz].w, d: RISER_SIZES[sz].d }) }}>
+                          {(Object.keys(RISER_SIZES) as RiserSize[]).map(sz => <option key={sz} value={sz}>{sz} ft</option>)}
+                        </select>
+                      </label>
+                      <label className="fld"><span>Height (cm)</span><input type="number" min={0} step={10} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>
+                      <label className="row small pp-full"><input type="checkbox" checked={!!selected.rolling} onChange={e => void patch(selected.id, { rolling: e.target.checked })} /> Rolling</label>
+                    </>
+                  ) : (
+                    <>
+                      <label className="fld"><span>Width (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.w} key={`w${selected.id}`} onBlur={e => void patch(selected.id, { w: Number(e.target.value) || selected.w })} /></label>
+                      <label className="fld"><span>Depth (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.d} key={`d${selected.id}`} onBlur={e => void patch(selected.id, { d: Number(e.target.value) || selected.d })} /></label>
+                    </>
+                  )}
+                  <label className="fld"><span>Rotation</span>
+                    <select value={selected.rot ?? 0} onChange={e => void patch(selected.id, { rot: Number(e.target.value) })}>
+                      {ANGLES.map(a => <option key={a} value={a}>{a}°</option>)}
+                      {!ANGLES.includes(selected.rot ?? 0) && <option value={selected.rot}>{selected.rot}°</option>}
                     </select>
                   </label>
-                  <label className="fld"><span>Height (cm)</span><input type="number" min={0} step={10} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>
-                  <label className="row small"><input type="checkbox" checked={!!selected.rolling} onChange={e => void patch(selected.id, { rolling: e.target.checked })} /> Rolling</label>
-                </>
-              ) : (
-                <>
-                  <label className="fld"><span>Width (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.w} key={`w${selected.id}`} onBlur={e => void patch(selected.id, { w: Number(e.target.value) || selected.w })} /></label>
-                  <label className="fld"><span>Depth (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.d} key={`d${selected.id}`} onBlur={e => void patch(selected.id, { d: Number(e.target.value) || selected.d })} /></label>
-                </>
-              )}
-              <label className="fld"><span>Rotation</span>
-                <select value={selected.rot ?? 0} onChange={e => void patch(selected.id, { rot: Number(e.target.value) })}>
-                  {ANGLES.map(a => <option key={a} value={a}>{a}°</option>)}
-                  {!ANGLES.includes(selected.rot ?? 0) && <option value={selected.rot}>{selected.rot}°</option>}
-                </select>
-              </label>
-              <button type="button" className="btn" style={{ alignSelf: 'flex-end' }} title="Shortcut: R (Shift+R turns the other way)" onClick={() => void rotate(selected, 90)}>Rotate 90°</button>
-              <button type="button" className="btn danger" style={{ marginLeft: 'auto', alignSelf: 'flex-end' }} onClick={() => { void store.update('plots', artist.id, { items: { [selected.id]: undefined } }); setSel(null) }}>Remove</button>
-            </div>
-          ) : null}
-        </section>
-      )}
+                  <button type="button" className="btn" style={{ alignSelf: 'flex-end' }} title="Shortcut: R (Shift+R turns the other way)" onClick={() => void rotate(selected, 90)}>Rotate 90°</button>
+                </div>
+                <div className="pp-actions">
+                  <button type="button" className="btn sm danger" onClick={() => { void store.update('plots', artist.id, { items: { [selected.id]: undefined } }); setSel(null) }}>Remove</button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
       <section className="panel">
         <div className="pb row small">
           {w ? (

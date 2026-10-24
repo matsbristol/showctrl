@@ -172,6 +172,28 @@ export class EventObject extends DurableObject<Env> {
     else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
   }
 
+  /**
+   * Deletes the event for good: its uploaded files, every record, the change history.
+   * Open connections are closed with code 4004. The Worker removes it from D1 first.
+   */
+  async destroy(): Promise<void> {
+    const id = this.meta('eventId')
+    for (const ws of this.ctx.getWebSockets()) {
+      try { ws.close(4004, 'This event was deleted.') } catch { /* already closed */ }
+    }
+    if (id && this.env.FILES) {
+      let cursor: string | undefined
+      do {
+        const page = await this.env.FILES.list({ prefix: `${id}/`, cursor })
+        if (page.objects.length) await this.env.FILES.delete(page.objects.map(o => o.key))
+        cursor = page.truncated ? page.cursor : undefined
+      } while (cursor)
+    }
+    await this.ctx.storage.deleteAll()
+    this.migrate()
+    this.hub = this.load()
+  }
+
   /* ---------------- WebSockets ---------------- */
 
   async fetch(request: Request): Promise<Response> {

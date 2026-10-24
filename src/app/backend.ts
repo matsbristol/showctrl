@@ -65,6 +65,12 @@ export async function createOrg(name: string): Promise<Id> {
 
 export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
 
+/** Superadmins: delete an event and everything in it. */
+export const deleteEvent = (id: Id) => api<{ ok: true }>(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' })
+
+/** Superadmins: delete a customer that has no events left. */
+export const deleteOrg = (id: Id) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'DELETE' })
+
 export interface EventAdmins { owner: Id; admins: Id[] }
 
 /** Superadmins: who runs an event (Festival admin there, nowhere else). */

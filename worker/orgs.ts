@@ -8,6 +8,8 @@
 //
 //   POST   /api/orgs                       add a customer { name } (superadmins)
 //   PATCH  /api/orgs/:id                   rename it { name } (superadmins)
+//   DELETE /api/orgs/:id                   delete it, once it has no events (superadmins)
+//   DELETE /api/events/:id                 delete an event and everything in it (superadmins)
 //   GET    /api/events/:id/admins          an event's admins (superadmins)
 //   POST   /api/events/:id/admins          appoint one { email } (superadmins)
 //   DELETE /api/events/:id/admins/:email   remove one (superadmins; not the event's creator)
@@ -39,11 +41,35 @@ const body = async (request: Request) => await request.json<Record<string, unkno
 export async function portfolioRoutes(request: Request, env: Env, me: string, url: URL): Promise<Response | null> {
   const orgs = url.pathname.match(/^\/api\/orgs(?:\/([\w-]+))?$/)
   const admins = url.pathname.match(/^\/api\/events\/([\w-]+)\/admins(?:\/([^/]+))?$/)
-  if (!orgs && !admins) return null
+  const event = request.method === 'DELETE' ? url.pathname.match(/^\/api\/events\/([\w-]+)$/) : null
+  if (!orgs && !admins && !event) return null
   if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
+
+  if (event) {
+    const id = event[1]
+    if (!(await env.DB.prepare('SELECT 1 FROM events WHERE id = ?').bind(id).first())) return json({ error: 'No such event.' }, 404)
+    // Out of the index first, so nobody can open it while it's being emptied.
+    await env.DB.batch([
+      env.DB.prepare('DELETE FROM events WHERE id = ?').bind(id),
+      env.DB.prepare('DELETE FROM memberships WHERE event_id = ?').bind(id),
+      env.DB.prepare('UPDATE users SET last_event = NULL WHERE last_event = ?').bind(id),
+    ])
+    await env.EVENT.getByName(id).destroy()
+    console.log(JSON.stringify({ level: 'info', what: 'event deleted', id, by: me }))
+    return json({ ok: true })
+  }
 
   if (orgs) {
     const [, orgId] = orgs
+    if (orgId && request.method === 'DELETE') {
+      const n = (await env.DB.prepare('SELECT COUNT(*) AS n FROM events WHERE org_id = ?').bind(orgId).first<{ n: number }>())?.n ?? 0
+      if (n) return json({ error: `Delete its ${n === 1 ? 'event' : `${n} events`} first.` }, 400)
+      await env.DB.batch([
+        env.DB.prepare('DELETE FROM orgs WHERE id = ?').bind(orgId),
+        env.DB.prepare('DELETE FROM org_admins WHERE org_id = ?').bind(orgId),
+      ])
+      return json({ ok: true })
+    }
     const name = String((await body(request)).name ?? '').trim().slice(0, 120)
     if (!name) return json({ error: 'Give the customer a name.' }, 400)
     if (!orgId && request.method === 'POST') {

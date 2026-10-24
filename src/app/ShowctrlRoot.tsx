@@ -83,6 +83,8 @@ function LiveApp({ me }: { me: Me }) {
           onCreated={e => { setEvents(list => [{ ...e, owner: me.email }, ...list]); rememberEvent(e.id); setEventId(e.id) }}
           onOrgCreated={o => { setOrgs(list => [...list, o].sort((a, b) => a.name.localeCompare(b.name))); setOrg(o.id) }}
           onOrgRenamed={(id, name) => setOrgs(list => list.map(o => (o.id === id ? { ...o, name } : o)))}
+          onDeleted={id => setEvents(list => list.filter(e => e.id !== id))}
+          onOrgDeleted={id => { setOrgs(list => list.filter(o => o.id !== id)); setOrg(null) }}
         />
       </Frame>
     )

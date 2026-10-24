@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  addEventAdmin, createEvent, createOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
+  addEventAdmin, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type OrgSummary,
 } from './backend'
 
@@ -12,7 +12,7 @@ const emails = (s: string) => s.split(/[\s,;]+/).map(a => a.trim()).filter(Boole
  * - Everyone sees the events they belong to (event admins run theirs inside the event).
  * - Superadmins run the whole portfolio: customers, every event, and who admins each one.
  */
-export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, onOrgCreated, onOrgRenamed }: {
+export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, onDeleted, onOrgCreated, onOrgRenamed, onOrgDeleted }: {
   me: Me
   orgs: OrgSummary[]
   events: EventSummary[]
@@ -20,9 +20,12 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
   onOrg: (id: string | null) => void
   onOpen: (id: string) => void
   onCreated: (e: EventSummary) => void
+  onDeleted: (id: string) => void
   onOrgCreated: (o: OrgSummary) => void
   onOrgRenamed: (id: string, name: string) => void
+  onOrgDeleted: (id: string) => void
 }) {
+  const [err, setErr] = useState('')
   const signedIn = <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>. <button type="button" className="linkish" onClick={() => void logout()}>Log out</button></p>
 
   if (!me.superadmin) {
@@ -75,7 +78,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
         {loose.length > 0 && (
           <div className="panel">
             <h2 style={{ marginBottom: '.75rem' }}>Events without a customer</h2>
-            <EventRows events={loose} me={me} onOpen={onOpen} manage />
+            <EventRows events={loose} me={me} onOpen={onOpen} onDeleted={onDeleted} manage />
           </div>
         )}
         <NewOrg onCreated={onOrgCreated} />
@@ -91,7 +94,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
         <button type="button" className="btn sm" style={{ marginBottom: '.75rem' }} onClick={() => onOrg(null)}>← All customers</button>
         <h1>{current.name}</h1>
         {signedIn}
-        {mine.length ? <EventRows events={mine} me={me} onOpen={onOpen} manage /> : <p className="muted" style={{ marginBottom: '1rem' }}>No events yet. Create the first one below.</p>}
+        {mine.length ? <EventRows events={mine} me={me} onOpen={onOpen} onDeleted={onDeleted} manage /> : <p className="muted" style={{ marginBottom: '1rem' }}>No events yet. Create the first one below.</p>}
       </div>
       <NewEvent org={current.id} onCreated={onCreated} />
       <div className="panel">
@@ -102,14 +105,33 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
             if (n && n !== current.name) void renameOrg(current.id, n).then(() => onOrgRenamed(current.id, n))
           }} />
         </label>
+        <div className="row" style={{ marginTop: '1rem', gap: '.75rem' }}>
+          <button type="button" className="btn danger" disabled={mine.length > 0} onClick={() => {
+            if (!confirm(`Delete the customer ${current.name}?`)) return
+            setErr('')
+            deleteOrg(current.id).then(() => onOrgDeleted(current.id), e => setErr(errText(e, 'Could not delete it.')))
+          }}>Delete customer</button>
+          {mine.length > 0 && <span className="small muted">Delete its events first.</span>}
+        </div>
+        {err && <p className="small" style={{ color: 'var(--stop)', marginTop: '.5rem' }} role="alert">{err}</p>}
       </div>
     </div>
   )
 }
 
 /** The events; superadmins can also open each one's admin list. */
-function EventRows({ events, me, onOpen, manage }: { events: EventSummary[]; me: Me; onOpen: (id: string) => void; manage?: boolean }) {
+function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSummary[]; me: Me; onOpen: (id: string) => void; onDeleted?: (id: string) => void; manage?: boolean }) {
   const [open, setOpen] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [err, setErr] = useState('')
+  const remove = async (e: EventSummary) => {
+    const typed = prompt(`This deletes ${e.name} and everything in it: run sheets, people, messages and files. It can’t be undone.\n\nType the event’s name to delete it:`)
+    if (typed == null) return
+    if (typed.trim() !== e.name.trim()) { setErr('The name didn’t match, so nothing was deleted.'); return }
+    setBusy(e.id)
+    setErr('')
+    try { await deleteEvent(e.id); onDeleted?.(e.id) } catch (x) { setErr(errText(x, 'Could not delete it.')) } finally { setBusy(null) }
+  }
   return (
     <ul className="list" style={{ margin: '0 -1.5rem 1rem' }}>
       {events.map(e => (
@@ -117,11 +139,13 @@ function EventRows({ events, me, onOpen, manage }: { events: EventSummary[]; me:
           <div className="stack"><b>{e.name}</b><span className="small muted">{e.owner === me.email ? 'You created this event' : `Created by ${e.owner}`}</span></div>
           <div className="row" style={{ marginLeft: 'auto', gap: '.5rem' }}>
             {manage && <button type="button" className="btn" aria-expanded={open === e.id} onClick={() => setOpen(open === e.id ? null : e.id)}>Admins</button>}
+            {manage && <button type="button" className="btn danger" disabled={busy === e.id} onClick={() => void remove(e)}>{busy === e.id ? 'Deleting…' : 'Delete'}</button>}
             <button type="button" className="btn primary" onClick={() => onOpen(e.id)}>Open</button>
           </div>
           {manage && open === e.id && <AdminList event={e.id} me={me} />}
         </li>
       ))}
+      {err && <li className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</li>}
     </ul>
   )
 }

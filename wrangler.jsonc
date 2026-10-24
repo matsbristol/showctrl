@@ -7,7 +7,7 @@
 
   // The public address. The zone is on Cloudflare; Access must list this hostname too.
   "routes": [{ "pattern": "showctrl.no", "custom_domain": true }],
-  "workers_dev": true,
+  "workers_dev": false,
   // Per-version preview URLs would sit outside the Access application, so they stay off.
   "preview_urls": false,
 

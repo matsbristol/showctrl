@@ -77,7 +77,11 @@ export function DeptForm({ dept, onClose }: { dept: Dept | null; onClose: () => 
  * stage manager and stage crew appointments, and departments for department messages.
  * `isNew` creates a demo user (live mode will pick an existing account instead).
  */
-export function AccessForm({ uid: uid0, isNew, onClose }: { uid: Id; isNew?: boolean; onClose: () => void }) {
+/**
+ * Give or change someone's access. `preset` starts a new one from a personnel entry: its email,
+ * the link to the entry, its department, and the role whose name matches that department.
+ */
+export function AccessForm({ uid: uid0, isNew, preset, onClose }: { uid: Id; isNew?: boolean; preset?: { email: string; person: Id }; onClose: () => void }) {
   const store = useStore()
   const a = useAccess()
   const cfg = useConfig('event')
@@ -87,18 +91,21 @@ export function AccessForm({ uid: uid0, isNew, onClose }: { uid: Id; isNew?: boo
   const requests = useCollection('requests')
   // Live mode: a new person is added by the email they sign in with.
   const askEmail = isNew && store.mode === 'live'
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(preset?.email ?? '')
   const uid = askEmail ? email.trim().toLowerCase() : uid0
   const m: Partial<Member> = members[uid] ?? {}
   const rq = requests[uid]
   const stages = a.stagesSorted()
+  const fromPerson = preset ? people[preset.person] : undefined
+  const deptName = cfg?.depts.find(d => d.id === fromPerson?.dept)?.name.toLowerCase()
+  const guessedRole = deptName ? Object.entries(a.roles).find(([k, r]) => k !== 'admin' && r.label.toLowerCase().includes(deptName))?.[0] : undefined
   const [v, setV] = useState({
-    name: m.name ?? '',
-    role: m.role ?? 'none',
-    person: m.person ?? '',
+    name: m.name ?? fromPerson?.name ?? '',
+    role: m.role ?? guessedRole ?? 'none',
+    person: m.person ?? preset?.person ?? '',
     mgr: Object.keys(m.stages ?? {}).filter(s => m.stages?.[s] === 'manager'),
     crew: stages.filter(s => stageteam[s.id]?.crew?.[uid]).map(s => s.id).concat(rq?.stage && !m.role ? [rq.stage] : []),
-    depts: m.depts ?? [],
+    depts: m.depts ?? (fromPerson?.dept ? [fromPerson.dept] : []),
   })
   const set = <K extends keyof typeof v>(k: K, x: (typeof v)[K]) => setV(o => ({ ...o, [k]: x }))
   const toggle = (k: 'mgr' | 'crew' | 'depts', id: Id, on: boolean) => set(k, on ? [...v[k], id] : v[k].filter(x => x !== id))

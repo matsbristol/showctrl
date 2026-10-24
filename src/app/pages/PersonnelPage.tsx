@@ -1,13 +1,14 @@
 import { useState } from 'react'
-import { useCollection, useConfig } from '../../data/hooks'
+import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { initials, personColor } from '../../shared/people'
 import { TAPE } from '../../types/constants'
 import type { Id, Person } from '../../types/model'
+import { AccessForm } from '../admin/forms'
 import { ImportForm, PersonForm } from '../people/forms'
 import { Tel } from '../runsheet/parts'
 import { useAccess } from '../session'
 
-type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | null
+type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | { type: 'access'; person: Person } | null
 
 /** HQ: the festival-wide contact list. Stage: "Crew & contacts" for that stage. */
 export function PersonnelPage({ sid }: { sid: Id | null }) {
@@ -24,6 +25,10 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
   const w = sid ? a.canW('personnel', sid) : a.canW('personnel')
   const dept = (id?: Id | null) => cfg?.depts.find(d => d.id === id)
   const users = new Set(Object.values(members).map(m => m.person).filter(Boolean))
+  const store = useStore()
+  // Live mode: someone listed here with an email but no login can be given one straight away.
+  const canGrant = store.mode === 'live' && a.canW('admin')
+  const hasLogin = (p: Person) => users.has(p.id) || (!!p.email && !!members[p.email.trim().toLowerCase()])
 
   const list = Object.values(people)
     .filter(p => (!fs || p.stages.includes(fs)) && (!fd || p.dept === fd)
@@ -82,7 +87,8 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                   <td className="small">{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</td>
                   <td>
                     {p.accred ? <span className="chip ac">{p.accred}</span> : '—'}
-                    {users.has(p.id) && <> <span className="chip go" title="Has access to showctrl">App</span></>}
+                    {hasLogin(p) && <> <span className="chip go" title="Has access to showctrl">App</span></>}
+                    {!hasLogin(p) && canGrant && p.email && <> <button type="button" className="btn sm" title="Listing someone here doesn’t let them sign in. This does." onClick={() => setDialog({ type: 'access', person: p })}>Give app access</button></>}
                   </td>
                   <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={`Edit ${p.name}`}>Edit</button>}</td>
                 </tr>
@@ -94,6 +100,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
       </div>
       {dialog?.type === 'person' && <PersonForm person={dialog.person} sid={sid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'import' && <ImportForm sid={sid} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'access' && <AccessForm uid="" isNew preset={{ email: dialog.person.email!, person: dialog.person.id }} onClose={() => setDialog(null)} />}
     </>
   )
 }

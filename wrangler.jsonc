@@ -25,6 +25,9 @@
   },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["EventObject"] }],
 
+  // Sends sign-in codes. showctrl.no is enabled for sending (npx wrangler email sending enable showctrl.no).
+  "send_email": [{ "name": "EMAIL" }],
+
   // Uploaded documents. Off until R2 is enabled on the account (dashboard → R2), then:
   //   npx wrangler r2 bucket create showctrl-files
   // and uncomment. Without it, uploads are refused and document links still work.

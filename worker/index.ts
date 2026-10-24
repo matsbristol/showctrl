@@ -1,6 +1,7 @@
 // The showctrl Worker: serves the app, the API and the live connection for each event.
 //
 //   GET  /time                       server time, for clock sync (no sign-in needed)
+//   POST /api/auth/start|verify|logout  sign-in with an emailed code (see login.ts)
 //   GET  /api/me                     who you are, your organisations and your events
 //   POST /api/events                 create an event { name, sample?, org } (that organisation's admins)
 //        /api/orgs…                  organisations and their admins (see orgs.ts)
@@ -15,6 +16,7 @@ import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
 import { EMAIL_HEADER } from './event'
+import { isDev, loginRoutes } from './login'
 import { isOrgAdmin, isSuperadmin, json, mayConnect, orgAdmins, orgRoutes } from './orgs'
 
 export { EventObject } from './event'
@@ -25,6 +27,18 @@ export default {
     // `colo` is the Cloudflare data centre that answered; its clock is Cloudflare's NTP-synced time.
     if (url.pathname === '/time') return json({ now: Date.now(), colo: (request.cf?.colo as string | undefined) ?? null })
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request)
+
+    // Requests that change something, and live connections, must come from showctrl's own pages.
+    // (The session cookie is SameSite=Lax as well; this also covers WebSockets.)
+    const origin = request.headers.get('origin')
+    if (origin && !isDev(env) && new URL(origin).host !== url.host && (request.method !== 'GET' || request.headers.get('upgrade'))) {
+      return json({ error: 'Cross-site request refused.' }, 403)
+    }
+    const login = await loginRoutes(request, env, url).catch(e => {
+      console.error(JSON.stringify({ level: 'error', path: url.pathname, error: String(e) }))
+      return json({ error: 'Something went wrong. Try again.' }, 500)
+    })
+    if (login) return login
 
     const auth = await authenticate(request, env)
     if (!auth.ok) return json({ error: auth.message }, auth.status)

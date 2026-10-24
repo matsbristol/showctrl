@@ -21,7 +21,7 @@ export interface Me {
   canCreate: boolean
 }
 
-export type Backend = { mode: 'demo' } | { mode: 'live'; me: Me } | { mode: 'error'; message: string }
+export type Backend = { mode: 'demo' } | { mode: 'live'; me: Me } | { mode: 'login' } | { mode: 'error'; message: string }
 
 /** Local development: `?as=email` signs in as someone else (only honoured by `wrangler dev`). */
 function devQuery(): string {
@@ -38,6 +38,7 @@ export async function detectBackend(): Promise<Backend> {
   }
   if (!r.headers.get('content-type')?.includes('application/json')) return { mode: 'demo' }
   const body = await r.json().catch(() => null) as (Me & { error?: string }) | null
+  if (r.status === 401) return { mode: 'login' }
   if (!r.ok || !body?.email) return { mode: 'error', message: body?.error ?? 'Could not sign you in.' }
   return { mode: 'live', me: body }
 }
@@ -72,8 +73,17 @@ export const removeOrgAdmin = (id: Id, email: string) =>
 
 export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
 
-/** Cloudflare Access's own sign-out: ends the session for this site, then shows its login page again. */
-export const LOGOUT_URL = '/cdn-cgi/access/logout'
+/** Sign-in step 1: emails a code (if showctrl knows the address). `devCode` only from `wrangler dev`. */
+export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>('/api/auth/start', { body: { email } })
+
+/** Sign-in step 2: the code from the email. Sets the session cookie. */
+export const verifyLogin = (email: string, code: string) => api<{ ok: true }>('/api/auth/verify', { body: { email, code } })
+
+/** Ends this device's session and goes back to the sign-in page. */
+export async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+  location.assign('/')
+}
 
 /** Remembers the event on the server, so the user's other devices open it too. */
 export function rememberEvent(id: Id) {

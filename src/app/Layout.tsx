@@ -11,7 +11,7 @@ import { Icon } from './Icon'
 import { HQ_NAV, NAV_GROUPS, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
-import { LOGOUT_URL } from './backend'
+import { logout } from './backend'
 import { useLive } from './live'
 import { CloudflareStore, type ConnectionStatus } from '../data/cloudflareStore'
 import { useUnreadCount } from './messages/hooks'
@@ -121,7 +121,7 @@ function Who() {
         <span>{name} <span className="role">· {label}</span></span>
         {me && <Avatar id={me} name={name} />}
         {live && <button type="button" className="who-btn" onClick={live.switchEvent}>Events</button>}
-        {live && <a className="who-btn" href={LOGOUT_URL}>Log out</a>}
+        {live && <button type="button" className="who-btn" onClick={() => void logout()}>Log out</button>}
       </div>
     )
   }

@@ -8,6 +8,7 @@ import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
 import { detectBackend, eventStore, rememberEvent, type Backend, type Me } from './backend'
 import { EventPicker } from './EventPicker'
+import { Login } from './Login'
 import { Layout } from './Layout'
 import { LiveContext, type Live } from './live'
 import { SessionProvider } from './SessionProvider'
@@ -49,6 +50,7 @@ function Boot() {
   useEffect(() => { void detectBackend().then(setBackend) }, [])
   if (!backend) return <Frame><div className="loading">Connecting…</div></Frame>
   if (backend.mode === 'demo') return <App store={demoStore()} />
+  if (backend.mode === 'login') return <Frame><Login /></Frame>
   if (backend.mode === 'error') return <Frame><div className="setup"><div className="panel"><h2>Can’t open showctrl</h2><p className="muted">{backend.message}</p></div></div></Frame>
   return <LiveApp me={backend.me} />
 }

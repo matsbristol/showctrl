@@ -12,9 +12,11 @@ const me = async (headers = {}) => { const r = await fetch(`${B}/api/me`, { head
 let ok = true
 const check = (label, cond, got) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : `  → ${JSON.stringify(got)}`}`); if (!cond) ok = false }
 
-// A known address: the admin of a new organisation (made as the dev superadmin).
+// Known addresses: the admins of a new event (made as the dev superadmin).
 const known = `admin${t}@test.no`, locked = `lock${t}@test.no`
-await fetch(`${B}/api/orgs`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name: `Login test ${t}`, admins: [known, locked] }) })
+const jpost = (path, b) => fetch(`${B}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json())
+const { id: org } = await jpost('/api/orgs', { name: `Login test ${t}` })
+await jpost('/api/events', { name: `Login test ${t}`, org, admins: [known, locked] })
 
 let r = await me(); check('signed out: /api/me is 401', r.status === 401, r)
 r = await post('/api/auth/start', { email: 'not-an-email' }); check('a bad address is refused', r.status === 400, r)
@@ -26,7 +28,7 @@ const wrong = code === '000000' ? '111111' : '000000'
 r = await post('/api/auth/verify', { email: known, code: wrong }); check('a wrong code is refused, with tries left', r.status === 400 && /4 tries left/.test(r.body.error), r)
 r = await post('/api/auth/verify', { email: known, code: `${code.slice(0, 3)} ${code.slice(3)}` }); check('the right code signs in and sets an HttpOnly session cookie', r.status === 200 && /sc_session=[\w-]{20,}/.test(r.cookie ?? '') && /HttpOnly/i.test(r.cookie) && /SameSite=Lax/i.test(r.cookie), r)
 const cookie = r.cookie.split(';')[0]
-r = await me({ cookie }); check('the session cookie identifies the user', r.status === 200 && r.body.email === known && r.body.orgs?.length === 1, r)
+r = await me({ cookie }); check('the session cookie identifies the user', r.status === 200 && r.body.email === known && r.body.events?.length === 1, r)
 r = await post('/api/auth/verify', { email: known, code }); check('a code works only once', r.status === 400, r)
 r = await me({ cookie: 'sc_session=forged-token-value-123456789' }); check('a made-up session is refused', r.status === 401, r)
 r = await post('/api/auth/logout', {}, { cookie }); check('log out clears the cookie', r.status === 200 && /Max-Age=0/.test(r.cookie ?? ''), r)

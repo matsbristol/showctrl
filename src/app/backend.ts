@@ -6,14 +6,12 @@ import type { Id } from '../types/model'
 
 export interface EventSummary { id: Id; name: string; owner: Id; org?: Id | null }
 
-/** An organisation (customer). `admin`: you can create its events and manage its admins. */
-export interface OrgSummary { id: Id; name: string; admin: boolean }
-
-export interface OrgDetail { id: Id; name: string; admins: Id[] }
+/** A customer: a folder of events. */
+export interface OrgSummary { id: Id; name: string; admin?: boolean }
 
 export interface Me {
   email: Id
-  /** Runs showctrl itself: adds organisations. */
+  /** Runs the whole showctrl portfolio: creates events and appoints their admins. */
   superadmin?: boolean
   orgs?: OrgSummary[]
   events: EventSummary[]
@@ -55,23 +53,28 @@ async function api<T>(path: string, init?: { method?: string; body?: unknown }):
   return body
 }
 
-export async function createEvent(name: string, sample: boolean, org: Id): Promise<Id> {
-  return (await api<{ id: Id }>('/api/events', { body: { name, sample, org } })).id
+/** Superadmins: a new event for a customer, with the people who will run it. */
+export async function createEvent(name: string, sample: boolean, org: Id, admins: string[]): Promise<Id> {
+  return (await api<{ id: Id }>('/api/events', { body: { name, sample, org, admins } })).id
 }
 
-export async function createOrg(name: string, admins: Id[]): Promise<Id> {
-  return (await api<{ id: Id }>('/api/orgs', { body: { name, admins } })).id
+/** Superadmins: a new customer (a folder of events). */
+export async function createOrg(name: string): Promise<Id> {
+  return (await api<{ id: Id }>('/api/orgs', { body: { name } })).id
 }
-
-export const getOrg = (id: Id) => api<OrgDetail>(`/api/orgs/${encodeURIComponent(id)}`)
-
-export const addOrgAdmin = (id: Id, email: string) =>
-  api<{ admins: Id[] }>(`/api/orgs/${encodeURIComponent(id)}/admins`, { body: { email } }).then(r => r.admins)
-
-export const removeOrgAdmin = (id: Id, email: string) =>
-  api<{ admins: Id[] }>(`/api/orgs/${encodeURIComponent(id)}/admins/${encodeURIComponent(email)}`, { method: 'DELETE' }).then(r => r.admins)
 
 export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
+
+export interface EventAdmins { owner: Id; admins: Id[] }
+
+/** Superadmins: who runs an event (Festival admin there, nowhere else). */
+export const getEventAdmins = (id: Id) => api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins`)
+
+export const addEventAdmin = (id: Id, email: string) =>
+  api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins`, { body: { email } })
+
+export const removeEventAdmin = (id: Id, email: string) =>
+  api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins/${encodeURIComponent(email)}`, { method: 'DELETE' })
 
 /** Sign-in step 1: emails a code (if showctrl knows the address). `devCode` only from `wrangler dev`. */
 export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>('/api/auth/start', { body: { email } })

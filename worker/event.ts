@@ -143,12 +143,19 @@ export class EventObject extends DurableObject<Env> {
     await this.syncMembers(this.hub.core.memberEmails())
   }
 
+  /** The event's admins: the owner and every member with the Festival admin role. */
+  async admins(): Promise<Id[]> {
+    const core = this.hub.core
+    const list = Object.values(core.col.members).filter(m => m.role === 'admin').map(m => m.id)
+    return [...new Set([...(core.owner ? [core.owner] : []), ...list])].sort()
+  }
+
   /**
-   * Organisation admins are Festival admin in every event of their organisation.
-   * Made through the normal write rules, as the owner, so it shows in the change history.
-   * Removing takes away their membership only if it is the admin one (the owner always stays).
+   * Superadmins appoint an event's admins from the start page. Made through the normal write
+   * rules, as the owner, so it shows in the change history. Removing takes away the membership
+   * only if it is the admin one; the owner always stays.
    */
-  async setOrgAdmin(email: Id, on: boolean): Promise<void> {
+  async setEventAdmin(email: Id, on: boolean): Promise<void> {
     const core = this.hub.core
     const owner = core.owner
     if (!owner || email === owner) return
@@ -162,7 +169,7 @@ export class EventObject extends DurableObject<Env> {
     if (!op) return
     const r = core.apply(owner, op, Date.now())
     if (r.ok) this.hub.broadcast(r.effects)
-    else console.error(JSON.stringify({ level: 'error', what: 'setOrgAdmin', email, error: r.message }))
+    else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
   }
 
   /* ---------------- WebSockets ---------------- */

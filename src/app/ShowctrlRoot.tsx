@@ -67,7 +67,7 @@ function LiveApp({ me }: { me: Me }) {
   const [orgs, setOrgs] = useState(me.orgs ?? [])
   const initial = me.lastEvent && me.events.some(e => e.id === me.lastEvent) ? me.lastEvent : me.events.length === 1 ? me.events[0].id : null
   const [eventId, setEventId] = useState<Id | null>(initial)
-  // The organisation shown in the picker: the open event's, or the only one there is.
+  // Superadmins browse by customer: the open event's, or the only one there is.
   const [org, setOrg] = useState<Id | null>(() => me.events.find(e => e.id === initial)?.org ?? (orgs.length === 1 ? orgs[0].id : null))
   const open = (id: Id) => {
     rememberEvent(id)

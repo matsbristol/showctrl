@@ -612,3 +612,7 @@
 .sc .pp-grid .pp-full { grid-column: 1 / -1 }
 .sc .pp-grid .fld input, .sc .pp-grid .fld select { padding: .35rem .45rem }
 .sc .pp-actions { display: flex; justify-content: flex-end; margin-top: .6rem; padding-top: .55rem; border-top: 1px solid var(--line) }
+
+/* Start page: a superadmin's admin list under one event */
+.sc .event-admins { flex-basis: 100%; margin-top: .6rem; padding: .75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface2) }
+.sc .event-admins ul { list-style: none; margin: .5rem 0 .75rem; padding: 0; display: grid; gap: .35rem }

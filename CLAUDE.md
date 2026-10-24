@@ -212,8 +212,8 @@ Deploy and local-dev instructions are in `DEPLOY.md`. Shape:
 
 | Path | What it is |
 | --- | --- |
-| `worker/index.ts` | The Worker. Serves `dist/` (single-page fallback); `/time` (server time); `/api/me`, `POST /api/events`, `POST /api/me/last-event`; `/api/events/:id/ws` (WebSocket to the event, only for people in the event's organisation). |
-| `worker/orgs.ts` | Organisations (customers): `/api/orgs…`, superadmins (`SUPERADMINS`), org admins, and `mayConnect`. Org admins are made Festival admin in each of the organisation's events through `EventObject.setOrgAdmin`. |
+| `worker/index.ts` | The Worker. Serves `dist/` (single-page fallback); `/time` (server time); `/api/me`, `POST /api/events`, `POST /api/me/last-event`; `/api/events/:id/ws` (WebSocket to the event, only for its own people and superadmins). |
+| `worker/orgs.ts` | Who sees what: superadmins (`SUPERADMINS`) run the portfolio (create events, appoint event admins via `EventObject.setEventAdmin`, are Festival admin in every event through `EventCore.isOwner`); event admins run only their own events; `mayConnect` lets only an event's people (and superadmins) connect. Customers (`orgs`) only group events. `npm run check:access` tests it. |
 | `worker/login.ts` | showctrl's own sign-in: `/api/auth/start` emails a 6-digit code (only to known addresses; same answer either way), `/api/auth/verify` sets the `sc_session` cookie (HttpOnly, SameSite=Lax, 30 days), `/api/auth/logout`. Codes and tokens are stored hashed in D1; rate limits per address and IP. In `wrangler dev` the code comes back as `devCode`. `npm run check:login` tests it. |
 | `worker/auth.ts` | Who is calling: the session cookie first, then a Cloudflare Access JWT if `ACCESS_AUD` is set (optional, for scripts), then in `wrangler dev` `DEV_USER_EMAIL` (+ `?as=`; header `x-showctrl-anon` to act signed out). Users are identified by **lower-case email**, which is also their `members` key. |
 | `worker/event.ts` | `EventObject`, one Durable Object per event. SQLite tables `docs`, `config`, `meta` (eventId, owner) and `audit`. WebSocket hibernation API. Mirrors members into D1 `memberships`. |

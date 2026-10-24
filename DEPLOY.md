@@ -53,13 +53,15 @@ Open the site, type your email, and enter the code from the email. Codes last 10
 
 **Cloudflare Access is optional.** If an Access application still sits in front of the site, people pass it first and then showctrl's own sign-in. To use only showctrl's sign-in, delete the Access application. With `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` set, the Worker also accepts Access tokens (handy for scripts using `cloudflared access token`).
 
-## Organisations (customers)
+## Who sees what
 
-Everyone signs in at the same address. Each person only sees the organisations they belong to, and only those organisations' events. The server enforces this: someone outside an organisation can't list its events or connect to them.
+Everyone signs in at the same address.
 
-- **Superadmins** (`SUPERADMINS`) add an organisation and its first admins, from the start page. They can open and run every event.
-- **Organisation admins** create its events, rename it and add or remove its admins. They are Festival admin in every event of the organisation, including events created before they became admin. Removing an admin takes that access away again.
-- **Everyone else** is added inside an event (below). Belonging to any event of an organisation puts them in it.
+- **Superadmins** (`SUPERADMINS`) run the whole portfolio. They add customers, create every event and name its admins, and are Festival admin inside every event without being added to it.
+- **Event admins** are Festival admin in their own events only. Inside the event (Admin → People with access) they add everyone else. They can't create events or see other events.
+- **Everyone else** sees only the events they've been added to.
+
+Customers are folders that group events for superadmins; they give nobody access. The server enforces all of this: someone who isn't in an event can't list it or connect to it.
 
 **Databases created before organisations** need this once:
 ```sh

@@ -11,14 +11,14 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS events_org ON events (org_id);
 
--- Organisations (customers). People see only their own organisation's events.
+-- Customers: folders that group events for superadmins. They give nobody access.
 CREATE TABLE IF NOT EXISTS orgs (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
 
--- Organisation admins create its events and are Festival admin in every one of them.
+-- No longer used: superadmins create events and name each event's admins (kept so old databases still match).
 CREATE TABLE IF NOT EXISTS org_admins (
   org_id TEXT NOT NULL,
   email TEXT NOT NULL,

@@ -14,7 +14,7 @@
     "db:init:local": "wrangler d1 execute showctrl --local --file worker/schema.sql",
     "db:init": "wrangler d1 execute showctrl --remote --file worker/schema.sql",
     "check:login": "node scripts/check-login.mjs",
-    "check:orgs": "node scripts/check-orgs.mjs",
+    "check:access": "node scripts/check-access.mjs",
     "db:migrate:orgs": "wrangler d1 execute showctrl --remote --file worker/migrations/0002_orgs.sql",
     "db:migrate:login": "wrangler d1 execute showctrl --remote --file worker/migrations/0003_login.sql",
     "db:migrate:login:local": "wrangler d1 execute showctrl --local --file worker/migrations/0003_login.sql",

@@ -5,7 +5,7 @@
 //   POST /api/auth/logout                   ends this session
 //
 // Codes last 10 minutes and allow 5 tries. Sending is rate-limited per address and per IP.
-// Only addresses showctrl knows (superadmins, organisation admins, event members) get a code,
+// Only addresses showctrl knows (superadmins and event members) get a code,
 // so the site can't be used to send mail to strangers. The answer is the same either way,
 // so it doesn't reveal who has access. Codes and session tokens are stored only as SHA-256 hashes.
 
@@ -71,7 +71,7 @@ export async function sessionEmail(request: Request, env: Env): Promise<string |
 async function isKnown(env: Env, email: string): Promise<boolean> {
   if (isSuperadmin(env, email)) return true
   return !!(await env.DB.prepare(
-    `SELECT 1 FROM org_admins WHERE email = ?1 UNION SELECT 1 FROM memberships WHERE email = ?1 UNION SELECT 1 FROM events WHERE owner = ?1 LIMIT 1`,
+    `SELECT 1 FROM memberships WHERE email = ?1 UNION SELECT 1 FROM events WHERE owner = ?1 LIMIT 1`,
   ).bind(email).first())
 }
 

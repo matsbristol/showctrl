@@ -49,7 +49,7 @@ The app now refuses API calls with "Sign-in is not configured". The next section
 
 Open the site, type your email, and enter the code from the email. Codes last 10 minutes and allow 5 tries; sending is rate-limited per address and per IP. Only addresses showctrl knows (superadmins, organisation admins, event members) get a code. Sessions last 30 days, or until **Log out**.
 
-`SUPERADMINS` is who runs showctrl itself: a comma-separated list of emails. They add organisations (customers).
+`SUPERADMINS` is who runs showctrl itself: a comma-separated list of emails. They add organisations (customers), act as admin of every organisation, and are Festival admin inside every event without being added to it.
 
 **Cloudflare Access is optional.** If an Access application still sits in front of the site, people pass it first and then showctrl's own sign-in. To use only showctrl's sign-in, delete the Access application. With `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` set, the Worker also accepts Access tokens (handy for scripts using `cloudflared access token`).
 
@@ -57,7 +57,7 @@ Open the site, type your email, and enter the code from the email. Codes last 10
 
 Everyone signs in at the same address. Each person only sees the organisations they belong to, and only those organisations' events. The server enforces this: someone outside an organisation can't list its events or connect to them.
 
-- **Superadmins** (`SUPERADMINS`) add an organisation and its first admins, from the start page.
+- **Superadmins** (`SUPERADMINS`) add an organisation and its first admins, from the start page. They can open and run every event.
 - **Organisation admins** create its events, rename it and add or remove its admins. They are Festival admin in every event of the organisation, including events created before they became admin. Removing an admin takes that access away again.
 - **Everyone else** is added inside an event (below). Belonging to any event of an organisation puts them in it.
 

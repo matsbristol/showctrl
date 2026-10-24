@@ -40,7 +40,7 @@ export class EventHub {
 
   /** A browser just connected: send it everything it may see. */
   connect(p: Peer) {
-    EventHub.send(p, { t: 'snapshot', me: p.email, isOwner: p.email === this.core.owner, ...this.core.snapshotFor(p.email) })
+    EventHub.send(p, { t: 'snapshot', me: p.email, isOwner: this.core.isOwner(p.email), ...this.core.snapshotFor(p.email) })
   }
 
   message(p: Peer, raw: string) {

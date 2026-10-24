@@ -63,6 +63,7 @@ export class EventObject extends DurableObject<Env> {
       roles: cfgRow('roles') ? JSON.parse(cfgRow('roles')!) as RolesConfig : null,
       col,
       owner: this.meta('owner'),
+      superadmins: (this.env.SUPERADMINS ?? '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean),
       blobPrefix: `${this.meta('eventId') ?? 'none'}/`,
     }
     const core = new EventCore(data, {

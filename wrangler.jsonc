@@ -42,6 +42,6 @@
   // Left out, so only showctrl's own sign-in counts and Log out always signs out.
   // SUPERADMINS: who runs showctrl itself and adds organisations (comma-separated emails).
   "vars": {
-    "SUPERADMINS": "mats@larkolluka.no"
+    "SUPERADMINS": "mats@larkolluka.no,mats.bristol@gmail.com"
   }
 }

@@ -26,6 +26,8 @@ export interface CoreData {
   owner: Id | null
   /** Live: stored document files must have keys starting with this (the event's own folder). */
   blobPrefix?: string
+  /** People who run showctrl itself. Like the owner, always Festival admin, in every event. */
+  superadmins?: Id[]
 }
 
 /** Persistence, called synchronously after each validated change (SQLite in the Durable Object). */
@@ -53,6 +55,7 @@ export class EventCore {
   roles: RolesConfig | null
   col: CollectionData
   owner: Id | null
+  private readonly superadmins: Set<Id>
   private readonly blobPrefix: string | undefined
   private readonly storage: CoreStorage
 
@@ -61,13 +64,19 @@ export class EventCore {
     this.roles = data.roles
     this.col = { ...emptyCollections(), ...data.col }
     this.owner = data.owner
+    this.superadmins = new Set(data.superadmins ?? [])
     this.blobPrefix = data.blobPrefix
     this.storage = storage
   }
 
+  /** The owner and superadmins: always Festival admin, whatever the members list says. */
+  isOwner(email: Id | null): boolean {
+    return !!email && (email === this.owner || this.superadmins.has(email))
+  }
+
   access(email: Id | null): Access {
     return createAccess({
-      me: email, isOwner: !!email && email === this.owner, roles: this.roles,
+      me: email, isOwner: this.isOwner(email), roles: this.roles,
       members: this.col.members, stageteam: this.col.stageteam, stages: this.col.stages,
     })
   }
@@ -190,7 +199,7 @@ export class EventCore {
 
   /** Whether a user may see any event data beyond the basics. */
   private hasAccess(a: Access): boolean {
-    return !!a.me && (a.me === this.owner || !a.hasNoAccess())
+    return !!a.me && (this.isOwner(a.me) || !a.hasNoAccess())
   }
 
   /** One record as a user may see it: null if hidden, otherwise possibly redacted. */

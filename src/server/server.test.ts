@@ -12,7 +12,7 @@ import { EventHub, type Peer } from './hub'
 const T = Date.UTC(2026, 6, 10, 18)
 const tick = () => new Promise(r => setTimeout(r, 0))
 
-function setup() {
+function setup(superadmins: string[] = []) {
   const sample = buildSample(T)
   const audit: AuditEntry[] = []
   const writes: [string, string, unknown][] = []
@@ -21,7 +21,7 @@ function setup() {
     putConfig: () => {},
     appendAudit: e => { audit.push(e) },
   }
-  const core = new EventCore({ cfg: sample.cfg, roles: sample.roles, col: sample.col, owner: 'owner@example.com' }, storage)
+  const core = new EventCore({ cfg: sample.cfg, roles: sample.roles, col: sample.col, owner: 'owner@example.com', superadmins }, storage)
   const peers: Peer[] = []
   const hub = new EventHub(core, { peers: () => peers, now: () => T + 1000, readAudit: n => audit.slice(-n).reverse() })
   const sockets: { close: () => void }[] = []
@@ -84,6 +84,21 @@ describe('server: what each user sees', () => {
     await stranger.set('requests', 'new@example.com', { at: T, note: 'Backline tech', stage: 'main' })
     expect(core.col.requests['new@example.com'].note).toBe('Backline tech')
     expect(Object.keys(stranger.peek('requests')!)).toEqual(['new@example.com'])
+  })
+})
+
+describe('server: superadmins', () => {
+  it('gives a superadmin full admin access to an event they aren’t a member of', async () => {
+    const { client, core } = setup(['boss@example.com'])
+    expect(core.col.members['boss@example.com']).toBeUndefined()
+    const boss = client('boss@example.com')
+    await tick()
+    expect(Object.keys(boss.peek('artists')!).length).toBeGreaterThan(0)
+    expect(core.access('boss@example.com').canW('admin')).toBe(true)
+    await boss.update('stages', 'main', { radio: 'Ch 9' })
+    expect(core.col.stages.main.radio).toBe('Ch 9')
+    // Someone who isn't a superadmin still gets nothing.
+    expect(core.access('stranger@example.com').canW('admin')).toBe(false)
   })
 })
 

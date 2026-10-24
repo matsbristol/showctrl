@@ -11,8 +11,8 @@ export interface Env {
   ACCESS_TEAM_DOMAIN?: string
   /** The Access application's "Application Audience (AUD) tag". */
   ACCESS_AUD?: string
-  /** Who may create events: comma-separated emails, or * for anyone who gets past Access. */
-  CREATORS?: string
+  /** Who runs showctrl itself (comma-separated emails): they add organisations and their first admins. */
+  SUPERADMINS?: string
   /** Local development only (.dev.vars). Ignored once ACCESS_AUD is set. */
   DEV_USER_EMAIL?: string
 }

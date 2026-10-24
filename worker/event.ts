@@ -9,6 +9,7 @@ import { EventCore, type CollectionData, type CoreData } from '../src/server/cor
 import { EventHub, type Peer } from '../src/server/hub'
 import { COLLECTIONS } from '../src/types/constants'
 import { moduleOn } from '../src/shared/modules'
+import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
 
@@ -139,6 +140,28 @@ export class EventObject extends DurableObject<Env> {
     }
     this.hub = this.load()
     await this.syncMembers(this.hub.core.memberEmails())
+  }
+
+  /**
+   * Organisation admins are Festival admin in every event of their organisation.
+   * Made through the normal write rules, as the owner, so it shows in the change history.
+   * Removing takes away their membership only if it is the admin one (the owner always stays).
+   */
+  async setOrgAdmin(email: Id, on: boolean): Promise<void> {
+    const core = this.hub.core
+    const owner = core.owner
+    if (!owner || email === owner) return
+    const cur = core.col.members[email]
+    let op: WriteOp | null = null
+    if (on && cur?.role !== 'admin') {
+      op = { kind: 'set', col: 'members', id: email, doc: { ...(cur ?? { name: email, stages: {}, person: null, depts: [] }), id: email, role: 'admin' } }
+    } else if (!on && cur?.role === 'admin') {
+      op = { kind: 'delete', col: 'members', id: email }
+    }
+    if (!op) return
+    const r = core.apply(owner, op, Date.now())
+    if (r.ok) this.hub.broadcast(r.effects)
+    else console.error(JSON.stringify({ level: 'error', what: 'setOrgAdmin', email, error: r.message }))
   }
 
   /* ---------------- WebSockets ---------------- */

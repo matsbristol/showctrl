@@ -48,15 +48,31 @@ The app now refuses API calls with "Sign-in is not configured". The next section
 7. Add both to `vars` in `wrangler.jsonc`:
    ```jsonc
    "vars": {
-     "CREATORS": "you@yourdomain.no",
+     "SUPERADMINS": "you@yourdomain.no",
      "ACCESS_TEAM_DOMAIN": "https://yourteam.cloudflareaccess.com",
      "ACCESS_AUD": "the AUD tag"
    }
    ```
-   `CREATORS` sets who may create new events: a comma-separated list of emails, or `*` for anyone who gets past Access.
+   `SUPERADMINS` is who runs showctrl itself: a comma-separated list of emails. They add organisations (customers).
 8. Deploy again with `npm run deploy`.
 
-Open the URL. Access asks for your email and sends you a code. Then showctrl shows **Your events**. Create one, or tick **Fill it with the sample festival** to try things out.
+Open the URL. Access asks for your email and sends you a code. As a superadmin you then see **Add an organisation**.
+
+## Organisations (customers)
+
+Everyone signs in at the same address. Each person only sees the organisations they belong to, and only those organisations' events. The server enforces this: someone outside an organisation can't list its events or connect to them.
+
+- **Superadmins** (`SUPERADMINS`) add an organisation and its first admins, from the start page.
+- **Organisation admins** create its events, rename it and add or remove its admins. They are Festival admin in every event of the organisation, including events created before they became admin. Removing an admin takes that access away again.
+- **Everyone else** is added inside an event (below). Belonging to any event of an organisation puts them in it.
+
+With organisations, the Access policy can allow any email (Include → Everyone, login method One-time PIN). showctrl then decides what each person sees, so you don't add every customer's people in Cloudflare. Someone who isn't in an organisation yet sees "Ask your organisation's showctrl admin to add you". Zero Trust Free counts up to 50 people who sign in.
+
+**Databases created before organisations** need this once:
+```sh
+npm run db:migrate:orgs
+```
+Then put existing events in an organisation, e.g. with `npx wrangler d1 execute showctrl --remote --command "UPDATE events SET org_id = '<org id>' WHERE id = '<event id>'"`.
 
 ## Adding people
 
@@ -69,7 +85,7 @@ Someone who signs in before being added sees **Ask for access**. Their request t
 - **Demo mode** (no backend): `npm run dev`, then open `http://localhost:5173/hq`.
 - **Live mode against a local Worker:**
   ```sh
-  echo "DEV_USER_EMAIL=you@yourdomain.no" > .dev.vars
+  printf 'DEV_USER_EMAIL=you@yourdomain.no\nACCESS_AUD=\nACCESS_TEAM_DOMAIN=\n' > .dev.vars   # blanks the production Access settings locally
   npm run db:init:local
   npm run dev:worker                                  # Worker on :8787
   SHOWCTRL_API=http://localhost:8787 npm run dev      # app on :5173, proxied

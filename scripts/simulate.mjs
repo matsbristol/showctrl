@@ -41,7 +41,11 @@ async function api(path, init) {
 
 let eventId = opt('event')
 if (!eventId) {
-  eventId = (await api('/api/events', { method: 'POST', body: JSON.stringify({ name: 'Simulated festival', sample: true }) })).id
+  // Events belong to an organisation: use "Simulation", adding it the first time (the dev user is a superadmin).
+  const me = await api('/api/me')
+  const org = me.orgs?.find(o => o.name === 'Simulation')?.id
+    ?? (await api('/api/orgs', { method: 'POST', body: JSON.stringify({ name: 'Simulation', admins: [me.email] }) })).id
+  eventId = (await api('/api/events', { method: 'POST', body: JSON.stringify({ name: 'Simulated festival', sample: true, org }) })).id
   await api('/api/me/last-event', { method: 'POST', body: JSON.stringify({ id: eventId }) })
   log(`Created a fresh sample event ${eventId} and made it the one that opens.`)
 }

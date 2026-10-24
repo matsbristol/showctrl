@@ -4,10 +4,18 @@
 import { CloudflareStore, type SocketLike } from '../data/cloudflareStore'
 import type { Id } from '../types/model'
 
-export interface EventSummary { id: Id; name: string; owner: Id }
+export interface EventSummary { id: Id; name: string; owner: Id; org?: Id | null }
+
+/** An organisation (customer). `admin`: you can create its events and manage its admins. */
+export interface OrgSummary { id: Id; name: string; admin: boolean }
+
+export interface OrgDetail { id: Id; name: string; admins: Id[] }
 
 export interface Me {
   email: Id
+  /** Runs showctrl itself: adds organisations. */
+  superadmin?: boolean
+  orgs?: OrgSummary[]
   events: EventSummary[]
   lastEvent: Id | null
   canCreate: boolean
@@ -34,12 +42,35 @@ export async function detectBackend(): Promise<Backend> {
   return { mode: 'live', me: body }
 }
 
-export async function createEvent(name: string, sample: boolean): Promise<Id> {
-  const r = await fetch(`/api/events${devQuery()}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ name, sample }) })
-  const body = await r.json() as { id?: Id; error?: string }
-  if (!r.ok || !body.id) throw new Error(body.error ?? 'Could not create the event.')
-  return body.id
+/** A JSON call to the API. Throws the server's message on failure. */
+async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
+  const r = await fetch(`${path}${devQuery()}`, {
+    method: init?.method ?? (init?.body === undefined ? 'GET' : 'POST'),
+    ...(init?.body === undefined ? {} : { headers: { 'content-type': 'application/json' }, body: JSON.stringify(init.body) }),
+    cache: 'no-store',
+  })
+  const body = await r.json().catch(() => ({})) as T & { error?: string }
+  if (!r.ok) throw new Error(body.error ?? 'Something went wrong. Try again.')
+  return body
 }
+
+export async function createEvent(name: string, sample: boolean, org: Id): Promise<Id> {
+  return (await api<{ id: Id }>('/api/events', { body: { name, sample, org } })).id
+}
+
+export async function createOrg(name: string, admins: Id[]): Promise<Id> {
+  return (await api<{ id: Id }>('/api/orgs', { body: { name, admins } })).id
+}
+
+export const getOrg = (id: Id) => api<OrgDetail>(`/api/orgs/${encodeURIComponent(id)}`)
+
+export const addOrgAdmin = (id: Id, email: string) =>
+  api<{ admins: Id[] }>(`/api/orgs/${encodeURIComponent(id)}/admins`, { body: { email } }).then(r => r.admins)
+
+export const removeOrgAdmin = (id: Id, email: string) =>
+  api<{ admins: Id[] }>(`/api/orgs/${encodeURIComponent(id)}/admins/${encodeURIComponent(email)}`, { method: 'DELETE' }).then(r => r.admins)
+
+export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
 
 /** Remembers the event on the server, so the user's other devices open it too. */
 export function rememberEvent(id: Id) {

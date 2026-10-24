@@ -212,10 +212,11 @@ Deploy and local-dev instructions are in `DEPLOY.md`. Shape:
 
 | Path | What it is |
 | --- | --- |
-| `worker/index.ts` | The Worker. Serves `dist/` (single-page fallback); `/time` (server time); `/api/me`, `POST /api/events`, `POST /api/me/last-event`; `/api/events/:id/ws` (WebSocket to the event). |
+| `worker/index.ts` | The Worker. Serves `dist/` (single-page fallback); `/time` (server time); `/api/me`, `POST /api/events`, `POST /api/me/last-event`; `/api/events/:id/ws` (WebSocket to the event, only for people in the event's organisation). |
+| `worker/orgs.ts` | Organisations (customers): `/api/orgs…`, superadmins (`SUPERADMINS`), org admins, and `mayConnect`. Org admins are made Festival admin in each of the organisation's events through `EventObject.setOrgAdmin`. |
 | `worker/auth.ts` | Verifies the Cloudflare Access JWT (`Cf-Access-Jwt-Assertion` or the `CF_Authorization` cookie) against the team's certs. Users are identified by **lower-case email**, which is also their `members` key. `DEV_USER_EMAIL` (+ `?as=`) is for `wrangler dev` only and is ignored once `ACCESS_AUD` is set. |
 | `worker/event.ts` | `EventObject`, one Durable Object per event. SQLite tables `docs`, `config`, `meta` (eventId, owner) and `audit`. WebSocket hibernation API. Mirrors members into D1 `memberships`. |
-| `worker/schema.sql` | D1: `events`, `memberships`, `users` (last opened event). |
+| `worker/schema.sql` | D1: `orgs`, `org_admins`, `events` (with `org_id`), `memberships`, `users` (last opened event). Older databases: `worker/migrations/0002_orgs.sql`. |
 | `src/server/core.ts` | `EventCore`, the server's rules, with no Cloudflare APIs. Applies writes with `canWrite`, makes batches all-or-nothing, stamps message times, keeps locked roles, filters reads (others' direct messages, others' prefs, requests) and redacts fields (artist contacts, hotel details, booking refs). It also restores those fields if a writer who can't see them saves the record. |
 | `src/server/hub.ts` | `EventHub`: per-connection snapshot, write handling, and a per-viewer broadcast. Access changes (members, stage teams, roles) re-send full snapshots. |
 | `src/shared/protocol.ts` | The WebSocket messages. `undefined` in an update is sent as `{ $delete: true }`. |

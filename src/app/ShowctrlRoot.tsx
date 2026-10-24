@@ -59,17 +59,29 @@ function demoStore() {
   return (demo ??= createDataStore())
 }
 
-/** Live mode: pick (or create) an event, then connect to it. */
+/** Live mode: pick an organisation and one of its events (or create one), then connect to it. */
 function LiveApp({ me }: { me: Me }) {
   const [events, setEvents] = useState(me.events)
+  const [orgs, setOrgs] = useState(me.orgs ?? [])
   const initial = me.lastEvent && me.events.some(e => e.id === me.lastEvent) ? me.lastEvent : me.events.length === 1 ? me.events[0].id : null
   const [eventId, setEventId] = useState<Id | null>(initial)
-  const open = (id: Id) => { rememberEvent(id); setEventId(id) }
+  // The organisation shown in the picker: the open event's, or the only one there is.
+  const [org, setOrg] = useState<Id | null>(() => me.events.find(e => e.id === initial)?.org ?? (orgs.length === 1 ? orgs[0].id : null))
+  const open = (id: Id) => {
+    rememberEvent(id)
+    setOrg(events.find(e => e.id === id)?.org ?? org)
+    setEventId(id)
+  }
   const live = useMemo<Live>(() => ({ events, switchEvent: () => setEventId(null) }), [events])
   if (!eventId) {
     return (
       <Frame>
-        <EventPicker me={me} events={events} onOpen={open} onCreated={(id, name) => { setEvents(e => [{ id, name, owner: me.email }, ...e]); open(id) }} />
+        <EventPicker
+          me={me} orgs={orgs} events={events} org={org} onOrg={setOrg} onOpen={open}
+          onCreated={e => { setEvents(list => [{ ...e, owner: me.email }, ...list]); rememberEvent(e.id); setEventId(e.id) }}
+          onOrgCreated={o => { setOrgs(list => [...list, o].sort((a, b) => a.name.localeCompare(b.name))); setOrg(o.id) }}
+          onOrgRenamed={(id, name) => setOrgs(list => list.map(o => (o.id === id ? { ...o, name } : o)))}
+        />
       </Frame>
     )
   }

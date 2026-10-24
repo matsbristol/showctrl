@@ -1,8 +1,9 @@
 // The showctrl Worker: serves the app, the API and the live connection for each event.
 //
 //   GET  /time                       server time, for clock sync (no sign-in needed)
-//   GET  /api/me                     who you are and your events
-//   POST /api/events                 create an event { name, sample? }
+//   GET  /api/me                     who you are, your organisations and your events
+//   POST /api/events                 create an event { name, sample?, org } (that organisation's admins)
+//        /api/orgs…                  organisations and their admins (see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
 //   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)
 //   GET  /api/events/:id/files/:key  download one, if you may see its document
@@ -14,10 +15,9 @@ import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
 import { EMAIL_HEADER } from './event'
+import { isOrgAdmin, isSuperadmin, json, mayConnect, orgAdmins, orgRoutes } from './orgs'
 
 export { EventObject } from './event'
-
-const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } })
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -40,6 +40,10 @@ export default {
           .bind(me, id, Date.now()).run()
         return json({ ok: true })
       }
+      if (url.pathname.startsWith('/api/orgs')) {
+        const r = await orgRoutes(request, env, me, url)
+        if (r) return r
+      }
       const up = url.pathname.match(/^\/api\/events\/([\w-]+)\/files$/)
       if (up && request.method === 'POST') return await upload(request, env, me, up[1], url)
       const down = url.pathname.match(/^\/api\/events\/([\w-]+)\/files\/([\w-]+)$/)
@@ -47,10 +51,11 @@ export default {
       const ws = url.pathname.match(/^\/api\/events\/([\w-]+)\/ws$/)
       if (ws) {
         if (request.headers.get('upgrade') !== 'websocket') return json({ error: 'Expected a WebSocket' }, 426)
-        const ev = await env.DB.prepare('SELECT id FROM events WHERE id = ?').bind(ws[1]).first()
+        const ev = await env.DB.prepare('SELECT id, owner, org_id FROM events WHERE id = ?').bind(ws[1]).first<{ id: string; owner: string; org_id: string | null }>()
         if (!ev) return json({ error: 'No such event' }, 404)
-        // Anyone who got past Access may connect; the event decides what they see
-        // (someone without access sees only the stage names and can ask to join).
+        // Only people in the event's organisation get through; the event then decides what
+        // they see (someone without access there sees only the stage names and can ask to join).
+        if (!(await mayConnect(env, me, ev))) return json({ error: 'No such event' }, 404)
         const headers = new Headers(request.headers)
         headers.set(EMAIL_HEADER, me)
         return env.EVENT.getByName(ws[1]).fetch(new Request(request.url, { headers }))
@@ -63,24 +68,39 @@ export default {
   },
 } satisfies ExportedHandler<Env>
 
-function canCreate(env: Env, me: string): boolean {
-  const list = (env.CREATORS ?? '*').split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
-  return list.includes('*') || list.includes(me)
-}
-
 async function getMe(env: Env, me: string): Promise<Response> {
-  const { results } = await env.DB.prepare(
-    `SELECT e.id, e.name, e.owner FROM events e
-     WHERE e.owner = ?1 OR e.id IN (SELECT event_id FROM memberships WHERE email = ?1)
-     ORDER BY e.created_at DESC`,
-  ).bind(me).all<{ id: string; name: string; owner: string }>()
-  const user = await env.DB.prepare('SELECT last_event FROM users WHERE email = ?').bind(me).first<{ last_event: string | null }>()
-  return json({ email: me, events: results, lastEvent: user?.last_event ?? null, canCreate: canCreate(env, me) })
+  const sup = isSuperadmin(env, me) ? 1 : 0
+  const mine = `e.owner = ?1 OR e.id IN (SELECT event_id FROM memberships WHERE email = ?1)`
+  const [events, orgs, admin, user] = await env.DB.batch<Record<string, unknown>>([
+    env.DB.prepare(
+      `SELECT e.id, e.name, e.owner, e.org_id AS org FROM events e
+       WHERE ?2 = 1 OR ${mine} OR e.org_id IN (SELECT org_id FROM org_admins WHERE email = ?1)
+       ORDER BY e.created_at DESC`,
+    ).bind(me, sup),
+    env.DB.prepare(
+      `SELECT o.id, o.name FROM orgs o
+       WHERE ?2 = 1 OR o.id IN (SELECT org_id FROM org_admins WHERE email = ?1)
+          OR o.id IN (SELECT e.org_id FROM events e WHERE ${mine})
+       ORDER BY o.name COLLATE NOCASE`,
+    ).bind(me, sup),
+    env.DB.prepare('SELECT org_id FROM org_admins WHERE email = ?').bind(me),
+    env.DB.prepare('SELECT last_event FROM users WHERE email = ?').bind(me),
+  ])
+  const adminOf = new Set(admin.results.map(r => r.org_id as string))
+  return json({
+    email: me,
+    superadmin: !!sup,
+    orgs: orgs.results.map(o => ({ ...o, admin: !!sup || adminOf.has(o.id as string) })),
+    events: events.results,
+    lastEvent: (user.results[0]?.last_event as string | null | undefined) ?? null,
+    canCreate: !!sup || adminOf.size > 0,
+  })
 }
 
 async function createEvent(request: Request, env: Env, me: string): Promise<Response> {
-  if (!canCreate(env, me)) return json({ error: 'You can’t create events. Ask whoever runs showctrl for your organisation.' }, 403)
-  const body = await request.json<{ name?: string; sample?: boolean }>()
+  const body = await request.json<{ name?: string; sample?: boolean; org?: string }>()
+  const org = typeof body.org === 'string' ? body.org : null
+  if (!org || !(await isOrgAdmin(env, me, org))) return json({ error: 'Only your organisation’s admins can create events.' }, 403)
   const name = (body.name ?? '').trim().slice(0, 120) || 'New festival'
   const id = crypto.randomUUID()
   const data = body.sample ? buildSample() : blankEvent()
@@ -88,7 +108,9 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
   if (data.cfg) data.cfg = { ...data.cfg, name: body.sample ? data.cfg.name : name }
   delete data.col.members['demo-admin']
   data.col.members[me] = { id: me, name: me, role: 'admin', person: null, depts: [], stages: {} }
-  await env.DB.prepare('INSERT INTO events (id, name, owner, created_at) VALUES (?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now()).run()
+  // So are the organisation's other admins.
+  for (const a of await orgAdmins(env, org)) data.col.members[a] ??= { id: a, name: a, role: 'admin', person: null, depts: [], stages: {} }
+  await env.DB.prepare('INSERT INTO events (id, name, owner, created_at, org_id) VALUES (?, ?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now(), org).run()
   await env.EVENT.getByName(id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
   return json({ id }, 201)
 }

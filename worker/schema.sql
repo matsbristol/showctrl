@@ -1,12 +1,30 @@
--- D1: the index of events and who belongs to which. Event data itself lives in each
+-- D1: organisations, the index of events and who belongs to which. Event data itself lives in each
 -- event's Durable Object. Apply with: npx wrangler d1 execute showctrl --file worker/schema.sql [--local|--remote]
+-- (New databases only. Older ones also need worker/migrations/0002_orgs.sql.)
 
 CREATE TABLE IF NOT EXISTS events (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   owner TEXT NOT NULL,          -- email; always Festival admin
+  created_at INTEGER NOT NULL,
+  org_id TEXT                   -- the organisation (customer) it belongs to
+);
+CREATE INDEX IF NOT EXISTS events_org ON events (org_id);
+
+-- Organisations (customers). People see only their own organisation's events.
+CREATE TABLE IF NOT EXISTS orgs (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
+
+-- Organisation admins create its events and are Festival admin in every one of them.
+CREATE TABLE IF NOT EXISTS org_admins (
+  org_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  PRIMARY KEY (org_id, email)
+);
+CREATE INDEX IF NOT EXISTS org_admins_email ON org_admins (email);
 
 -- Kept in step by each event's Durable Object whenever members or stage teams change.
 CREATE TABLE IF NOT EXISTS memberships (

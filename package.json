@@ -13,6 +13,9 @@
     "deploy": "vite build && wrangler deploy",
     "db:init:local": "wrangler d1 execute showctrl --local --file worker/schema.sql",
     "db:init": "wrangler d1 execute showctrl --remote --file worker/schema.sql",
+    "check:orgs": "node scripts/check-orgs.mjs",
+    "db:migrate:orgs": "wrangler d1 execute showctrl --remote --file worker/migrations/0002_orgs.sql",
+    "db:migrate:orgs:local": "wrangler d1 execute showctrl --local --file worker/migrations/0002_orgs.sql",
     "typecheck:worker": "tsc -p worker/tsconfig.json",
     "simulate": "node scripts/simulate.mjs"
   },

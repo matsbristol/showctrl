@@ -36,9 +36,9 @@
   ],
 
   // Set ACCESS_TEAM_DOMAIN and ACCESS_AUD for production (see DEPLOY.md).
-  // CREATORS: who may create events (comma-separated emails, or *).
+  // SUPERADMINS: who runs showctrl itself and adds organisations (comma-separated emails).
   "vars": {
-    "CREATORS": "mats@larkolluka.no",
+    "SUPERADMINS": "mats@larkolluka.no",
     "ACCESS_TEAM_DOMAIN": "https://nsgsystems.cloudflareaccess.com",
     "ACCESS_AUD": "11fb4e35fe67f335ac59707c92e4075f6a97774c9d26f23916a58b4ab925f095"
   }

@@ -16,7 +16,8 @@
 // Against the deployed site (behind Cloudflare Access), sign in with cloudflared first:
 //   cloudflared access login https://<host>
 //   node scripts/seed-larkolluka.mjs --base https://<host> --token "$(cloudflared access token -app=https://<host>)" \
-//     --admins morten@larkolluka.no,andre@larkolluka.no
+//     --org <organisation id> --admins morten@larkolluka.no,andre@larkolluka.no
+// --org is required: events belong to an organisation, and only its admins may create them.
 
 const args = process.argv.slice(2)
 const BASE = args.includes('--base') ? args[args.indexOf('--base') + 1] : 'http://localhost:8787'
@@ -24,6 +25,8 @@ const REAL = args.includes('--real-dates')
 const opt = name => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
 const TOKEN = opt('--token')
 const ADMINS = (opt('--admins') ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+const ORG = opt('--org')
+if (!ORG) { console.error('Pass --org <organisation id> (Choose an organisation → its id is in /api/me).'); process.exit(1) }
 const auth = TOKEN ? { 'cf-access-token': TOKEN } : {}
 const TZ = 'Europe/Oslo'
 const MIN = 60_000
@@ -111,7 +114,7 @@ const api = async (path, body) => {
   if (!r.ok) throw new Error(`${path}: ${r.status} ${await r.text()}`)
   return r.json()
 }
-const { id: eventId } = await api('/api/events', { name: 'Larkolluka 2026', sample: false })
+const { id: eventId } = await api('/api/events', { name: 'Larkolluka 2026', sample: false, org: ORG })
 const ws = new WebSocket(`${BASE.replace(/^http/, 'ws')}/api/events/${eventId}/ws`, { headers: auth })
 const inbox = new Map()
 let snapshot

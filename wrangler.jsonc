@@ -5,6 +5,12 @@
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
 
+  // The public address. The zone is on Cloudflare; Access must list this hostname too.
+  "routes": [{ "pattern": "showctrl.no", "custom_domain": true }],
+  "workers_dev": true,
+  // Per-version preview URLs would sit outside the Access application, so they stay off.
+  "preview_urls": false,
+
   // The Vite build. The Worker runs first only for the API and server time;
   // every other path is the app, with index.html as the single-page fallback.
   "assets": {

@@ -71,6 +71,9 @@ export const deleteEvent = (id: Id) => api<{ ok: true }>(`/api/events/${encodeUR
 /** Superadmins: delete a customer that has no events left. */
 export const deleteOrg = (id: Id) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'DELETE' })
 
+/** Superadmins: where to download a JSON backup of one event, or (no id) of everything. */
+export const backupUrl = (id?: Id) => `${id ? `/api/events/${encodeURIComponent(id)}/backup` : '/api/backup'}${devQuery()}`
+
 export interface EventAdmins { owner: Id; admins: Id[] }
 
 /** Superadmins: who runs an event (Festival admin there, nowhere else). */

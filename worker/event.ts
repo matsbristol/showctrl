@@ -173,6 +173,22 @@ export class EventObject extends DurableObject<Env> {
   }
 
   /**
+   * Everything stored for the event, unredacted, for a superadmin's backup: settings, every
+   * record, the change history and the stored file keys (the files themselves stay in R2).
+   */
+  async exportAll(): Promise<Record<string, unknown>> {
+    const parse = (s: string) => JSON.parse(s) as unknown
+    const docs: Record<string, Record<string, unknown>> = {}
+    for (const r of this.sql.exec<{ col: string; id: string; data: string }>('SELECT col, id, data FROM docs ORDER BY col, id')) (docs[r.col] ??= {})[r.id] = parse(r.data)
+    const config = Object.fromEntries(this.sql.exec<{ which: string; data: string }>('SELECT which, data FROM config').toArray().map(r => [r.which, parse(r.data)]))
+    const audit = this.sql.exec<{ at: number; actor: string | null; op: string; col: string; doc_id: string; patch: string | null }>(
+      'SELECT at, actor, op, col, doc_id, patch FROM audit ORDER BY seq',
+    ).toArray().map(r => ({ at: r.at, actor: r.actor, op: r.op, col: r.col, id: r.doc_id, ...(r.patch ? { patch: parse(r.patch) } : {}) }))
+    const files = Object.values(docs.files ?? {}).map(f => (f as { blob?: { key: string } }).blob?.key).filter((k): k is string => !!k && !k.startsWith('data:'))
+    return { eventId: this.meta('eventId'), owner: this.meta('owner'), config, collections: docs, audit, storedFiles: files }
+  }
+
+  /**
    * Deletes the event for good: its uploaded files, every record, the change history.
    * Open connections are closed with code 4004. The Worker removes it from D1 first.
    */

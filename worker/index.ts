@@ -5,6 +5,7 @@
 //   GET  /api/me                     who you are, your organisations and your events
 //   POST /api/events                 create an event { name, sample?, org, admins } (superadmins)
 //   DELETE /api/events/:id           delete an event (superadmins)
+//   GET  /api/backup, /api/events/:id/backup   JSON backups (superadmins)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
 //   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)

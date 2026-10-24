@@ -61,7 +61,9 @@ Everyone signs in at the same address.
 - **Event admins** are Festival admin in their own events only. Inside the event (Admin → People with access) they add everyone else. They can't create events or see other events.
 - **Everyone else** sees only the events they've been added to.
 
-Customers are folders that group events for superadmins; they give nobody access. Superadmins can delete an event (type its name to confirm; everything in it goes, including uploaded files) and a customer once it has no events. The server enforces all of this: someone who isn't in an event can't list it or connect to it.
+Customers are folders that group events for superadmins; they give nobody access. Superadmins can delete an event (type its name to confirm; everything in it goes, including uploaded files) and a customer once it has no events.
+
+**Backups** (superadmins): **Backup** next to each event downloads that event as JSON: settings, every record unredacted, the change history and the keys of stored files. **Download a full backup** on the Customers page adds the customer list, the event index and memberships, with every event in full. Uploaded files themselves stay in R2 and aren't in the download. Sign-in codes and sessions are never included. The server enforces all of this: someone who isn't in an event can't list it or connect to it.
 
 **Databases created before organisations** need this once:
 ```sh

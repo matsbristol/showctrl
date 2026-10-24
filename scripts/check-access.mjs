@@ -44,6 +44,23 @@ r = await call(boss, 'GET', '/api/me'); const owner = r.body.email
 r = await call(boss, 'DELETE', `/api/events/${fest}/admins/${encodeURIComponent(owner)}`); check('the event’s creator cannot be removed', r.status === 400, r)
 w = await ws(SUPER2, fest); check('another superadmin is admin in every event without being added', w.result === 'snapshot' && w.isOwner && w.artists > 0, w)
 r = await call(SUPER2, 'GET', '/api/me'); check('…and sees the whole portfolio', [fest, winter, ofest].every(id => r.body.events.some(e => e.id === id)), r.body.events.length)
+// Backups
+r = await call(kari, 'GET', `/api/events/${fest}/backup`); check('an event admin cannot download a backup', r.status === 403, r)
+r = await call(kari, 'GET', '/api/backup'); check('…nor the full backup', r.status === 403, r)
+{
+  const b = await fetch(`${B}/api/events/${fest}/backup`)
+  const j = await b.json()
+  check('a superadmin downloads one event, as an attachment, with every record and the history',
+    b.status === 200 && /attachment; filename="showctrl-[a-z0-9-]+-2[0-9-T]+\.json"/.test(b.headers.get('content-disposition')) && j.scope === 'event'
+      && Object.keys(j.event.collections.artists).length > 0 && j.event.collections.members[kari]?.role === 'admin' && j.event.audit.length > 0 && j.event.customer.id === acme,
+    { status: b.status, cd: b.headers.get('content-disposition') })
+  const all = await (await fetch(`${B}/api/backup`)).json()
+  check('the full backup has customers, the index and every event, and no sign-in secrets',
+    all.scope === 'all' && all.customers.some(o => o.id === acme) && [fest, winter, ofest].every(id => all.events.some(e => e.id === id)) && all.index.memberships.length > 0
+      && !JSON.stringify(all).includes('token_hash') && !JSON.stringify(all).includes('code_hash'),
+    Object.keys(all))
+}
+
 // Deleting
 r = await call(kari, 'DELETE', `/api/events/${fest}`); check('an event admin cannot delete their event', r.status === 403, r)
 r = await call(boss, 'DELETE', `/api/orgs/${acme}`); check('a customer with events cannot be deleted', r.status === 400 && /first/.test(r.body.error), r)

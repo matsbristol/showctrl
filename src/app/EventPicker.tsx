@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  addEventAdmin, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
+  addEventAdmin, backupUrl, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type OrgSummary,
 } from './backend'
 
@@ -61,6 +61,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
         <div className="panel">
           <h1>Customers</h1>
           {signedIn}
+          <p style={{ margin: '-.25rem 0 1rem' }}><a className="btn" href={backupUrl()} download>Download a full backup</a> <span className="small muted">Every customer and event, as one JSON file.</span></p>
           {orgs.length ? (
             <ul className="list" style={{ margin: '0 -1.5rem 1rem' }}>
               {orgs.map(o => {
@@ -139,6 +140,7 @@ function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSum
           <div className="stack"><b>{e.name}</b><span className="small muted">{e.owner === me.email ? 'You created this event' : `Created by ${e.owner}`}</span></div>
           <div className="row" style={{ marginLeft: 'auto', gap: '.5rem' }}>
             {manage && <button type="button" className="btn" aria-expanded={open === e.id} onClick={() => setOpen(open === e.id ? null : e.id)}>Admins</button>}
+            {manage && <a className="btn" href={backupUrl(e.id)} download title="Download everything in this event as a JSON file">Backup</a>}
             {manage && <button type="button" className="btn danger" disabled={busy === e.id} onClick={() => void remove(e)}>{busy === e.id ? 'Deleting…' : 'Delete'}</button>}
             <button type="button" className="btn primary" onClick={() => onOpen(e.id)}>Open</button>
           </div>

@@ -72,6 +72,9 @@ export const removeOrgAdmin = (id: Id, email: string) =>
 
 export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
 
+/** Cloudflare Access's own sign-out: ends the session for this site, then shows its login page again. */
+export const LOGOUT_URL = '/cdn-cgi/access/logout'
+
 /** Remembers the event on the server, so the user's other devices open it too. */
 export function rememberEvent(id: Id) {
   void fetch(`/api/me/last-event${devQuery()}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ id }) }).catch(() => {})

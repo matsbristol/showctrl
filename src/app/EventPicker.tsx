@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { addOrgAdmin, createEvent, createOrg, getOrg, removeOrgAdmin, renameOrg, type EventSummary, type Me, type OrgSummary } from './backend'
+import { LOGOUT_URL, addOrgAdmin, createEvent, createOrg, getOrg, removeOrgAdmin, renameOrg, type EventSummary, type Me, type OrgSummary } from './backend'
 
 const errText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 
@@ -28,7 +28,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
         <img className="setup-logo" src="/logo.png" alt="showctrl" />
         <div className="panel">
           <h1>{orgs.length ? 'Choose an organisation' : 'Welcome to showctrl'}</h1>
-          <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>.</p>
+          <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>. <a href={LOGOUT_URL}>Log out</a></p>
           {orgs.length ? (
             <ul className="list" style={{ margin: '0 -1.5rem 1rem' }}>
               {orgs.map(o => {
@@ -57,7 +57,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
       <div className="panel">
         {(orgs.length > 1 || me.superadmin) && <button type="button" className="btn sm" style={{ marginBottom: '.75rem' }} onClick={() => onOrg(null)}>← All organisations</button>}
         <h1>{current.name}</h1>
-        <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>.</p>
+        <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>. <a href={LOGOUT_URL}>Log out</a></p>
         {mine.length ? (
           <EventRows events={mine} me={me} onOpen={onOpen} />
         ) : (

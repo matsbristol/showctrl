@@ -38,11 +38,10 @@
     { "binding": "DB", "database_name": "showctrl", "database_id": "bf83e827-ec54-43c9-aef1-545cc7d3aa14" }
   ],
 
-  // Set ACCESS_TEAM_DOMAIN and ACCESS_AUD for production (see DEPLOY.md).
+  // Optional: ACCESS_TEAM_DOMAIN and ACCESS_AUD accept Cloudflare Access tokens too (see DEPLOY.md).
+  // Left out, so only showctrl's own sign-in counts and Log out always signs out.
   // SUPERADMINS: who runs showctrl itself and adds organisations (comma-separated emails).
   "vars": {
-    "SUPERADMINS": "mats@larkolluka.no",
-    "ACCESS_TEAM_DOMAIN": "https://nsgsystems.cloudflareaccess.com",
-    "ACCESS_AUD": "11fb4e35fe67f335ac59707c92e4075f6a97774c9d26f23916a58b4ab925f095"
+    "SUPERADMINS": "mats@larkolluka.no"
   }
 }

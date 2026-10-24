@@ -5,7 +5,7 @@
 
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import type { Env } from './env'
-import { isDev, readCookie, sessionEmail } from './login'
+import { isDev, sessionEmail } from './login'
 
 const jwksCache = new Map<string, ReturnType<typeof createRemoteJWKSet>>()
 
@@ -22,7 +22,7 @@ export async function authenticate(request: Request, env: Env): Promise<AuthResu
     return { ok: true, email: (as || env.DEV_USER_EMAIL!).trim().toLowerCase() }
   }
 
-  const token = env.ACCESS_AUD && env.ACCESS_TEAM_DOMAIN ? request.headers.get('cf-access-jwt-assertion') ?? readCookie(request, 'CF_Authorization') : null
+  const token = env.ACCESS_AUD && env.ACCESS_TEAM_DOMAIN ? request.headers.get('cf-access-jwt-assertion') : null
   if (!token || !env.ACCESS_AUD || !env.ACCESS_TEAM_DOMAIN) return { ok: false, status: 401, message: 'Not signed in.' }
 
   const issuer = env.ACCESS_TEAM_DOMAIN.replace(/\/$/, '')

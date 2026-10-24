@@ -88,7 +88,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                   <td>
                     {p.accred ? <span className="chip ac">{p.accred}</span> : '—'}
                     {hasLogin(p) && <> <span className="chip go" title="Has access to showctrl.no">showctrl</span></>}
-                    {!hasLogin(p) && canGrant && p.email && <> <button type="button" className="btn sm" title="Listing someone here doesn’t let them sign in. This does." onClick={() => setDialog({ type: 'access', person: p })}>Give showctrl.no access</button></>}
+                    {!hasLogin(p) && canGrant && <> <button type="button" className="btn sm" title="Listing someone here doesn’t let them sign in. This does." onClick={() => setDialog({ type: 'access', person: p })}>Give showctrl.no access</button></>}
                   </td>
                   <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={`Edit ${p.name}`}>Edit</button>}</td>
                 </tr>
@@ -100,7 +100,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
       </div>
       {dialog?.type === 'person' && <PersonForm person={dialog.person} sid={sid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'import' && <ImportForm sid={sid} onClose={() => setDialog(null)} />}
-      {dialog?.type === 'access' && <AccessForm uid="" isNew preset={{ email: dialog.person.email!, person: dialog.person.id }} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'access' && <AccessForm uid="" isNew preset={{ email: dialog.person.email ?? '', person: dialog.person.id }} onClose={() => setDialog(null)} />}
     </>
   )
 }

@@ -143,6 +143,8 @@ export function AccessForm({ uid: uid0, isNew, preset, onClose }: { uid: Id; isN
           if (has !== want) await setCrew(s.id, want)
         }
         if (rq) await store.delete('requests', uid)
+        // Keep the personnel entry's email in step with the one they sign in with.
+        if (preset && people[preset.person] && people[preset.person].email?.trim().toLowerCase() !== uid) await store.update('people', preset.person, { email: uid })
       }}
     >
       {askEmail && <Field label="Email (the one they sign in with)" full><input type="email" value={email} autoComplete="off" onChange={e => setEmail(e.target.value)} /></Field>}

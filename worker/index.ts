@@ -8,6 +8,7 @@
 //   GET  /api/backup, /api/events/:id/backup   JSON backups (superadmins)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
+//   POST /api/me/prefs               save your settings { font }
 //   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)
 //   GET  /api/events/:id/files/:key  download one, if you may see its document
 //   GET  /api/events/:id/ws          WebSocket to the event's Durable Object
@@ -18,6 +19,7 @@ import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
 import { EMAIL_HEADER } from './event'
+import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
 import { isEmail, isSuperadmin, json, mayConnect, normEmail, portfolioRoutes } from './orgs'
 
@@ -49,6 +51,12 @@ export default {
     try {
       if (url.pathname === '/api/me' && request.method === 'GET') return await getMe(env, me)
       if (url.pathname === '/api/events' && request.method === 'POST') return await createEvent(request, env, me)
+      if (url.pathname === '/api/me/prefs' && request.method === 'POST') {
+        const { font } = await request.json<{ font?: unknown }>().catch(() => ({} as { font?: unknown }))
+        if (!isFontId(font)) return json({ error: 'Unknown font.' }, 400)
+        await env.DB.prepare('INSERT INTO users (email, font) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET font = ?2').bind(me, font).run()
+        return json({ ok: true })
+      }
       if (url.pathname === '/api/me/last-event' && request.method === 'POST') {
         const { id } = await request.json<{ id?: string }>()
         if (typeof id !== 'string') return json({ error: 'Missing id' }, 400)
@@ -90,7 +98,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     env.DB.prepare(
       `SELECT o.id, o.name FROM orgs o WHERE ?2 = 1 OR o.id IN (SELECT e.org_id FROM events e WHERE ${mine}) ORDER BY o.name COLLATE NOCASE`,
     ).bind(me, sup),
-    env.DB.prepare('SELECT last_event FROM users WHERE email = ?').bind(me),
+    env.DB.prepare('SELECT last_event, font FROM users WHERE email = ?').bind(me),
   ])
   return json({
     email: me,
@@ -99,6 +107,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     events: events.results,
     lastEvent: (user.results[0]?.last_event as string | null | undefined) ?? null,
     canCreate: !!sup,
+    font: (user.results[0]?.font as string | null | undefined) ?? null,
   })
 }
 

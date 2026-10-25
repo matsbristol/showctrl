@@ -9,6 +9,8 @@
   --strip: #131A2A; --strip2: #1D2639; --strip-ink: #EEF1F7; --strip-ink2: #9AA6BD;
   --display: 'Barlow Condensed', 'Arial Narrow', 'Roboto Condensed', sans-serif;
   --body: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Clocks and countdowns, and per-typeface weights and widths. The chosen font (src/app/font.ts) overrides these. */
+  --clock: var(--display); --display-w: 600; --clock-w: 600; --display-stretch: normal; --clock-stretch: normal;
   --r: 6px;
   --strip-h: 64px;
   color-scheme: light;
@@ -41,7 +43,7 @@
 .sc button, .sc input, .sc select, .sc textarea { font: inherit; color: inherit }
 .sc :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px }
 .sc .num { font-variant-numeric: tabular-nums }
-.sc h1, .sc h2, .sc h3 { font-family: var(--display); font-weight: 600; line-height: 1.1; margin: 0 }
+.sc h1, .sc h2, .sc h3 { font-family: var(--display); font-stretch: var(--display-stretch); font-weight: var(--display-w); line-height: 1.1; margin: 0 }
 .sc h1 { font-size: 2rem; letter-spacing: .01em }
 .sc h2 { font-size: 1.45rem }
 .sc h3 { font-size: 1.15rem }
@@ -50,13 +52,13 @@
 
 /* ---------- strip ---------- */
 .sc .strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--strip); color: var(--strip-ink); display: flex; align-items: center; gap: 1.25rem; padding: .5rem 1rem; min-height: var(--strip-h); flex-wrap: wrap }
-.sc .brand { font-family: var(--display); font-weight: 700; font-size: 1.35rem; letter-spacing: .06em; display: flex; align-items: center; gap: .5rem; white-space: nowrap }
+.sc .brand { font-family: var(--display); font-stretch: var(--display-stretch); font-weight: 700; font-size: 1.35rem; letter-spacing: .06em; display: flex; align-items: center; gap: .5rem; white-space: nowrap }
 .sc .brand img { display: block; height: 24px; width: auto }
 .sc .ev { min-width: 0; line-height: 1.2 }
 .sc .ev b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 26ch }
 .sc .ev span { color: var(--strip-ink2); font-size: .85rem }
 .sc .master { margin-left: auto; display: flex; align-items: baseline; gap: .6rem }
-.sc .master .t { font-family: var(--display); font-weight: 600; font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .02em }
+.sc .master .t { font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .02em }
 .sc .sync { font-size: .78rem; color: var(--strip-ink2); display: flex; align-items: center; gap: .35rem; white-space: nowrap }
 .sc .sync::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c, #8E9AB1) }
 .sc .who { display: flex; align-items: center; gap: .5rem; background: var(--strip2); border-radius: 999px; padding: .25rem .3rem .25rem .75rem; font-size: .85rem; white-space: nowrap }
@@ -87,7 +89,7 @@
 .sc nav.side a[aria-current="page"] svg { color: var(--accent) }
 .sc nav.side svg { width: 20px; height: 20px; flex: none }
 .sc nav.side .sep { height: 1px; background: var(--line); margin: .6rem .4rem }
-.sc .ctxhead { display: flex; align-items: center; gap: .6rem; padding: .2rem .7rem .7rem; font-family: var(--display); font-size: 1.25rem; font-weight: 600 }
+.sc .ctxhead { display: flex; align-items: center; gap: .6rem; padding: .2rem .7rem .7rem; font-family: var(--display); font-stretch: var(--display-stretch); font-size: 1.25rem; font-weight: var(--display-w) }
 .sc main { padding: 1.5rem clamp(1rem, 3vw, 2.25rem) 4rem; min-width: 0; overflow-x: clip }
 .sc .head { display: flex; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.25rem }
 .sc .head > div:first-child { min-width: 0 }
@@ -126,7 +128,7 @@
 .sc .setup .panel { padding: 1.5rem }
 .sc .linkish { background: none; border: 0; padding: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline }
 .sc .setup.login { max-width: 440px; margin-top: 12vh }
-.sc .login-code { font-size: 1.6rem; letter-spacing: .35em; font-family: var(--display) }
+.sc .login-code { font-size: 1.6rem; letter-spacing: .35em; font-family: var(--display); font-stretch: var(--display-stretch) }
 .sc .setup-logo { height: 30px; width: auto; margin-bottom: .5rem }
 .sc .loading { padding: 3rem; text-align: center; color: var(--ink2) }
 .sc .stack { display: flex; flex-direction: column; gap: .25rem }
@@ -167,7 +169,7 @@
 .sc .slot + .slot { border-top: 1px dashed var(--line) }
 .sc .slot .lbl { font-size: .8rem; font-weight: 700; color: var(--ink3) }
 .sc .slot .ttl { font-weight: 700; font-size: 1.05rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
-.sc .slot .cd { font-family: var(--display); font-size: 1.9rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; text-align: right }
+.sc .slot .cd { font-family: var(--clock); font-stretch: var(--clock-stretch); font-size: 1.9rem; font-weight: var(--clock-w); line-height: 1; font-variant-numeric: tabular-nums; text-align: right }
 .sc .slot .sub { grid-column: 2 / 4; color: var(--ink2); font-size: .85rem }
 .sc .slot.now .lbl { color: var(--go) }
 .sc .cd.warn { color: var(--standby) }
@@ -189,7 +191,7 @@
 .sc .sheet .tm s { display: block; font-weight: 400; color: var(--ink3); font-size: .78rem }
 .sc .sheet .what { font-weight: 700 }
 .sc .sheet .what small { display: block; font-weight: 400; color: var(--ink2); font-size: .82rem }
-.sc .sheet .cd { font-family: var(--display); font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--ink2) }
+.sc .sheet .cd { font-family: var(--clock); font-stretch: var(--clock-stretch); font-size: 1.25rem; font-weight: var(--clock-w); font-variant-numeric: tabular-nums; color: var(--ink2) }
 .sc .sheet li.live { background: var(--go-soft) }
 .sc .sheet li.done { color: var(--ink3) }
 .sc .sheet li.k-show .what { font-size: 1.1rem }
@@ -235,7 +237,7 @@
 .sc .tile::before { content: ""; position: absolute; left: 0; top: 0; right: 0; height: 6px; background: var(--c, #3E63FF) }
 .sc .tile .lab { font-weight: 700; font-size: 1rem; display: flex; align-items: center; gap: .5rem; padding-right: 2.6rem }
 .sc .tile .lab span { margin-left: auto; color: var(--strip-ink2); font-weight: 400; font-size: .8rem }
-.sc .tile .val { font-family: var(--display); font-weight: 600; font-size: clamp(3rem, 6.5vw, 4.6rem); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .01em; margin-top: auto }
+.sc .tile .val { font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: clamp(3rem, 6.5vw, 4.6rem); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: .01em; margin-top: auto }
 .sc .tile .val.warn { color: #FFC94A }
 .sc .tile .val.over { color: #FF6E6B }
 .sc .tile .sub { color: var(--strip-ink2); font-size: .88rem; min-height: 1.3em }
@@ -246,8 +248,8 @@
 @media (prefers-reduced-motion: no-preference) { .sc .tile .val.over { animation: sc-blink 1s steps(2) infinite } }
 @keyframes sc-blink { 50% { opacity: .55 } }
 .sc .wallclock { display: none; justify-content: space-between; align-items: baseline; color: #EEF1F7; margin-bottom: 1rem; gap: 1rem; flex-wrap: wrap }
-.sc .wallclock .t { font-family: var(--display); font-size: clamp(4rem, 12vw, 10rem); font-weight: 600; line-height: .9; font-variant-numeric: tabular-nums }
-.sc .wallclock .e { font-family: var(--display); font-size: 1.6rem; color: #9AA6BD }
+.sc .wallclock .t { font-family: var(--clock); font-stretch: var(--clock-stretch); font-size: clamp(4rem, 12vw, 10rem); font-weight: var(--clock-w); line-height: .9; font-variant-numeric: tabular-nums }
+.sc .wallclock .e { font-family: var(--display); font-stretch: var(--display-stretch); font-size: 1.6rem; color: #9AA6BD }
 
 /* ---------- wall mode ---------- */
 .sc.wallmode { background: #05070C }
@@ -265,14 +267,14 @@
 /* ---------- on-stage display ---------- */
 .sc .display { background: #05070C; color: #EEF1F7; border-radius: 10px; padding: clamp(1rem, 3vw, 2.5rem); min-height: 72vh; display: grid; grid-template-rows: auto 1fr auto; gap: 1rem; position: relative; overflow: hidden }
 .sc .display::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 10px; background: var(--c) }
-.sc .display .top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; font-family: var(--display) }
+.sc .display .top { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; font-family: var(--display); font-stretch: var(--display-stretch) }
 .sc .display .top .st { font-size: clamp(1.6rem, 3vw, 2.6rem); font-weight: 700 }
 .sc .display .top .tod { font-size: clamp(2rem, 5vw, 4rem); font-weight: 600; font-variant-numeric: tabular-nums }
 .sc .display .mid { display: flex; flex-direction: column; justify-content: center; gap: .3rem }
 .sc .display .lbl { font-size: clamp(1rem, 2vw, 1.6rem); color: #9AA6BD; font-weight: 700 }
 .sc .display .lbl.on { color: #45C982 }
-.sc .display .dwho { font-family: var(--display); font-size: clamp(2.4rem, 6vw, 5.5rem); font-weight: 700; line-height: 1 }
-.sc .display .big { font-family: var(--display); font-size: clamp(5rem, 20vw, 17rem); font-weight: 600; line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: .01em }
+.sc .display .dwho { font-family: var(--display); font-stretch: var(--display-stretch); font-size: clamp(2.4rem, 6vw, 5.5rem); font-weight: 700; line-height: 1 }
+.sc .display .big { font-family: var(--clock); font-stretch: var(--clock-stretch); font-size: clamp(5rem, 20vw, 17rem); font-weight: var(--clock-w); line-height: .9; font-variant-numeric: tabular-nums; letter-spacing: .01em }
 .sc .display .big.warn { color: #FFC94A }
 .sc .display .big.over { color: #FF6E6B }
 .sc .display .bot { display: flex; gap: 2rem; flex-wrap: wrap; color: #9AA6BD; font-size: clamp(1rem, 1.8vw, 1.4rem) }
@@ -323,7 +325,7 @@
 .sc nav.side .badge { margin-left: auto }
 @media (max-width: 860px) { .sc nav.side .badge { position: absolute; margin: 0; top: .1rem; right: .2rem } }
 .sc .urgent { background: #C3302E; color: #fff; display: flex; gap: 1rem; align-items: center; padding: .6rem 1rem; flex-wrap: wrap }
-.sc .urgent b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .02em }
+.sc .urgent b { font-family: var(--display); font-stretch: var(--display-stretch); font-size: 1.15rem; letter-spacing: .02em }
 .sc .urgent .msg { flex: 1; min-width: 16ch }
 .sc .urgent button { background: #fff; color: #C3302E; border: 0; border-radius: var(--r); padding: .4rem .9rem; font-weight: 700; cursor: pointer }
 .sc.wallmode .urgent { position: fixed; left: 0; right: 0; top: 0; z-index: 40; font-size: 1.3rem }
@@ -408,7 +410,7 @@
 @media (max-width: 520px) { .sc .risk-pick { grid-template-columns: 1fr } }
 .sc .risk-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem }
 .sc .risk-summary button { display: flex; flex-direction: column; align-items: flex-start; border: 1px solid var(--line); border-top: 6px solid var(--c, var(--ink3)); border-radius: 8px; background: var(--surface); padding: .7rem .9rem; cursor: pointer; color: var(--ink2); font-weight: 700 }
-.sc .risk-summary button b { font-family: var(--display); font-size: 2rem; line-height: 1; color: var(--ink) }
+.sc .risk-summary button b { font-family: var(--display); font-stretch: var(--display-stretch); font-size: 2rem; line-height: 1; color: var(--ink) }
 .sc .risk-summary button[aria-pressed="true"] { outline: 3px solid var(--c, var(--accent)); outline-offset: -1px }
 .sc .risk-summary .risk-green { --c: var(--risk-green) }
 .sc .risk-summary .risk-orange { --c: var(--risk-orange) }
@@ -475,10 +477,10 @@
 .sc .screenview.with-schedule { grid-template-columns: minmax(16rem, 28%) 1fr }
 .sc .screenview.with-schedule .sv-head { grid-column: 1 / -1 }
 .sc .sv-head { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; border-bottom: 1px solid #1D2639; padding-bottom: .5rem }
-.sc .sv-name { font-family: var(--display); font-size: clamp(1.4rem, 2.4vw, 2.2rem); font-weight: 700; letter-spacing: .02em }
+.sc .sv-name { font-family: var(--display); font-stretch: var(--display-stretch); font-size: clamp(1.4rem, 2.4vw, 2.2rem); font-weight: 700; letter-spacing: .02em }
 .sc .sv-event { color: #8E9AB1; font-size: .95rem }
-.sc .sv-clock { margin-left: auto; font-family: var(--display); font-weight: 600; font-size: clamp(2.6rem, 6vw, 5.5rem); line-height: .9 }
-.sc .screenview h3 { font-family: var(--display); font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; color: #8E9AB1; margin-bottom: .4rem }
+.sc .sv-clock { margin-left: auto; font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: clamp(2.6rem, 6vw, 5.5rem); line-height: .9; font-variant-numeric: tabular-nums }
+.sc .screenview h3 { font-family: var(--display); font-stretch: var(--display-stretch); font-size: 1.05rem; letter-spacing: .06em; text-transform: uppercase; color: #8E9AB1; margin-bottom: .4rem }
 .sc .sv-schedule { display: flex; flex-direction: column; min-height: 0 }
 .sc .sv-schedule ol { list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 64vh; scrollbar-width: thin }
 .sc .sv-schedule li { display: grid; grid-template-columns: 3.4rem 10px 1rem 1fr; gap: .45rem; align-items: center; padding: .32rem .3rem; border-bottom: 1px solid #141B29; font-size: clamp(.8rem, 1vw, .95rem) }
@@ -498,7 +500,7 @@
 .sc .sv-slot { display: grid; grid-template-columns: 3rem 1fr auto; gap: .5rem; align-items: baseline; padding: .25rem 0 }
 .sc .sv-lbl { font-size: .75rem; font-weight: 700; color: #8E9AB1; text-transform: uppercase }
 .sc .sv-ttl { font-weight: 700; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(.95rem, 1.2vw, 1.15rem) }
-.sc .sv-cd { font-family: var(--display); font-weight: 600; font-size: clamp(1.6rem, 2.6vw, 2.4rem); font-variant-numeric: tabular-nums; line-height: 1 }
+.sc .sv-cd { font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: clamp(1.6rem, 2.6vw, 2.4rem); font-variant-numeric: tabular-nums; line-height: 1 }
 .sc .sv-cd.warn { color: #FFC94A }
 .sc .sv-cd.over { color: #FF6E6B }
 .sc .sv-bottom { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)) }
@@ -605,7 +607,7 @@
 .sc .plot-pop[data-side="left"]::before { right: -6px; border-left: 0; border-bottom: 0 }
 .sc .plot-pop[data-side="below"]::before { top: -6px; left: calc(50% - 5px); transform: rotate(45deg); border-right: 0; border-bottom: 0 }
 .sc .pp-head { display: flex; align-items: center; gap: .5rem }
-.sc .pp-head b { font-family: var(--display); font-size: 1.1rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.sc .pp-head b { font-family: var(--display); font-stretch: var(--display-stretch); font-size: 1.1rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 .sc .pp-close { margin-left: auto; background: none; border: 0; color: var(--ink2); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0 .2rem }
 .sc .plot-pop > p { margin: .1rem 0 .55rem }
 .sc .pp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem .6rem }
@@ -616,3 +618,14 @@
 /* Start page: a superadmin's admin list under one event */
 .sc .event-admins { flex-basis: 100%; margin-top: .6rem; padding: .75rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface2) }
 .sc .event-admins ul { list-style: none; margin: .5rem 0 .75rem; padding: 0; display: grid; gap: .35rem }
+
+/* Font picker ("Aa") */
+.sc .fontpick { position: relative; display: inline-flex }
+.sc .fontpick-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(23rem, 92vw); max-height: 70vh; overflow: auto; margin: 0; padding: .35rem; list-style: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3) }
+.sc .fontpick-list button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 .8rem; width: 100%; text-align: left; background: none; border: 0; border-radius: 6px; padding: .55rem .65rem; color: inherit; cursor: pointer; font: inherit }
+.sc .fontpick-list button:hover, .sc .fontpick-list button:focus-visible { background: var(--surface2); outline: none }
+.sc .fontpick-list button[aria-selected="true"] { background: var(--accent-soft) }
+.sc .fp-name { font-family: var(--display); font-stretch: var(--display-stretch); font-weight: var(--display-w); font-size: 1.3rem; line-height: 1.15 }
+.sc .fp-clock { font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: 1.3rem; font-variant-numeric: tabular-nums; grid-row: span 2; align-self: center }
+.sc .fp-body { font-family: var(--body); font-size: .9rem }
+.sc .fp-note { grid-column: 1 / -1; font-family: var(--body); font-size: .75rem; color: var(--ink3) }

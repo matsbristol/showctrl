@@ -3,6 +3,7 @@ import {
   addEventAdmin, backupUrl, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type OrgSummary,
 } from './backend'
+import { FontPicker } from './FontPicker'
 
 const errText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 const emails = (s: string) => s.split(/[\s,;]+/).map(a => a.trim()).filter(Boolean)
@@ -26,7 +27,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
   onOrgDeleted: (id: string) => void
 }) {
   const [err, setErr] = useState('')
-  const signedIn = <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>. <button type="button" className="linkish" onClick={() => void logout()}>Log out</button></p>
+  const signedIn = <p className="muted" style={{ margin: '.5rem 0 1rem' }}>Signed in as <b>{me.email}</b>. <button type="button" className="linkish" onClick={() => void logout()}>Log out</button> <FontPicker className="btn sm" /></p>
 
   if (!me.superadmin) {
     // Grouped by customer only when someone works for more than one.

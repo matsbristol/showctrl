@@ -38,7 +38,8 @@ CREATE INDEX IF NOT EXISTS memberships_email ON memberships (email);
 CREATE TABLE IF NOT EXISTS users (
   email TEXT PRIMARY KEY,
   last_event TEXT,
-  seen_at INTEGER
+  seen_at INTEGER,
+  font TEXT                     -- chosen typeface (src/shared/fonts.ts)
 );
 
 -- Sign-in (worker/login.ts): pending codes, a send log for rate limits, and sessions.

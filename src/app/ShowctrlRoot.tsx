@@ -8,6 +8,8 @@ import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
 import { detectBackend, eventStore, rememberEvent, type Backend, type Me } from './backend'
 import { EventPicker } from './EventPicker'
+import { fontVars, initFont, useFont } from './font'
+import { FONTS } from '../shared/fonts'
 import { Login } from './Login'
 import { Layout } from './Layout'
 import { LiveContext, type Live } from './live'
@@ -47,7 +49,13 @@ function App({ store, initialMe, isOwner, live }: { store: DataStore; initialMe?
 
 function Boot() {
   const [backend, setBackend] = useState<Backend | null>(null)
-  useEffect(() => { void detectBackend().then(setBackend) }, [])
+  useEffect(() => {
+    void detectBackend().then(b => {
+      if (b.mode === 'live') initFont(b.me.font, true)
+      else if (b.mode === 'demo') initFont(null, false)
+      setBackend(b)
+    })
+  }, [])
   if (!backend) return <Frame><div className="loading">Connecting…</div></Frame>
   if (backend.mode === 'demo') return <App store={demoStore()} />
   if (backend.mode === 'login') return <Frame><Login /></Frame>
@@ -117,9 +125,10 @@ function Frame({ children }: { children: ReactNode }) {
     return () => document.removeEventListener('fullscreenchange', h)
   }, [])
   const wall = useMemo(() => ({ on, enter, exit }), [on, enter, exit])
+  const font = useFont()
   return (
     <WallContext.Provider value={wall}>
-      <div className={`sc${on ? ' wallmode' : ''}`}>
+      <div className={`sc${on ? ' wallmode' : ''}`} style={fontVars(FONTS[font])}>
         {children}
         {on && <button type="button" className="btn exitwall" onClick={exit}>Exit wall mode</button>}
       </div>

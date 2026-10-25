@@ -17,6 +17,8 @@ export interface Me {
   events: EventSummary[]
   lastEvent: Id | null
   canCreate: boolean
+  /** The person's chosen typeface (src/shared/fonts.ts). */
+  font?: string | null
 }
 
 export type Backend = { mode: 'demo' } | { mode: 'live'; me: Me } | { mode: 'login' } | { mode: 'error'; message: string }

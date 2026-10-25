@@ -12,6 +12,7 @@ import { HQ_NAV, NAV_GROUPS, STAGE_NAV, hqPath, stagePath } from './nav'
 import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
 import { logout } from './backend'
+import { FontPicker } from './FontPicker'
 import { useLive } from './live'
 import { CloudflareStore, type ConnectionStatus } from '../data/cloudflareStore'
 import { useUnreadCount } from './messages/hooks'
@@ -120,6 +121,7 @@ function Who() {
       <div className="who">
         <span>{name} <span className="role">· {label}</span></span>
         {me && <Avatar id={me} name={name} />}
+        <FontPicker className="who-btn" />
         {live && <button type="button" className="who-btn" onClick={live.switchEvent}>Events</button>}
         {live && <button type="button" className="who-btn" onClick={() => void logout()}>Log out</button>}
       </div>
@@ -142,6 +144,7 @@ function Who() {
           {personas.map(p => <option key={p.id} value={p.id}>{p.name} — {p.tag}</option>)}
         </select>
       </label>
+      <FontPicker className="who-btn" />
     </div>
   )
 }

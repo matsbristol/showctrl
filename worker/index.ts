@@ -6,6 +6,7 @@
 //   POST /api/events                 create an event { name, sample?, org, admins: [{ email, name }] } (superadmins)
 //   DELETE /api/events/:id           delete an event (superadmins)
 //   GET  /api/backup, /api/events/:id/backup   JSON backups (superadmins)
+//   GET  /api/backups[/:date]        nightly backups (superadmins; see backups.ts)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
 //   POST /api/me/prefs               save your settings { font?, name? } (a new name is copied into your events)
@@ -18,6 +19,7 @@ import { blankEvent, buildSample } from '../src/data/sample'
 import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
+import { backupRoutes, nightlyBackup } from './backups'
 import { eventStub, moveToEu } from './events'
 import { EMAIL_HEADER, NAME_HEADER } from './event'
 import { isFontId } from '../src/shared/fonts'
@@ -80,6 +82,8 @@ export default {
         if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
         return json({ events: await moveToEu(env, url.searchParams.get('purge') === '1') })
       }
+      const backups = await backupRoutes(env, me, url, request.method)
+      if (backups) return backups
       const portfolio = await portfolioRoutes(request, env, me, url)
       if (portfolio) return portfolio
       const up = url.pathname.match(/^\/api\/events\/([\w-]+)\/files$/)
@@ -104,6 +108,11 @@ export default {
       console.error(JSON.stringify({ level: 'error', path: url.pathname, error: String(e) }))
       return json({ error: 'Something went wrong. Try again.' }, 500)
     }
+  },
+
+  /** Cron trigger (wrangler.jsonc): the nightly backup. */
+  async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+    ctx.waitUntil(nightlyBackup(env, controller.scheduledTime))
   },
 } satisfies ExportedHandler<Env>
 

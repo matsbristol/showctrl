@@ -6,6 +6,8 @@ export interface Env {
   EVENT: DurableObjectNamespace<EventObject>
   /** Uploaded documents. Keys are `<eventId>/<uuid>`. Without it, uploads are off and links still work. */
   FILES?: R2Bucket
+  /** Nightly backups (EU jurisdiction). Without it, the nightly run only logs that it skipped. */
+  BACKUPS?: R2Bucket
 
   /** Sends sign-in codes (Cloudflare Email Service; the from domain must be enabled for sending). */
   EMAIL?: SendEmail

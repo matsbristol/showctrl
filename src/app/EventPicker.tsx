@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  addEventAdmin, backupUrl, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
-  type EventAdmins, type EventSummary, type Me, type NamedPerson, type OrgSummary,
+  addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
+  type EventAdmins, type EventSummary, type Me, type NamedPerson, type NightlyBackups, type OrgSummary,
 } from './backend'
 import { FontPicker } from './FontPicker'
 
@@ -83,6 +83,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
           </div>
         )}
         <NewOrg onCreated={onOrgCreated} />
+        <Nightly />
       </div>
     )
   }
@@ -266,6 +267,37 @@ function NewOrg({ onCreated }: { onCreated: (o: OrgSummary) => void }) {
         <button type="submit" className="btn primary" disabled={busy || !name.trim()}>{busy ? 'Adding…' : 'Add'}</button>
       </form>
       {err && <p className="small" style={{ color: 'var(--stop)', marginTop: '.5rem' }} role="alert">{err}</p>}
+    </div>
+  )
+}
+
+/** Superadmins: the automatic nightly backups (every customer and event), last 30 nights. */
+function Nightly() {
+  const [data, setData] = useState<NightlyBackups | null>(null)
+  const [err, setErr] = useState('')
+  useEffect(() => {
+    let alive = true
+    listNightly().then(d => { if (alive) setData(d) }, e => { if (alive) setErr(errText(e, 'Could not load the backups.')) })
+    return () => { alive = false }
+  }, [])
+  const size = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1e3))} kB`)
+  return (
+    <div className="panel">
+      <h2>Nightly backups</h2>
+      <p className="small muted" style={{ margin: '.35rem 0 .75rem' }}>Every night at 02:00 UTC, a full backup of every customer and event, kept for 30 nights, stored in the EU.</p>
+      {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
+      {data && !data.enabled && <p className="small muted">Not running yet: they start once file storage (R2) is switched on for showctrl.</p>}
+      {data?.enabled && !data.backups.length && <p className="small muted">The first one is made tonight.</p>}
+      {data?.enabled && data.backups.length > 0 && (
+        <ul className="list" style={{ margin: '0 -1.5rem' }}>
+          {data.backups.map(b => (
+            <li key={b.date}>
+              <span className="num"><b>{b.date}</b> <span className="small muted">{size(b.bytes)}</span></span>
+              <a className="btn sm" style={{ marginLeft: 'auto' }} href={nightlyUrl(b.date)} download>Download</a>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

@@ -152,6 +152,23 @@ async function eventBackup(env: Env, ev: EventRow, orgName: string | null) {
  * A JSON download: one event, or (eventId null) the whole portfolio: customers, the event index,
  * memberships, and every event in full. Sign-in codes and sessions are never included.
  */
+/** Every customer and event, the event index, memberships and people's settings. Never sign-in codes or sessions. */
+export async function fullBackup(env: Env, by: string): Promise<Record<string, unknown>> {
+  const [orgs, events, memberships, users] = await env.DB.batch<Record<string, unknown>>([
+    env.DB.prepare('SELECT id, name, created_at FROM orgs ORDER BY name'),
+    env.DB.prepare('SELECT id, name, owner, org_id, created_at FROM events ORDER BY created_at'),
+    env.DB.prepare('SELECT event_id, email FROM memberships ORDER BY event_id, email'),
+    env.DB.prepare('SELECT email, name, font, last_event, seen_at FROM users ORDER BY email'),
+  ])
+  const orgName = new Map(orgs.results.map(o => [o.id as string, o.name as string]))
+  const all = []
+  for (const ev of events.results as unknown as EventRow[]) all.push(await eventBackup(env, ev, ev.org_id ? orgName.get(ev.org_id) ?? null : null))
+  return {
+    format: 'showctrl-backup', version: 1, exportedAt: new Date().toISOString(), exportedBy: by, scope: 'all',
+    superadmins: superadmins(env), customers: orgs.results, index: { events: events.results, memberships: memberships.results, users: users.results }, events: all,
+  }
+}
+
 async function downloadBackup(env: Env, me: string, eventId: string | null): Promise<Response> {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)
   const base = { format: 'showctrl-backup', version: 1, exportedAt: new Date().toISOString(), exportedBy: me }
@@ -165,16 +182,7 @@ async function downloadBackup(env: Env, me: string, eventId: string | null): Pro
     body = { ...base, scope: 'event', event: await eventBackup(env, ev, ev.org_name) }
     filename = `showctrl-${slug(ev.name)}-${stamp}.json`
   } else {
-    const [orgs, events, memberships, users] = await env.DB.batch<Record<string, unknown>>([
-      env.DB.prepare('SELECT id, name, created_at FROM orgs ORDER BY name'),
-      env.DB.prepare('SELECT id, name, owner, org_id, created_at FROM events ORDER BY created_at'),
-      env.DB.prepare('SELECT event_id, email FROM memberships ORDER BY event_id, email'),
-      env.DB.prepare('SELECT email, last_event, seen_at FROM users ORDER BY email'),
-    ])
-    const orgName = new Map(orgs.results.map(o => [o.id as string, o.name as string]))
-    const all = []
-    for (const ev of events.results as unknown as EventRow[]) all.push(await eventBackup(env, ev, ev.org_id ? orgName.get(ev.org_id) ?? null : null))
-    body = { ...base, scope: 'all', superadmins: superadmins(env), customers: orgs.results, index: { events: events.results, memberships: memberships.results, users: users.results }, events: all }
+    body = await fullBackup(env, me)
     filename = `showctrl-backup-${stamp}.json`
   }
   console.log(JSON.stringify({ level: 'info', what: 'backup downloaded', scope: eventId ?? 'all', by: me }))

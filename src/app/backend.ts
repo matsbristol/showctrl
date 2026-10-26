@@ -81,6 +81,12 @@ export const deleteOrg = (id: Id) => api<{ ok: true }>(`/api/orgs/${encodeURICom
 /** Superadmins: where to download a JSON backup of one event, or (no id) of everything. */
 export const backupUrl = (id?: Id) => `${id ? `/api/events/${encodeURIComponent(id)}/backup` : '/api/backup'}${devQuery()}`
 
+export interface NightlyBackups { enabled: boolean; backups: { date: string; bytes: number }[] }
+
+/** Superadmins: the nightly backups kept (last 30 nights), and where to download one. */
+export const listNightly = () => api<NightlyBackups>('/api/backups')
+export const nightlyUrl = (date: string) => `/api/backups/${date}${devQuery()}`
+
 export interface EventAdmins { owner: Id; admins: { email: Id; name: string }[] }
 
 /** Superadmins: who runs an event (Festival admin there, nowhere else). */

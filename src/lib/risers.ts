@@ -20,9 +20,17 @@ export function deckSize(sys: RiserSystem, size: RiserSize): { w: number; d: num
   return (RISER_SYSTEMS[sys].sizes as Record<string, { w: number; d: number }>)[size] ?? LEGACY_RISER_SIZES[size]
 }
 
-/** "2×1 m", or "8×8 ft" for an old deck. */
+/** "200 × 100 cm", or "8 × 8 ft" for an old deck. */
 export function sizeLabel(size: RiserSize): string {
-  return `${size.replace('x', '×')} ${LEGACY_RISER_SIZES[size] ? 'ft' : 'm'}`
+  const [w, d] = size.split('x')
+  if (LEGACY_RISER_SIZES[size]) return `${w} × ${d} ft`
+  const cm = (m: string) => Math.round(Number(m) * 100)
+  return `${cm(w)} × ${cm(d)} cm`
+}
+
+/** "40 cm", or "telescopic, 70 cm". */
+export function legLabel(i: Pick<PlotItem, 'height' | 'telescopic'>): string {
+  return `${i.telescopic ? 'telescopic, ' : ''}${i.height ?? 0} cm`
 }
 
 /** One system's stock on a stage. Stock saved before systems counts as Prolyte. */
@@ -32,6 +40,7 @@ export function stockOf(stock: RiserStock | undefined, sys: RiserSystem): RiserS
   return {
     decks: { ...(legacy ? stock?.decks : undefined), ...s?.decks },
     heights: s?.heights ?? (legacy ? stock?.heights : undefined) ?? [],
+    telescopic: !!s?.telescopic,
   }
 }
 
@@ -44,16 +53,18 @@ function keys(sys: RiserSystem, ...counts: DeckCount[]): RiserSize[] {
 
 const clean = (c: DeckCount): DeckCount => Object.fromEntries(Object.entries(c).filter(([, n]) => n))
 
-export function needs(plot: Plot | undefined, sys: RiserSystem): { all: DeckCount; rolling: DeckCount; heights: number[] } {
+export function needs(plot: Plot | undefined, sys: RiserSystem): { all: DeckCount; rolling: DeckCount; heights: number[]; telescopic: boolean } {
   const all: DeckCount = {}, rolling: DeckCount = {}
   const heights = new Set<number>()
+  let telescopic = false
   for (const i of Object.values(plot?.items ?? {})) {
     if (i.kind !== 'riser' || !i.size || systemOf(i) !== sys) continue
     all[i.size] = (all[i.size] ?? 0) + 1
     if (i.rolling) rolling[i.size] = (rolling[i.size] ?? 0) + 1
-    if (i.height) heights.add(i.height)
+    if (i.telescopic) telescopic = true
+    else if (i.height) heights.add(i.height)
   }
-  return { all, rolling, heights: [...heights].sort((a, b) => a - b) }
+  return { all, rolling, heights: [...heights].sort((a, b) => a - b), telescopic }
 }
 
 const add = (a: DeckCount, b: DeckCount): DeckCount => {
@@ -66,13 +77,18 @@ export interface RiserRow<T> {
   act: T
   need: DeckCount
   rolling: DeckCount
+  /** Fixed leg heights this act uses. */
   heights: number[]
+  /** Whether any of its risers stand on telescopic legs. */
+  telescopic: boolean
   /** Decks in use while this act plays (its own, plus the next act's rolling risers being built). */
   inUse: DeckCount
   /** Decks short, per size, while this act plays. */
   short: DeckCount
-  /** Heights this act needs that the stage doesn't have legs for. */
+  /** Fixed heights this act needs that the stage doesn't have legs for. */
   missingHeights: number[]
+  /** It needs telescopic legs and the stage has none in this system. */
+  missingTelescopic: boolean
   /** Changeover into this act: decks to bring on (+) or take off (−), per size. */
   change: DeckCount
 }
@@ -80,6 +96,7 @@ export interface RiserRow<T> {
 /** `acts` in running order, each with its plot; one system at a time. */
 export function planRisers<T>(acts: { act: T; plot: Plot | undefined }[], stock: RiserStock | undefined, sys: RiserSystem): RiserRow<T>[] {
   const have = stockOf(stock, sys)
+  const legsKnown = have.heights.length > 0 || !!have.telescopic
   const n = acts.map(a => needs(a.plot, sys))
   return acts.map((a, i) => {
     const own = n[i]
@@ -90,8 +107,9 @@ export function planRisers<T>(acts: { act: T; plot: Plot | undefined }[], stock:
     const change: DeckCount = {}
     for (const s of keys(sys, own.all, prev)) { const d = (own.all[s] ?? 0) - (prev[s] ?? 0); if (d) change[s] = d }
     return {
-      act: a.act, need: own.all, rolling: own.rolling, heights: own.heights, inUse, short,
-      missingHeights: have.heights.length ? own.heights.filter(h => !have.heights.includes(h)) : [],
+      act: a.act, need: own.all, rolling: own.rolling, heights: own.heights, telescopic: own.telescopic, inUse, short,
+      missingHeights: legsKnown ? own.heights.filter(h => !have.heights.includes(h)) : [],
+      missingTelescopic: legsKnown && own.telescopic && !have.telescopic,
       change,
     }
   })

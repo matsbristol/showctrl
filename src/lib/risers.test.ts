@@ -39,17 +39,27 @@ describe('riser planning', () => {
     expect(row.missingHeights).toEqual([80])
   })
 
+  it('checks telescopic legs apart from fixed ones', () => {
+    const tele = (id: string, h: number): PlotItem => ({ ...r(id, '2x1', false, h, 'prolyte'), telescopic: true })
+    const p = plot(tele('a', 70), r('b', '2x1', false, 40, 'prolyte'))
+    expect(needs(p, 'prolyte')).toMatchObject({ heights: [40], telescopic: true })
+    const without = { id: 's', stage: 's', systems: { prolyte: { decks: { '2x1': 4 }, heights: [20, 40], telescopic: false } } }
+    const withTele = { id: 's', stage: 's', systems: { prolyte: { decks: { '2x1': 4 }, heights: [20, 40], telescopic: true } } }
+    expect(planRisers([{ act: 'A', plot: p }], without, 'prolyte')[0]).toMatchObject({ missingTelescopic: true, missingHeights: [] })
+    expect(planRisers([{ act: 'A', plot: p }], withTele, 'prolyte')[0]).toMatchObject({ missingTelescopic: false, missingHeights: [] })
+  })
+
   it('reads stock saved before systems as Prolyte, and keeps old 8 ft decks countable', () => {
     const old = { id: 's', stage: 's', decks: { '8x8': 2 }, heights: [20, 40] }
-    expect(stockOf(old, 'prolyte')).toEqual({ decks: { '8x8': 2 }, heights: [20, 40] })
-    expect(stockOf(old, 'nivtec')).toEqual({ decks: {}, heights: [] })
+    expect(stockOf(old, 'prolyte')).toEqual({ decks: { '8x8': 2 }, heights: [20, 40], telescopic: false })
+    expect(stockOf(old, 'nivtec')).toEqual({ decks: {}, heights: [], telescopic: false })
     const [row] = planRisers([{ act: 'A', plot: plot(r('a', '8x8'), r('b', '8x8'), r('c', '8x8')) }], old, 'prolyte')
     expect(row.short).toEqual({ '8x8': 1 })
   })
 
   it('writes deck counts for people', () => {
-    expect(deckText({ '2x1': 2, '1x1': -1 }, 'prolyte', true)).toBe('+2 of 2×1 m, -1 of 1×1 m')
-    expect(deckText({ '8x8': 1 }, 'prolyte')).toBe('1 of 8×8 ft')
+    expect(deckText({ '2x1': 2, '1x1': -1, '2x0.5': 1, '1x0.5': 1 }, 'prolyte', true)).toBe('+2 of 200 × 100 cm, -1 of 100 × 100 cm, +1 of 200 × 50 cm, +1 of 100 × 50 cm')
+    expect(deckText({ '8x8': 1 }, 'prolyte')).toBe('1 of 8 × 8 ft')
     expect(deckText({}, 'nivtec')).toBe('')
   })
 })

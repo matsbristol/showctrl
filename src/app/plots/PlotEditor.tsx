@@ -6,9 +6,9 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as RPointerEvent } from 'react'
 import { useCollection, useStore } from '../../data/hooks'
 import { rid } from '../../lib/id'
-import { deckSize, DEFAULT_SYSTEM, sizeLabel, sizesOf, stockOf, SYSTEMS, systemOf } from '../../lib/risers'
+import { deckSize, DEFAULT_SYSTEM, legLabel, sizeLabel, sizesOf, stockOf, SYSTEMS, systemOf } from '../../lib/risers'
 import { riserText } from '../../lib/summary'
-import { PLOT_KINDS, RISER_SYSTEMS } from '../../types/constants'
+import { PLOT_KINDS, RISER_LEGS, RISER_SYSTEMS } from '../../types/constants'
 import type { Artist, Id, PlotItem, PlotKind, RiserSize, RiserSystem } from '../../types/model'
 import { useAccess } from '../session'
 import { useServerTime } from '../time'
@@ -201,7 +201,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
           })}
           {/* Decks with the same name form one riser (a 2 × 2 m drum riser is two 2 × 1 m decks): one label, under the front-most deck. */}
           {[...ordered.filter(it => it.kind === 'riser').reduce((m, it) => {
-            const k = `${it.label}|${systemOf(it)}|${it.size}|${it.height}|${!!it.rolling}`
+            const k = `${it.label}|${systemOf(it)}|${it.size}|${it.height}|${!!it.telescopic}|${!!it.rolling}`
             return m.set(k, [...(m.get(k) ?? []), it])
           }, new Map<string, PlotItem[]>()).values()].map(decks => {
             const pos = posOf
@@ -210,7 +210,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             return (
               <g key={`lbl-${front.id}`} transform={`translate(${x} ${D - y})`} className="plot-riser-label">
                 <text y={halfExtent(front).hd + 0.26} className="plot-label">{front.label}</text>
-                <text y={halfExtent(front).hd + 0.5} className="plot-sub">{decks.length > 1 ? `${decks.length} × ` : ''}{RISER_SYSTEMS[systemOf(front)].label} {front.size ? sizeLabel(front.size) : ''} · {front.height} cm{front.rolling ? ' · rolling' : ''}</text>
+                <text y={halfExtent(front).hd + 0.5} className="plot-sub">{decks.length > 1 ? `${decks.length} × ` : ''}{RISER_SYSTEMS[systemOf(front)].label} {front.size ? sizeLabel(front.size) : ''} · {legLabel(front)}{front.rolling ? ' · rolling' : ''}</text>
               </g>
             )
           })}
@@ -244,7 +244,14 @@ export function PlotEditor({ artist }: { artist: Artist }) {
                           {selected.size && !sizesOf(systemOf(selected)).includes(selected.size) && <option value={selected.size}>{sizeLabel(selected.size)}</option>}
                         </select>
                       </label>
-                      <label className="fld"><span>Height (cm)</span><input type="number" min={0} step={10} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>
+                      <label className="fld"><span>Legs</span>
+                        <select value={selected.telescopic ? 'telescopic' : String(selected.height ?? '')}
+                          onChange={e => void patch(selected.id, e.target.value === 'telescopic' ? { telescopic: true } : { telescopic: false, height: Number(e.target.value) })}>
+                          {[...new Set([...RISER_LEGS, ...(selected.height && !selected.telescopic ? [selected.height] : [])])].sort((x, y) => x - y).map(h => <option key={h} value={h}>{h} cm</option>)}
+                          <option value="telescopic">Telescopic</option>
+                        </select>
+                      </label>
+                      {selected.telescopic && <label className="fld"><span>Height (cm)</span><input type="number" min={0} step={5} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>}
                       <label className="row small pp-full"><input type="checkbox" checked={!!selected.rolling} onChange={e => void patch(selected.id, { rolling: e.target.checked })} /> Rolling</label>
                     </>
                   ) : (

@@ -79,8 +79,11 @@ describe('input lists and plots', () => {
     await click(screen.getByRole('button', { name: '+ Riser' }))
     const items = Object.values(store.peek('plots').a14.items)
     expect(items).toHaveLength(before + 1)
-    await blur(screen.getByLabelText('Height (cm)'), '60')
+    await act(async () => { fireEvent.change(screen.getByLabelText('Legs'), { target: { value: '60' } }) })
     expect(Object.values(store.peek('plots').a14.items).find(i => i.kind === 'riser' && i.height === 60)).toBeTruthy()
+    await act(async () => { fireEvent.change(screen.getByLabelText('Legs'), { target: { value: 'telescopic' } }) })
+    await blur(screen.getByLabelText('Height (cm)'), '75')
+    expect(Object.values(store.peek('plots').a14.items).find(i => i.kind === 'riser' && i.telescopic && i.height === 75)).toBeTruthy()
   })
 
   it('rotates a riser with the button, the angle list and the R key', async () => {
@@ -104,9 +107,13 @@ describe('input lists and plots', () => {
     expect(screen.getByRole('region', { name: 'Prolyte' })).toBeTruthy()
     const nivtec = within(screen.getByRole('region', { name: 'Nivtec' }))
     expect(nivtec.queryAllByRole('row').filter(r => r.classList.contains('clash'))).toHaveLength(0)
-    await blur(nivtec.getByLabelText('Nivtec 2×1 m decks'), '0')
+    await blur(nivtec.getByLabelText('Nivtec 200 × 100 cm decks'), '0')
     expect(store.peek('risers').tent.systems?.nivtec?.decks?.['2x1']).toBe(0)
     expect(nivtec.queryAllByRole('row').filter(r => r.classList.contains('clash')).length).toBeGreaterThan(0)
+    await act(async () => { fireEvent.click(nivtec.getByLabelText('Nivtec telescopic legs')) })
+    expect(store.peek('risers').tent.systems?.nivtec?.telescopic).toBe(true)
+    await act(async () => { fireEvent.click(nivtec.getByLabelText('Nivtec 40 cm legs')) })
+    expect(store.peek('risers').tent.systems?.nivtec?.heights).toEqual([20, 60])
   })
 
   it('opens the item editor only from Edit, a double-click or Enter, never from a click or drag', async () => {

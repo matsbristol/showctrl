@@ -48,7 +48,7 @@ export function riserText(plot: Plot | undefined): string {
   const r = Object.values(plot?.items ?? {}).filter(i => i.kind === 'riser')
   if (!r.length) return ''
   const by = new Map<string, number>()
-  for (const i of r) { const k = `${RISER_SYSTEMS[systemOf(i)].label} ${i.size ? sizeLabel(i.size) : '?'}${i.height ? ` @ ${i.height} cm` : ''}${i.rolling ? ' rolling' : ''}`; by.set(k, (by.get(k) ?? 0) + 1) }
+  for (const i of r) { const k = `${RISER_SYSTEMS[systemOf(i)].label} ${i.size ? sizeLabel(i.size) : '?'}${i.height ? ` @ ${i.height} cm${i.telescopic ? ' telescopic' : ''}` : ''}${i.rolling ? ' rolling' : ''}`; by.set(k, (by.get(k) ?? 0) + 1) }
   return [...by].map(([k, n]) => `${n} × ${k}`).join(', ')
 }
 

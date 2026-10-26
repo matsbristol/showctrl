@@ -378,6 +378,8 @@ export interface PlotItem {
   system?: RiserSystem
   size?: RiserSize
   height?: number
+  /** Risers: on telescopic legs, set to `height`, instead of fixed legs. */
+  telescopic?: boolean
   /** Risers: on wheels, so it can be built off stage and rolled on. */
   rolling?: boolean
   /** Rotation in degrees, clockwise as drawn on the plot. */
@@ -398,7 +400,10 @@ export interface Plot extends BaseDoc {
 /** One riser system's stock on a stage: decks per size, and the leg heights in centimetres. */
 export interface RiserSystemStock {
   decks: Record<RiserSize, number>
+  /** Fixed legs in stock, in centimetres (RISER_LEGS). */
   heights: number[]
+  /** Telescopic legs in stock. */
+  telescopic?: boolean
 }
 
 /** A stage's riser stock, per system. Id is the stage id. */

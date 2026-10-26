@@ -240,6 +240,9 @@ export const RISER_SYSTEMS = {
   },
 } as const
 
+/** Fixed riser legs, in centimetres. Telescopic legs (any height) are stocked separately. */
+export const RISER_LEGS = [20, 40, 60, 80, 100] as const
+
 /** US 8 ft decks from older plots. Still read (and counted as Prolyte), no longer offered. */
 export const LEGACY_RISER_SIZES: Record<string, { w: number; d: number }> = {
   '8x8': { w: 2.44, d: 2.44 },

@@ -610,7 +610,7 @@
 
 /* Item editor that pops up next to the selected plot item */
 .sc .plot-wrap { position: relative }
-.sc .plot-pop { position: absolute; left: 0; top: 0; z-index: 5; width: 17.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .65rem .75rem .75rem; box-shadow: 0 10px 28px rgba(0, 0, 0, .35) }
+.sc .plot-pop { position: absolute; left: 0; top: 0; z-index: 5; width: 19.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: .65rem .75rem .75rem; box-shadow: 0 10px 28px rgba(0, 0, 0, .35) }
 .sc .plot-pop::before { content: ""; position: absolute; top: 50%; width: 10px; height: 10px; background: var(--surface); border: 1px solid var(--line); transform: translateY(-50%) rotate(45deg) }
 .sc .plot-pop[data-side="right"]::before { left: -6px; border-right: 0; border-top: 0 }
 .sc .plot-pop[data-side="left"]::before { right: -6px; border-left: 0; border-bottom: 0 }
@@ -660,3 +660,7 @@
 @media (max-width: 520px) { .sc .admin-add { grid-template-columns: minmax(0, 1fr) } }
 .sc .admin-rows { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; min-width: 0 }
 .sc .admin-rows legend { font-size: .8rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .25rem }
+
+/* Risers: legs in stock, as checkboxes */
+.sc .riser-legs { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .35rem 1rem; flex-basis: 100% }
+.sc .riser-legs legend { font-size: .8rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .35rem }

@@ -61,7 +61,7 @@ export function sampleRiserStock(stage: Id): RiserStock {
   return {
     id: stage, stage, notes: '',
     systems: big
-      ? { prolyte: { decks: { '2x1': 10, '1x1': 4, '2x0.5': 4 }, heights: [20, 40, 60, 80] }, nivtec: { decks: { '2x1': 4, '1x1': 2 }, heights: [20, 40, 60] } }
-      : { nivtec: { decks: { '2x1': 5, '1x1': 2 }, heights: [20, 40, 60] } },
+      ? { prolyte: { decks: { '2x1': 10, '1x1': 4, '2x0.5': 4, '1x0.5': 2 }, heights: [20, 40, 60, 80, 100], telescopic: true }, nivtec: { decks: { '2x1': 4, '1x1': 2 }, heights: [20, 40, 60], telescopic: false } }
+      : { nivtec: { decks: { '2x1': 5, '1x1': 2 }, heights: [20, 40, 60], telescopic: false } },
   }
 }

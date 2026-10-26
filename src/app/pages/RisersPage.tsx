@@ -4,7 +4,7 @@ import { useCollection, useStore } from '../../data/hooks'
 import { deckText, peak, planRisers, sizeLabel, sizesOf, stockOf, SYSTEMS } from '../../lib/risers'
 import { eff, itemsFor } from '../../lib/runsheet'
 import { fmtTime } from '../../lib/time'
-import { RISER_SYSTEMS } from '../../types/constants'
+import { RISER_LEGS, RISER_SYSTEMS } from '../../types/constants'
 import type { Id, Plot, RiserStock, RiserSystem, RosItem } from '../../types/model'
 import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
@@ -68,14 +68,18 @@ function SystemSection({ sys, stageId, stock, acts, w }: {
   const rows = planRisers(acts, stock, sys)
   const used = rows.filter(r => Object.keys(r.need).length || Object.keys(r.change).length)
   const top = peak(rows)
-  const short = rows.filter(r => Object.keys(r.short).length || r.missingHeights.length).length
+  const lacks = (r: (typeof rows)[number]) => Object.keys(r.short).length > 0 || r.missingHeights.length > 0 || r.missingTelescopic
+  const short = rows.filter(lacks).length
   const hasStock = Object.values(have.decks).some(n => n > 0)
 
-  const setStock = async (patch: { decks?: Record<string, number>; heights?: number[] }) => {
-    if (!stock) await store.set('risers', stageId, { stage: stageId, systems: { [sys]: { decks: {}, heights: [20, 40, 60], ...patch } }, notes: '' })
-    else if (!stock.systems?.[sys]) await store.update('risers', stageId, { systems: { [sys]: { decks: { ...have.decks, ...patch.decks }, heights: patch.heights ?? (have.heights.length ? have.heights : [20, 40, 60]) } } })
+  // A system's first stock starts with every leg, so a deck count alone doesn't flag missing legs.
+  const setStock = async (patch: { decks?: Record<string, number>; heights?: number[]; telescopic?: boolean }) => {
+    const first = { decks: { ...have.decks, ...patch.decks }, heights: patch.heights ?? (have.heights.length ? have.heights : [...RISER_LEGS]), telescopic: patch.telescopic ?? (have.heights.length ? have.telescopic : true) }
+    if (!stock) await store.set('risers', stageId, { stage: stageId, systems: { [sys]: first }, notes: '' })
+    else if (!stock.systems?.[sys]) await store.update('risers', stageId, { systems: { [sys]: first } })
     else await store.update('risers', stageId, { systems: { [sys]: patch } })
   }
+  const legs = [...new Set([...RISER_LEGS, ...have.heights])].sort((x, y) => x - y)
 
   return (
     <section className="riser-system" aria-label={name}>
@@ -92,12 +96,18 @@ function SystemSection({ sys, stageId, stock, acts, w }: {
                   : <b className="num">{have.decks[s] ?? 0}</b>}
               </label>
             ))}
-            <label className="fld" style={{ minWidth: '12rem' }}>
-              <span>Leg heights (cm)</span>
-              {w
-                ? <input aria-label={`${name} leg heights (cm)`} defaultValue={(have.heights.length ? have.heights : [20, 40, 60]).join(', ')} key={`h-${have.heights.join()}`} onBlur={e => void setStock({ heights: e.target.value.split(/[,\s]+/).map(Number).filter(n => n > 0).sort((x, y) => x - y) })} />
-                : <b>{have.heights.join(', ') || '—'}</b>}
-            </label>
+            <fieldset className="riser-legs">
+              <legend>Legs</legend>
+              {legs.map(h => (
+                <label key={h} className="row small">
+                  <input type="checkbox" aria-label={`${name} ${h} cm legs`} disabled={!w} checked={have.heights.includes(h)}
+                    onChange={e => void setStock({ heights: (e.target.checked ? [...have.heights, h] : have.heights.filter(x => x !== h)).sort((x, y) => x - y) })} /> {h} cm
+                </label>
+              ))}
+              <label className="row small">
+                <input type="checkbox" aria-label={`${name} telescopic legs`} disabled={!w} checked={!!have.telescopic} onChange={e => void setStock({ telescopic: e.target.checked })} /> Telescopic
+              </label>
+            </fieldset>
           </div>
         </section>
         <section className="panel">
@@ -115,17 +125,17 @@ function SystemSection({ sys, stageId, stock, acts, w }: {
           <tbody>
             {used.map(r => {
               const art = artists[r.act.artist!]
-              const bad = Object.keys(r.short).length > 0 || r.missingHeights.length > 0
+              const bad = lacks(r)
               return (
                 <tr key={r.act.id} className={bad ? 'clash' : undefined}>
                   <td className="num"><b>{fmtTime(eff(r.act).s, tz)}</b></td>
                   <td><Link to={`/s/${stageId}/plots?act=${art.id}`} style={{ color: 'inherit' }}><b>{art.name}</b></Link></td>
-                  <td>{deckText(r.need, sys) || <span className="muted">None</span>}{r.heights.length > 0 && <div className="small muted">{r.heights.join(' / ')} cm</div>}</td>
+                  <td>{deckText(r.need, sys) || <span className="muted">None</span>}{(r.heights.length > 0 || r.telescopic) && <div className="small muted">{[r.heights.length ? `${r.heights.join(' / ')} cm` : '', r.telescopic ? 'telescopic' : ''].filter(Boolean).join(' + ')}</div>}</td>
                   <td>{deckText(r.rolling, sys) || '—'}</td>
                   <td className="num">{deckText(r.change, sys, true).replace(/-/g, '−') || '—'}</td>
                   <td>
                     {bad
-                      ? <span className="chip st">{[deckText(r.short, sys) && `short ${deckText(r.short, sys)}`, r.missingHeights.length && `no ${r.missingHeights.join('/')} cm legs`].filter(Boolean).join('; ')}</span>
+                      ? <span className="chip st">{[deckText(r.short, sys) && `short ${deckText(r.short, sys)}`, r.missingHeights.length && `no ${r.missingHeights.join('/')} cm legs`, r.missingTelescopic && 'no telescopic legs'].filter(Boolean).join('; ')}</span>
                       : <span className="chip go">OK</span>}
                   </td>
                 </tr>

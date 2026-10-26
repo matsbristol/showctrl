@@ -11,7 +11,7 @@ const listeners = new Set<() => void>()
 
 /** Adds the font's stylesheet once. Classic is already in showctrl.css. */
 export function loadFont(id: FontId) {
-  if (id === DEFAULT_FONT || typeof document === 'undefined' || document.getElementById(`sc-font-${id}`)) return
+  if (id === DEFAULT_FONT || !FONTS[id].google || typeof document === 'undefined' || document.getElementById(`sc-font-${id}`)) return
   const link = document.createElement('link')
   link.id = `sc-font-${id}`
   link.rel = 'stylesheet'

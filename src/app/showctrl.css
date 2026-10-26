@@ -630,7 +630,7 @@
 
 /* Font picker ("Aa") */
 .sc .fontpick { position: relative; display: inline-flex }
-.sc .fontpick-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(23rem, 92vw); max-height: 75vh; overflow: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3) }
+.sc .fontpick-pop { white-space: normal; position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(23rem, 92vw); max-height: 75vh; overflow: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3) }
 .sc .fontpick-list { margin: 0; padding: .35rem; list-style: none }
 .sc .langpick { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .5rem .5rem .35rem; border-bottom: 1px solid var(--line) }
 .sc .langpick button { font: inherit; font-weight: 700; padding: .4rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); cursor: pointer }

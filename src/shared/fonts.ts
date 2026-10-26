@@ -6,7 +6,7 @@ export interface FontOption {
   label: string
   /** What it is, for the picker. */
   note: string
-  /** Google Fonts `family=` query (several joined with &family=). */
+  /** Google Fonts `family=` query (several joined with &family=). Empty: only fonts on the device. */
   google: string
   display: string
   body: string
@@ -56,6 +56,18 @@ export const FONTS = {
     google: 'Archivo:wdth,wght@62..125,400..800',
     display: `'Archivo', ${NARROW}`, body: `'Archivo', ${SANS}`, clock: `'Archivo', ${NARROW}`,
     displayWeight: 700, clockWeight: 700, displayStretch: '72%', clockStretch: '68%',
+  },
+  futura: {
+    label: 'Futura', note: 'Futura Demibold where the device has it (Apple devices), otherwise Jost, a free font drawn after Futura',
+    google: 'Jost:wght@400;500;600;700',
+    display: `'Futura PT', Futura, 'Jost', ${SANS}`, body: `'Futura PT', Futura, 'Jost', ${SANS}`, clock: `'Futura PT', Futura, 'Jost', ${SANS}`,
+    displayWeight: 600, clockWeight: 600,
+  },
+  helvetica: {
+    label: 'Helvetica', note: 'Helvetica where the device has it (Apple devices), otherwise Arial',
+    google: '',
+    display: `'Helvetica Neue', Helvetica, Arial, ${SANS}`, body: `'Helvetica Neue', Helvetica, Arial, ${SANS}`, clock: `'Helvetica Neue', Helvetica, Arial, ${SANS}`,
+    displayWeight: 700, clockWeight: 700,
   },
   chivo: {
     label: 'Chivo', note: 'Chivo and Chivo Mono',

@@ -3,7 +3,7 @@ import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { getLang, tr } from '../../i18n'
 import { accredLevels } from '../../lib/accred'
 import { rid } from '../../lib/id'
-import { EXPORT_FIELDS, findHeader, guessColumns, PERSON_FIELDS, peopleRows, planSheet, type PersonField } from '../../lib/peopleSheet'
+import { EXPORT_FIELDS, findHeader, guessColumns, PERSON_FIELDS, peopleRows, planSheet, sampleSheets, type PersonField } from '../../lib/peopleSheet'
 import { TAPE } from '../../types/constants'
 import type { Dept, Id, Person, TapeColor } from '../../types/model'
 import { useAccess, useTerms } from '../session'
@@ -20,6 +20,13 @@ function useFieldLabels(): Record<PersonField, string> {
   }
 }
 
+/** Column headers for export and the sample sheet: the field labels, in the current language. */
+const exportHeaders = (labels: Record<PersonField, string>) =>
+  Object.fromEntries(EXPORT_FIELDS.map(f => [f, f === 'stages' ? labels.stages.replace(/\s*\(.*\)$/, '') : labels[f]])) as Record<(typeof EXPORT_FIELDS)[number], string>
+
+const peopleFile = (event: string, stage: string | undefined, what: string) =>
+  `${fileSlug(event)}-${stage ? fileSlug(stage) + '-' : ''}${what}`
+
 /** Import people from an Excel or CSV file. The header row decides which column is what; you can change it. */
 export function FileImportForm({ sid, onClose }: { sid: Id | null; onClose: () => void }) {
   const store = useStore()
@@ -28,6 +35,7 @@ export function FileImportForm({ sid, onClose }: { sid: Id | null; onClose: () =
   const people = useCollection('people')
   const toast = useToast()
   const labels = useFieldLabels()
+  const t = useTerms()
   const festivalWide = a.canW('personnel')
   const stageOpts = a.stagesSorted().filter(s => a.canW('personnel', s.id))
   const [file, setFile] = useState<{ name: string; sheet: SheetFile } | null>(null)
@@ -67,6 +75,22 @@ export function FileImportForm({ sid, onClose }: { sid: Id | null; onClose: () =
     }
   }
 
+  const sample = async (format: 'xlsx' | 'csv') => {
+    const yes = tr('Yes'), hq = sid ? '' : 'HQ'
+    const { people: rows, values } = sampleSheets({
+      depts: cfg.depts, stages: sid ? a.stagesSorted().filter(s => s.id === sid) : a.stagesSorted(), accred: accredLevels(cfg), headers: exportHeaders(labels), yes, hq,
+      examples: [
+        { title: tr('Stagehand'), company: '', notes: tr('Example: replace with your own people') },
+        { title: tr('Rigger'), company: tr('Rigging company'), notes: '' },
+        { title: tr('Production coordinator'), company: '', notes: tr('Vegetarian') },
+      ],
+      severalNote: tr('Several: separate with commas'),
+    })
+    const name = peopleFile(cfg.name, sid ? a.stagesSorted().find(s => s.id === sid)?.name : undefined, getLang() === 'nb' ? 'personer-mal' : 'people-sample')
+    if (format === 'xlsx') await saveXlsx([{ name: tr('People'), rows }, { name: tr('Valid values'), rows: values }], `${name}.xlsx`)
+    else saveCsv(rows, `${name}.csv`, getLang() === 'nb' ? ';' : ',')
+  }
+
   const total = plan ? plan.add.length + plan.update.length : 0
   return (
     <FormDialog
@@ -96,9 +120,13 @@ export function FileImportForm({ sid, onClose }: { sid: Id | null; onClose: () =
       </Field>
       {err && <p className="fld full small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
       {!file && (
-        <p className="fld full small muted">
-          {tr('The first row should name the columns, e.g. Name, Job title, Company, Department, Phone, Email, Accreditation. English or Norwegian, any order. Tip: export the list first to get a file in the right shape.')}
-        </p>
+        <div className="fld full small">
+          <p className="muted">{tr('The first row names the columns, in English or Norwegian, in any order. Start from the sample sheet: it has the right columns, three example people to replace, and a second sheet with this event’s departments, {stages} and accreditation levels.', { stages: t.stages.toLowerCase() })}</p>
+          <div className="row" style={{ marginTop: '.5rem', flexWrap: 'wrap' }}>
+            <button type="button" className="btn sm" onClick={() => void sample('xlsx')}>{tr('Download sample sheet (Excel)')}</button>
+            <button type="button" className="btn sm" onClick={() => void sample('csv')}>{tr('CSV')}</button>
+          </div>
+        </div>
       )}
 
       {file && (
@@ -178,10 +206,9 @@ export function ExportForm({ list, all, sid, signIn, onClose }: { list: Person[]
       onSave={async () => {
         const people = which === 'all' ? all : list
         if (!people.length) return tr('Nobody to export.')
-        const headers = Object.fromEntries(EXPORT_FIELDS.map(f => [f, f === 'stages' ? labels.stages.replace(/\s*\(.*\)$/, '') : labels[f]])) as Record<(typeof EXPORT_FIELDS)[number], string>
-        const rows = peopleRows(people, { depts: cfg.depts, stages, headers, yes: tr('Yes'), hq: sid ? '' : 'HQ' }, signIn && { header: tr('showctrl.no access'), value: signIn })
-        const name = `${fileSlug(cfg.name)}-${sid ? fileSlug(stages[sid]?.name ?? '') + '-' : ''}${getLang() === 'nb' ? 'personer' : 'people'}`
-        if (format === 'xlsx') await saveXlsx(rows, `${name}.xlsx`, tr('People'))
+        const rows = peopleRows(people, { depts: cfg.depts, stages, headers: exportHeaders(labels), yes: tr('Yes'), hq: sid ? '' : 'HQ' }, signIn && { header: tr('showctrl.no access'), value: signIn })
+        const name = peopleFile(cfg.name, sid ? stages[sid]?.name : undefined, getLang() === 'nb' ? 'personer' : 'people')
+        if (format === 'xlsx') await saveXlsx([{ name: tr('People'), rows }], `${name}.xlsx`)
         else saveCsv(rows, `${name}.csv`, getLang() === 'nb' ? ';' : ',')
       }}
     >

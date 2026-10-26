@@ -158,6 +158,35 @@ export function peopleRows(list: Person[], ctx: { depts: Dept[]; stages: Record<
   })]
 }
 
+/**
+ * A sheet to fill in: the export's columns with three example people, using this event's own
+ * departments, stages and accreditation levels, plus a second sheet listing the values that fit.
+ */
+export function sampleSheets(ctx: {
+  depts: Dept[]; stages: Stage[]; accred: string[]; headers: Record<(typeof EXPORT_FIELDS)[number], string>
+  yes: string; hq: string; examples: { title: string; company: string; notes: string }[]; severalNote: string
+}): { people: string[][]; values: string[][] } {
+  const pick = <T,>(xs: T[], i: number) => (xs.length ? xs[Math.min(i, xs.length - 1)] : undefined)
+  const names = [['Kari Nordmann', 'kari.nordmann'], ['Ola Hansen', 'ola.hansen'], ['Ingrid Berg', 'ingrid.berg']]
+  const stageCell = [pick(ctx.stages, 0)?.name ?? ctx.hq, ctx.stages.slice(0, 2).map(s => s.name).join(', ') || ctx.hq, ctx.hq]
+  const people = [
+    EXPORT_FIELDS.map(f => ctx.headers[f]),
+    ...names.map(([name, mail], i) => [
+      name, ctx.examples[i]?.title ?? '', ctx.examples[i]?.company ?? '', pick(ctx.depts, i)?.name ?? '', stageCell[i],
+      `+47 900 00 00${i + 1}`, `${mail}@example.com`, pick(ctx.accred, i + 1) ?? '', i === 0 ? ctx.yes : '', ctx.examples[i]?.notes ?? '',
+    ]),
+  ]
+  const cols = [
+    { head: ctx.headers.dept, vals: ctx.depts.map(d => d.name) },
+    { head: ctx.headers.stages, vals: [...ctx.stages.map(s => s.name), ctx.hq, ctx.severalNote] },
+    { head: ctx.headers.accred, vals: ctx.accred },
+    { head: ctx.headers.lead, vals: [ctx.yes] },
+  ]
+  const rows = Math.max(...cols.map(c => c.vals.length))
+  const values = [cols.map(c => c.head), ...Array.from({ length: rows }, (_, r) => cols.map(c => c.vals[r] ?? ''))]
+  return { people, values }
+}
+
 /* ---------- CSV ---------- */
 
 /** Splits CSV text into rows. Handles quotes; the delimiter (; , or tab) is taken from the first line. */

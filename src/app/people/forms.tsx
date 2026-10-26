@@ -2,12 +2,10 @@ import { useState } from 'react'
 import { useConfig, useStore } from '../../data/hooks'
 import { tr } from '../../i18n'
 import { rid } from '../../lib/id'
-import { parseCrewList } from '../../lib/importPeople'
 import { accredLevels } from '../../lib/accred'
 import type { Accred, Id, Person } from '../../types/model'
 import { useAccess } from '../session'
 import { Field, FormDialog } from '../ui/Dialog'
-import { useToast } from '../ui/toast'
 
 /** Add or edit a personnel record. Only the stages the user can edit are offered; others are kept as they were. */
 export function PersonForm({ person, sid, onClose }: { person: Person | null; sid: Id | null; onClose: () => void }) {
@@ -71,55 +69,6 @@ export function PersonForm({ person, sid, onClose }: { person: Person | null; si
         </div>
       </Field>
       <Field label={tr('Notes')} full><textarea value={v.notes} placeholder={tr('Shifts, radio call sign, dietary needs…')} onChange={e => set('notes', e.target.value)} /></Field>
-    </FormDialog>
-  )
-}
-
-/** Paste a crew list from a spreadsheet: one person per line. */
-export function ImportForm({ sid, onClose }: { sid: Id | null; onClose: () => void }) {
-  const store = useStore()
-  const a = useAccess()
-  const cfg = useConfig('event')
-  const toast = useToast()
-  const stageOpts = a.stagesSorted().filter(s => a.canW('personnel', s.id))
-  const [text, setText] = useState('')
-  const [dept, setDept] = useState('')
-  const [stage, setStage] = useState(sid ?? (a.canW('personnel') ? '' : stageOpts[0]?.id ?? ''))
-  const preview = parseCrewList(text)
-  return (
-    <FormDialog
-      title={tr('Paste a crew list')}
-      saveLabel={preview.length ? (preview.length === 1 ? tr('Add 1 person') : tr('Add {n} people', { n: preview.length })) : tr('Add people')}
-      onClose={onClose}
-      onSave={async () => {
-        const people = parseCrewList(text, { dept: dept || null, stage: stage || null })
-        if (!people.length) return tr('Paste at least one line.')
-        await store.setMany('people', people)
-        toast(people.length === 1 ? tr('Added 1 person.') : tr('Added {n} people.', { n: people.length }))
-      }}
-    >
-      <Field label={tr('One person per line: name, job title, phone, email')} full>
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          placeholder={'Kari Nordmann, Stagehand, +47 900 00 000, kari@example.com\nOla Hansen\tRigger\t+47 911 11 111'}
-        />
-      </Field>
-      <Field label={tr('Department')}>
-        <select value={dept} onChange={e => setDept(e.target.value)}>
-          <option value="">—</option>
-          {cfg?.depts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-        </select>
-      </Field>
-      <Field label={tr('Works on')}>
-        <select value={stage} onChange={e => setStage(e.target.value)}>
-          {!sid && a.canW('personnel') && <option value="">{tr('HQ / no stage')}</option>}
-          {stageOpts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
-      </Field>
-      {preview.length > 0 && (
-        <p className="fld full small muted">{tr('First line reads as:')} <b>{preview[0].name}</b>{preview[0].title && ` · ${preview[0].title}`}{preview[0].phone && ` · ${preview[0].phone}`}{preview[0].email && ` · ${preview[0].email}`}</p>
-      )}
     </FormDialog>
   )
 }

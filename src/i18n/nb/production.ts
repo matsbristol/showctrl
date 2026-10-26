@@ -284,15 +284,24 @@ export default {
   'No input list': 'Ingen input list',
   '* Running late: times include the delay.': '* Forsinket: tidene inkluderer forsinkelsen.',
   // People: Excel and CSV
-  'Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Import a crew list from Excel or CSV, or paste it.':
-    'Alle på arrangementet: hvordan du når dem, og hvem som kan logge inn på showctrl.no og som hva. Importer en crewliste fra Excel eller CSV, eller lim den inn.',
+  'Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Import a crew list from Excel or CSV.':
+    'Alle på arrangementet: hvordan du når dem, og hvem som kan logge inn på showctrl.no og som hva. Importer en crewliste fra Excel eller CSV.',
   'Import file': 'Importer fil',
   Export: 'Eksporter',
   'Import people from a file': 'Importer personer fra fil',
   'Excel or CSV file': 'Excel- eller CSV-fil',
   'Couldn’t read that file. Use Excel (.xlsx, .xls), OpenDocument (.ods) or CSV.': 'Klarte ikke å lese filen. Bruk Excel (.xlsx, .xls), OpenDocument (.ods) eller CSV.',
-  'The first row should name the columns, e.g. Name, Job title, Company, Department, Phone, Email, Accreditation. English or Norwegian, any order. Tip: export the list first to get a file in the right shape.':
-    'Første rad bør navngi kolonnene, f.eks. Navn, Rolle, Firma, Avdeling, Telefon, E-post, Akkreditering. Norsk eller engelsk, i hvilken som helst rekkefølge. Tips: eksporter listen først, så får du en fil i riktig format.',
+  'The first row names the columns, in English or Norwegian, in any order. Start from the sample sheet: it has the right columns, three example people to replace, and a second sheet with this event’s departments, {stages} and accreditation levels.':
+    'Første rad navngir kolonnene, på norsk eller engelsk, i hvilken som helst rekkefølge. Start med malen: den har riktige kolonner, tre eksempelpersoner du bytter ut, og et ark nummer to med arrangementets avdelinger, {stages} og akkrediteringsnivåer.',
+  'Download sample sheet (Excel)': 'Last ned mal (Excel)',
+  'Valid values': 'Gyldige verdier',
+  'Several: separate with commas': 'Flere: skill med komma',
+  Stagehand: 'Scenearbeider',
+  Rigger: 'Rigger',
+  'Rigging company': 'Riggefirma',
+  'Production coordinator': 'Produksjonskoordinator',
+  'Example: replace with your own people': 'Eksempel: bytt ut med dine egne folk',
+  Vegetarian: 'Vegetar',
   Sheet: 'Ark',
   Columns: 'Kolonner',
   'Column {n}': 'Kolonne {n}',

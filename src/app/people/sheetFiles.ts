@@ -43,14 +43,17 @@ function save(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }
 
-/** An Excel file with one sheet. Every cell is text, so phone numbers keep their + and leading zeros. */
-export async function saveXlsx(rows: string[][], filename: string, sheet: string) {
+/** An Excel file. Every cell is text, so phone numbers keep their + and leading zeros. */
+export async function saveXlsx(sheets: { name: string; rows: string[][] }[], filename: string) {
   const XLSX = await import('xlsx')
-  const ws = XLSX.utils.aoa_to_sheet(rows)
-  ws['!cols'] = rows[0].map((_, c) => ({ wch: Math.min(40, Math.max(8, ...rows.map(r => (r[c] ?? '').length))) + 1 }))
-  ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rows.length - 1, c: rows[0].length - 1 } }) }
   const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, sheet.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31) || 'Sheet1')
+  for (const { name, rows } of sheets) {
+    const ws = XLSX.utils.aoa_to_sheet(rows)
+    const width = Math.max(...rows.map(r => r.length))
+    ws['!cols'] = Array.from({ length: width }, (_, c) => ({ wch: Math.min(40, Math.max(8, ...rows.map(r => (r[c] ?? '').length))) + 1 }))
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rows.length - 1, c: width - 1 } }) }
+    XLSX.utils.book_append_sheet(wb, ws, name.replace(/[\\/?*[\]:]/g, ' ').slice(0, 31) || 'Sheet1')
+  }
   const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
   save(new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), filename)
 }

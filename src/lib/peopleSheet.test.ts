@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { buildSample } from '../data/sample'
 import type { Person } from '../types/model'
 import { accredLevels } from './accred'
-import { EXPORT_FIELDS, findHeader, guessColumns, parseCsv, peopleRows, planSheet, toCsv, type SheetContext } from './peopleSheet'
+import { EXPORT_FIELDS, findHeader, guessColumns, parseCsv, peopleRows, planSheet, sampleSheets, toCsv, type SheetContext } from './peopleSheet'
 
 const sample = buildSample(Date.parse('2026-06-12T10:00:00Z'))
 const ctx = (over: Partial<SheetContext> = {}): SheetContext => ({
@@ -70,6 +70,20 @@ describe('people spreadsheets', () => {
     const xrows = XLSX.utils.sheet_to_json<string[]>(back.Sheets.People, { header: 1, raw: false, defval: '' })
     const p2 = planSheet(xrows.slice(1), guessColumns(xrows[0]), ctx())
     expect([p2.add.length, p2.update.length, p2.unchanged]).toEqual([0, 0, list.length])
+  })
+
+  it('makes a sample sheet that imports cleanly, with this event’s own values', () => {
+    const stages = Object.values(sample.col.stages).sort((x, y) => x.order - y.order)
+    const ex = { title: 'Rigger', company: '', notes: '' }
+    const s = sampleSheets({ depts: sample.cfg!.depts, stages, accred: accredLevels(sample.cfg), headers: HEADERS, yes: 'Yes', hq: 'HQ', examples: [ex, ex, ex], severalNote: 'Several: separate with commas' })
+    expect(s.people[0]).toEqual(EXPORT_FIELDS.map(f => HEADERS[f]))
+    const plan = planSheet(s.people.slice(1), guessColumns(s.people[0]), ctx({ people: {} }))
+    expect(plan.add.map(p => [p.name, p.stages, !!p.dept, !!p.accred])).toEqual([
+      ['Kari Nordmann', ['main'], true, true], ['Ola Hansen', ['main', 'fjord'], true, true], ['Ingrid Berg', [], true, true],
+    ])
+    expect([plan.newDepts, plan.unknownAccred, plan.skipped]).toEqual([[], [], []])
+    expect(s.values[0]).toEqual(['Department', 'Works on', 'Accreditation', 'Key contact'])
+    expect(s.values.map(r => r[1])).toContain('Fjord Stage')
   })
 
   it('parses quoted CSV fields and escapes formulas on the way out', () => {

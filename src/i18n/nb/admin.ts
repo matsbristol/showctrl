@@ -253,16 +253,7 @@ export default {
   'Works on': 'Jobber på',
   Notes: 'Notater',
   'Shifts, radio call sign, dietary needs…': 'Skift, kallesignal på radio, kosthold…',
-  'Paste a crew list': 'Lim inn en crewliste',
-  'Add 1 person': 'Legg til 1 person',
-  'Add {n} people': 'Legg til {n} personer',
-  'Add people': 'Legg til personer',
-  'Paste at least one line.': 'Lim inn minst én linje.',
-  'Added 1 person.': 'La til 1 person.',
-  'Added {n} people.': 'La til {n} personer.',
-  'One person per line: name, job title, phone, email': 'Én person per linje: navn, rolle, telefon, e-post',
   'HQ / no stage': 'HQ / ingen scene',
-  'First line reads as:': 'Første linje leses som:',
 
   // Stage setup
   'Add {stage}': 'Legg til {stage}',

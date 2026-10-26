@@ -78,12 +78,14 @@ describe('artists', () => {
 })
 
 describe('personnel', () => {
-  it('imports a pasted crew list onto the stage', async () => {
+  it('imports a crew file onto the stage', async () => {
     const store = mount('/s/forest/personnel', 'demo-sm-forest')
     const before = Object.keys(store.peek('people')).length
-    await click(screen.getByRole('button', { name: 'Paste list' }))
-    fireEvent.change(screen.getByLabelText(/One person per line/), { target: { value: 'Kari Nordmann, Stagehand, +47 900 00 000\nOla Hansen\tRigger' } })
-    await click(screen.getByRole('button', { name: 'Add 2 people' }))
+    await click(screen.getByRole('button', { name: 'Import file' }))
+    const file = new File(['Name,Job title,Phone\nKari Nordmann,Stagehand,+47 900 00 000\nOla Hansen,Rigger,\n'], 'crew.csv', { type: 'text/csv' })
+    await act(async () => { fireEvent.change(screen.getByLabelText('Excel or CSV file'), { target: { files: [file] } }) })
+    await act(async () => { await new Promise(r => setTimeout(r, 0)) })
+    await click(screen.getByRole('button', { name: 'Import 2 people' }))
     const added = Object.values(store.peek('people')).slice(before)
     expect(added.map(p => p.name)).toEqual(['Kari Nordmann', 'Ola Hansen'])
     expect(added.every(p => p.stages.join() === 'forest')).toBe(true)

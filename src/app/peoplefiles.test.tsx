@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import * as XLSX from 'xlsx'
 import { LocalStore } from '../data/localStore'
 import { buildSample } from '../data/sample'
 import { showctrlRoutes } from './routes'
@@ -47,5 +48,21 @@ describe('People: Excel and CSV', () => {
     expect(blobs).toHaveLength(1)
     const text = await blobs[0].text()
     expect(text.split('\r\n')[0]).toBe('﻿Name,Job title,Company / supplier,Department,Works on,Phone,Email,Accreditation,Key contact,Notes,showctrl.no access')
+  })
+
+  it('downloads a sample sheet with the event’s own values', async () => {
+    mount('/hq/personnel')
+    const blobs: Blob[] = []
+    URL.createObjectURL = vi.fn((b: Blob) => { blobs.push(b); return 'blob:x' })
+    URL.revokeObjectURL = vi.fn()
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Import file' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Download sample sheet (Excel)' })) })
+    await act(async () => { await new Promise(r => setTimeout(r, 50)) })
+    expect(blobs).toHaveLength(1)
+    const wb = XLSX.read(await blobs[0].arrayBuffer(), { type: 'array' })
+    expect(wb.SheetNames).toEqual(['People', 'Valid values'])
+    const rows = XLSX.utils.sheet_to_json<string[]>(wb.Sheets.People, { header: 1, raw: false })
+    expect(rows).toHaveLength(4)
+    expect(rows[1][0]).toBe('Kari Nordmann')
   })
 })

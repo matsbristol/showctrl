@@ -23,6 +23,36 @@ export const json = (body: unknown, status = 200) => Response.json(body, { statu
 export const normEmail = (s: string) => s.trim().toLowerCase()
 export const isEmail = (s: unknown): s is string => typeof s === 'string' && s.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim())
 
+export const cleanName = (v: unknown): string => (typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, 60) : '')
+
+/** People a superadmin names: `{ email, name? }` each (a bare email string still works). Null if any email is bad. */
+export function parsePeople(v: unknown): { email: string; name: string }[] | null {
+  const list = Array.isArray(v) ? v : []
+  const out: { email: string; name: string }[] = []
+  for (const x of list) {
+    const email = typeof x === 'string' ? x : (x as { email?: unknown })?.email
+    if (!isEmail(email)) return null
+    const name = typeof x === 'string' ? '' : cleanName((x as { name?: unknown }).name)
+    if (!out.some(p => p.email === normEmail(email))) out.push({ email: normEmail(email), name: name.includes('@') ? '' : name })
+  }
+  return out
+}
+
+/**
+ * The names people go by (users.name). A name a superadmin typed becomes theirs when they have
+ * none yet, so they aren't asked again; a name they chose themselves is never replaced.
+ */
+export async function namesFor(env: Env, people: { email: string; name: string }[]): Promise<Map<string, string>> {
+  const typed = people.filter(p => p.name)
+  if (typed.length) {
+    await env.DB.batch(typed.map(p => env.DB.prepare('INSERT INTO users (email, name) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET name = COALESCE(users.name, ?2)').bind(p.email, p.name)))
+  }
+  if (!people.length) return new Map()
+  const { results } = await env.DB.prepare(`SELECT email, name FROM users WHERE name IS NOT NULL AND email IN (${people.map(() => '?').join(',')})`)
+    .bind(...people.map(p => p.email)).all<{ email: string; name: string }>()
+  return new Map(results.map(r => [r.email, r.name]))
+}
+
 export function superadmins(env: Env): string[] {
   return (env.SUPERADMINS ?? '').split(',').map(normEmail).filter(Boolean)
 }
@@ -95,9 +125,11 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
   const stub = env.EVENT.getByName(eventId)
   if (!emailPart && request.method === 'GET') return json({ owner: ev.owner, admins: await stub.admins() })
   if (!emailPart && request.method === 'POST') {
-    const { email } = await body(request)
-    if (!isEmail(email)) return json({ error: 'That doesn’t look like an email address.' }, 400)
-    await stub.setEventAdmin(normEmail(email), true)
+    const b = await body(request)
+    const [person] = parsePeople([{ email: b.email, name: b.name }]) ?? []
+    if (!person) return json({ error: 'That doesn’t look like an email address.' }, 400)
+    const names = await namesFor(env, [person])
+    await stub.setEventAdmin(person.email, true, names.get(person.email) ?? person.name)
     return json({ owner: ev.owner, admins: await stub.admins() })
   }
   if (emailPart && request.method === 'DELETE') {

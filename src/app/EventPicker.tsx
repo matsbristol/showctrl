@@ -1,12 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
   addEventAdmin, backupUrl, createEvent, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
-  type EventAdmins, type EventSummary, type Me, type OrgSummary,
+  type EventAdmins, type EventSummary, type Me, type NamedPerson, type OrgSummary,
 } from './backend'
 import { FontPicker } from './FontPicker'
 
 const errText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
-const emails = (s: string) => s.split(/[\s,;]+/).map(a => a.trim()).filter(Boolean)
 
 /**
  * Live mode, before an event is open.
@@ -157,6 +156,7 @@ function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSum
 function AdminList({ event, me }: { event: string; me: Me }) {
   const [data, setData] = useState<EventAdmins | null>(null)
   const [email, setEmail] = useState('')
+  const [name, setName] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   useEffect(() => {
@@ -175,16 +175,17 @@ function AdminList({ event, me }: { event: string; me: Me }) {
       {data ? (
         <ul>
           {data.admins.map(a => (
-            <li key={a} className="row">
-              <span>{a}{a === me.email ? ' (you)' : ''}{a === data.owner ? <span className="small muted"> · created it</span> : null}</span>
-              {a !== data.owner && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => void run(() => removeEventAdmin(event, a))}>Remove</button>}
+            <li key={a.email} className="row">
+              <span className="stack"><b>{a.name}{a.email === me.email ? ' (you)' : ''}</b><span className="small muted">{a.email}{a.email === data.owner ? ' · created it' : ''}</span></span>
+              {a.email !== data.owner && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => void run(() => removeEventAdmin(event, a.email))}>Remove</button>}
             </li>
           ))}
         </ul>
       ) : !err && <p className="small muted">Loading…</p>}
-      <form className="row" style={{ gap: '.5rem', alignItems: 'flex-end' }} onSubmit={e => { e.preventDefault(); void run(() => addEventAdmin(event, email.trim())).then(ok => { if (ok) setEmail('') }) }}>
-        <label className="fld" style={{ flex: 1 }}><span>Add an admin</span><input type="email" value={email} placeholder="name@company.no" onChange={e => setEmail(e.target.value)} /></label>
-        <button type="submit" className="btn" disabled={busy || !email.trim()}>Add</button>
+      <form className="admin-add" onSubmit={e => { e.preventDefault(); void run(() => addEventAdmin(event, { name: name.trim(), email: email.trim() })).then(ok => { if (ok) { setEmail(''); setName('') } }) }}>
+        <label className="fld"><span>Name</span><input value={name} placeholder="Kari Nordmann" onChange={e => setName(e.target.value)} /></label>
+        <label className="fld"><span>Email</span><input type="email" value={email} placeholder="kari@festival.no" onChange={e => setEmail(e.target.value)} /></label>
+        <button type="submit" className="btn" disabled={busy || !email.trim() || !name.trim()}>Add admin</button>
       </form>
       {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
     </div>
@@ -193,8 +194,9 @@ function AdminList({ event, me }: { event: string; me: Me }) {
 
 function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary) => void }) {
   const [name, setName] = useState('')
-  const [admins, setAdmins] = useState('')
+  const [admins, setAdmins] = useState<NamedPerson[]>([{ name: '', email: '' }])
   const [sample, setSample] = useState(false)
+  const setAdmin = (i: number, k: keyof NamedPerson, v: string) => setAdmins(list => list.map((a, j) => (j === i ? { ...a, [k]: v } : a)))
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const submit = async (ev: FormEvent) => {
@@ -203,7 +205,9 @@ function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary
     setErr('')
     try {
       const n = name.trim() || 'New festival'
-      const id = await createEvent(n, sample, org, emails(admins))
+      const named = admins.map(a => ({ name: a.name.trim(), email: a.email.trim() })).filter(a => a.email || a.name)
+      if (named.some(a => !a.email || !a.name)) { setErr('Give each admin both a name and an email.'); return }
+      const id = await createEvent(n, sample, org, named)
       onCreated({ id, name: sample ? 'Nordlys Open Air 2026' : n, owner: '', org })
     } catch (e) {
       setErr(errText(e, 'Could not create the event.'))
@@ -216,7 +220,17 @@ function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary
       <h2>Create an event</h2>
       <form className="stack" style={{ marginTop: '1rem', gap: '.75rem' }} onSubmit={e => void submit(e)}>
         <label className="fld"><span>Event name</span><input value={name} placeholder="e.g. Nordlys Open Air 2027" onChange={e => setName(e.target.value)} /></label>
-        <label className="fld"><span>Event admins (emails, comma-separated)</span><input value={admins} placeholder="kari@festival.no, ola@festival.no" onChange={e => setAdmins(e.target.value)} /></label>
+        <fieldset className="admin-rows">
+          <legend>Event admins</legend>
+          {admins.map((a, i) => (
+            <div key={i} className="admin-add">
+              <label className="fld"><span>Name</span><input value={a.name} placeholder="Kari Nordmann" onChange={e => setAdmin(i, 'name', e.target.value)} /></label>
+              <label className="fld"><span>Email</span><input type="email" value={a.email} placeholder="kari@festival.no" onChange={e => setAdmin(i, 'email', e.target.value)} /></label>
+              {admins.length > 1 && <button type="button" className="btn sm" aria-label={`Remove admin ${i + 1}`} onClick={() => setAdmins(list => list.filter((_, j) => j !== i))}>×</button>}
+            </div>
+          ))}
+          <div><button type="button" className="btn sm" onClick={() => setAdmins(list => [...list, { name: '', email: '' }])}>+ Add another admin</button></div>
+        </fieldset>
         <label className="row small"><input type="checkbox" checked={sample} onChange={e => setSample(e.target.checked)} /> Fill it with the sample festival (to try things out)</label>
         {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
         <div className="row"><button type="submit" className="btn primary" disabled={busy}>{busy ? 'Creating…' : 'Create event'}</button></div>

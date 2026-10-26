@@ -35,9 +35,9 @@ let w = await ws(kari, fest); check('Kari is admin in Acme Fest', w.result === '
 check('Kari cannot open Acme Winter (same customer, not her event)', (await ws(kari, winter)).result === 'refused')
 check('Ola cannot open Acme Fest', (await ws(ola, fest)).result === 'refused')
 r = await call(kari, 'GET', `/api/events/${fest}/admins`); check('an event admin cannot manage event admins from the start page', r.status === 403, r)
-r = await call(boss, 'POST', `/api/events/${fest}/admins`, { email: per }); check('a superadmin appoints Per', r.status === 200 && r.body.admins.includes(per), r)
+r = await call(boss, 'POST', `/api/events/${fest}/admins`, { email: per }); check('a superadmin appoints Per', r.status === 200 && r.body.admins.some(a => a.email === per), r)
 w = await ws(per, fest); check('Per is now admin in Acme Fest', w.result === 'snapshot' && w.role === 'admin', w)
-r = await call(boss, 'DELETE', `/api/events/${fest}/admins/${encodeURIComponent(per)}`); check('a superadmin removes Per', r.status === 200 && !r.body.admins.includes(per), r)
+r = await call(boss, 'DELETE', `/api/events/${fest}/admins/${encodeURIComponent(per)}`); check('a superadmin removes Per', r.status === 200 && !r.body.admins.some(a => a.email === per), r)
 await new Promise(res => setTimeout(res, 500))
 check('Per can no longer open Acme Fest', (await ws(per, fest)).result === 'refused')
 r = await call(boss, 'GET', '/api/me'); const owner = r.body.email
@@ -45,6 +45,17 @@ r = await call(boss, 'DELETE', `/api/events/${fest}/admins/${encodeURIComponent(
 w = await ws(SUPER2, fest); check('another superadmin is admin in every event without being added', w.result === 'snapshot' && w.isOwner && w.artists > 0, w)
 r = await call(SUPER2, 'GET', '/api/me'); check('…and sees the whole portfolio', [fest, winter, ofest].every(id => r.body.events.some(e => e.id === id)), r.body.events.length)
 // Names
+{
+  const ida = `ida${t}@acme.no`
+  const made = await call(boss, 'POST', '/api/events', { name: 'Named', org: acme, admins: [{ name: 'Ida Strand', email: ida }] })
+  const list = await call(boss, 'GET', `/api/events/${made.body.id}/admins`)
+  check('an admin named at creation shows by that name', list.body.admins.some(a => a.email === ida && a.name === 'Ida Strand'), list.body)
+  const me2 = await call(ida, 'GET', '/api/me')
+  check('…and that becomes her name, so she isn’t asked again', me2.body.name === 'Ida Strand', me2.body.name)
+  r = await call(boss, 'POST', `/api/events/${made.body.id}/admins`, { name: 'Ola Lie', email: `ola.lie${t}@acme.no` })
+  check('an admin added later with a name shows by that name', r.body.admins.some(a => a.name === 'Ola Lie'), r.body)
+  await call(boss, 'DELETE', `/api/events/${made.body.id}`)
+}
 r = await call(kari, 'POST', '/api/me/prefs', { name: 'kari@acme.no' }); check('an email is refused as a name', r.status === 400, r)
 r = await call(kari, 'POST', '/api/me/prefs', { name: '  Kari   Nordmann ' }); check('Kari saves her name', r.status === 200, r)
 r = await call(kari, 'GET', '/api/me'); check('…and it comes back tidied', r.body.name === 'Kari Nordmann', r.body.name)

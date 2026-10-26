@@ -9,6 +9,7 @@ import { EventCore, type CollectionData, type CoreData } from '../src/server/cor
 import { EventHub, type Peer } from '../src/server/hub'
 import { COLLECTIONS } from '../src/types/constants'
 import { moduleOn } from '../src/shared/modules'
+import { personName } from '../src/shared/people'
 import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
@@ -145,11 +146,11 @@ export class EventObject extends DurableObject<Env> {
     await this.syncMembers(this.hub.core.memberEmails())
   }
 
-  /** The event's admins: the owner and every member with the Festival admin role. */
-  async admins(): Promise<Id[]> {
+  /** The event's admins: the owner and every member with the Festival admin role, with the name shown for each. */
+  async admins(): Promise<{ email: Id; name: string }[]> {
     const core = this.hub.core
-    const list = Object.values(core.col.members).filter(m => m.role === 'admin').map(m => m.id)
-    return [...new Set([...(core.owner ? [core.owner] : []), ...list])].sort()
+    const ids = [...new Set([...(core.owner ? [core.owner] : []), ...Object.values(core.col.members).filter(m => m.role === 'admin').map(m => m.id)])]
+    return ids.map(email => ({ email, name: personName(email, core.col.members, core.col.people) })).sort((a, b) => a.name.localeCompare(b.name))
   }
 
   /**
@@ -157,14 +158,15 @@ export class EventObject extends DurableObject<Env> {
    * rules, as the owner, so it shows in the change history. Removing takes away the membership
    * only if it is the admin one; the owner always stays.
    */
-  async setEventAdmin(email: Id, on: boolean): Promise<void> {
+  async setEventAdmin(email: Id, on: boolean, name = ''): Promise<void> {
     const core = this.hub.core
     const owner = core.owner
     if (!owner || email === owner) return
     const cur = core.col.members[email]
     let op: WriteOp | null = null
-    if (on && cur?.role !== 'admin') {
-      op = { kind: 'set', col: 'members', id: email, doc: { ...(cur ?? { name: email, stages: {}, person: null, depts: [] }), id: email, role: 'admin' } }
+    const unnamed = !cur?.name || cur.name === email
+    if (on && (cur?.role !== 'admin' || (name && unnamed))) {
+      op = { kind: 'set', col: 'members', id: email, doc: { ...(cur ?? { stages: {}, person: null, depts: [] }), name: (unnamed && name) || cur?.name || email, id: email, role: 'admin' } }
     } else if (!on && cur?.role === 'admin') {
       op = { kind: 'delete', col: 'members', id: email }
     }

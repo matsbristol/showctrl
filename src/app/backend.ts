@@ -58,7 +58,10 @@ async function api<T>(path: string, init?: { method?: string; body?: unknown }):
 }
 
 /** Superadmins: a new event for a customer, with the people who will run it. */
-export async function createEvent(name: string, sample: boolean, org: Id, admins: string[]): Promise<Id> {
+/** Someone a superadmin names: the email they sign in with, and the name to show until they give their own. */
+export interface NamedPerson { email: string; name: string }
+
+export async function createEvent(name: string, sample: boolean, org: Id, admins: NamedPerson[]): Promise<Id> {
   return (await api<{ id: Id }>('/api/events', { body: { name, sample, org, admins } })).id
 }
 
@@ -78,13 +81,13 @@ export const deleteOrg = (id: Id) => api<{ ok: true }>(`/api/orgs/${encodeURICom
 /** Superadmins: where to download a JSON backup of one event, or (no id) of everything. */
 export const backupUrl = (id?: Id) => `${id ? `/api/events/${encodeURIComponent(id)}/backup` : '/api/backup'}${devQuery()}`
 
-export interface EventAdmins { owner: Id; admins: Id[] }
+export interface EventAdmins { owner: Id; admins: { email: Id; name: string }[] }
 
 /** Superadmins: who runs an event (Festival admin there, nowhere else). */
 export const getEventAdmins = (id: Id) => api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins`)
 
-export const addEventAdmin = (id: Id, email: string) =>
-  api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins`, { body: { email } })
+export const addEventAdmin = (id: Id, person: NamedPerson) =>
+  api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins`, { body: person })
 
 export const removeEventAdmin = (id: Id, email: string) =>
   api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins/${encodeURIComponent(email)}`, { method: 'DELETE' })

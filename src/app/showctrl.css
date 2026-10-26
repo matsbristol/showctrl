@@ -654,3 +654,9 @@
 .sc button.who-name { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; white-space: nowrap }
 .sc button.who-name:hover { text-decoration: underline }
 .sc .yourname-pop { position: absolute; left: 0; top: calc(100% + 10px); z-index: 60; display: grid; gap: .5rem; width: min(20rem, 88vw); padding: .75rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3); white-space: normal }
+
+/* Start page: naming an event's admins (name + email per row) */
+.sc .admin-add { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto; gap: .5rem; align-items: end }
+@media (max-width: 520px) { .sc .admin-add { grid-template-columns: minmax(0, 1fr) } }
+.sc .admin-rows { border: 0; padding: 0; margin: 0; display: grid; gap: .5rem; min-width: 0 }
+.sc .admin-rows legend { font-size: .8rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .25rem }

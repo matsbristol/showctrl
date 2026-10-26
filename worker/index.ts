@@ -3,7 +3,7 @@
 //   GET  /time                       server time, for clock sync (no sign-in needed)
 //   POST /api/auth/start|verify|logout  sign-in with an emailed code (see login.ts)
 //   GET  /api/me                     who you are, your organisations and your events
-//   POST /api/events                 create an event { name, sample?, org, admins } (superadmins)
+//   POST /api/events                 create an event { name, sample?, org, admins: [{ email, name }] } (superadmins)
 //   DELETE /api/events/:id           delete an event (superadmins)
 //   GET  /api/backup, /api/events/:id/backup   JSON backups (superadmins)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
@@ -21,7 +21,7 @@ import type { Env } from './env'
 import { EMAIL_HEADER, NAME_HEADER } from './event'
 import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
-import { isEmail, isSuperadmin, json, mayConnect, normEmail, portfolioRoutes } from './orgs'
+import { isSuperadmin, json, mayConnect, namesFor, parsePeople, portfolioRoutes } from './orgs'
 
 export { EventObject } from './event'
 
@@ -129,15 +129,18 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
   const body = await request.json<{ name?: string; sample?: boolean; org?: string; admins?: unknown }>()
   const org = typeof body.org === 'string' ? body.org : null
   if (!org || !(await env.DB.prepare('SELECT 1 FROM orgs WHERE id = ?').bind(org).first())) return json({ error: 'Choose the customer the event is for.' }, 400)
-  const admins = Array.isArray(body.admins) ? body.admins : []
-  if (admins.some(a => !isEmail(a))) return json({ error: 'One of the admin emails doesn’t look right.' }, 400)
+  const admins = parsePeople(body.admins)
+  if (!admins) return json({ error: 'One of the admin emails doesn’t look right.' }, 400)
+  const names = await namesFor(env, [{ email: me, name: '' }, ...admins])
   const name = (body.name ?? '').trim().slice(0, 120) || 'New festival'
   const id = crypto.randomUUID()
   const data = body.sample ? buildSample() : blankEvent()
   if (data.cfg) data.cfg = { ...data.cfg, name: body.sample ? data.cfg.name : name }
   delete data.col.members['demo-admin']
   // The creator owns the event; the admins they name run it (Festival admin, this event only).
-  for (const a of [me, ...admins.map(a => normEmail(a as string))]) data.col.members[a] ??= { id: a, name: a, role: 'admin', person: null, depts: [], stages: {} }
+  for (const a of [{ email: me, name: '' }, ...admins]) {
+    data.col.members[a.email] ??= { id: a.email, name: names.get(a.email) || a.name || a.email, role: 'admin', person: null, depts: [], stages: {} }
+  }
   await env.DB.prepare('INSERT INTO events (id, name, owner, created_at, org_id) VALUES (?, ?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now(), org).run()
   await env.EVENT.getByName(id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
   return json({ id }, 201)

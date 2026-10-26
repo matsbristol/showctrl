@@ -39,6 +39,10 @@ export function PlotEditor({ artist }: { artist: Artist }) {
   const [sel, setSel] = useState<Id | null>(null)
   const [editing, setEditing] = useState(false)
   const [drag, setDrag] = useState<{ id: Id; dx: number; dy: number; x: number; y: number } | null>(null)
+  // Where items were dropped, until the save comes back. Live, that takes a round trip to the
+  // server; without this the item would flash back to its old place in between.
+  const [moved, setMoved] = useState<Record<Id, { x: number; y: number }>>({})
+  const posOf = (it: PlotItem) => (drag?.id === it.id ? { x: drag.x, y: drag.y } : moved[it.id] ?? { x: it.x, y: it.y })
   const svg = useRef<SVGSVGElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const pop = useRef<HTMLDivElement>(null)
@@ -54,7 +58,8 @@ export function PlotEditor({ artist }: { artist: Artist }) {
     if (!box || !m || !selected) return
     const { hw, hd } = halfExtent(selected)
     const pt = (x: number, y: number) => new DOMPoint(x, y).matrixTransform(m)
-    const cx = selected.x, cy = D - selected.y
+    const at = posOf(selected)
+    const cx = at.x, cy = D - at.y
     const b = box.getBoundingClientRect()
     const put = (el: HTMLElement, x: number, y: number) => {
       el.style.left = `${Math.max(8, Math.min(x, b.width - el.offsetWidth - 8))}px`
@@ -138,7 +143,13 @@ export function PlotEditor({ artist }: { artist: Artist }) {
   const up = () => {
     if (!drag) return
     const it = plot?.items[drag.id]
-    if (it && (it.x !== drag.x || it.y !== drag.y)) void patch(drag.id, { x: drag.x, y: drag.y })
+    if (it && (it.x !== drag.x || it.y !== drag.y)) {
+      const { id, x, y } = drag
+      const settle = () => setMoved(m => { const { [id]: _, ...rest } = m; return rest })
+      setMoved(m => ({ ...m, [id]: { x, y } }))
+      // Saved: the store has the new place now. Refused: it snaps back to where it was.
+      patch(id, { x, y }).then(settle, settle)
+    }
     setDrag(null)
   }
 
@@ -165,8 +176,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
           <text x={0.15} y={D + 0.75} className="plot-side">L</text>
           <text x={W - 0.15} y={D + 0.75} className="plot-side" textAnchor="end">R</text>
           {ordered.map(it => {
-            const x = drag?.id === it.id ? drag.x : it.x
-            const y = drag?.id === it.id ? drag.y : it.y
+            const { x, y } = posOf(it)
             const round = it.kind === 'vocal' || it.kind === 'mic' || it.kind === 'person'
             const { hd } = halfExtent(it)
             return (
@@ -194,7 +204,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             const k = `${it.label}|${systemOf(it)}|${it.size}|${it.height}|${!!it.rolling}`
             return m.set(k, [...(m.get(k) ?? []), it])
           }, new Map<string, PlotItem[]>()).values()].map(decks => {
-            const pos = (it: PlotItem) => (drag?.id === it.id ? { x: drag.x, y: drag.y } : { x: it.x, y: it.y })
+            const pos = posOf
             const front = decks.reduce((f, it) => (pos(it).y < pos(f).y ? it : f))
             const { x, y } = pos(front)
             return (
@@ -216,7 +226,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
               <b>{selected.label}</b>
               <button type="button" className="pp-close" aria-label="Close" onClick={() => setEditing(false)}>×</button>
             </div>
-            <p className="small muted">{PLOT_KINDS[selected.kind].label} · {selected.x} m from left, {selected.y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</p>
+            <p className="small muted">{PLOT_KINDS[selected.kind].label} · {posOf(selected).x} m from left, {posOf(selected).y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</p>
             {w && (
               <>
                 <div className="pp-grid">

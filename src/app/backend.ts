@@ -86,6 +86,7 @@ export interface NightlyBackups { enabled: boolean; backups: { date: string; byt
 /** Superadmins: the nightly backups kept (last 30 nights), and where to download one. */
 export const listNightly = () => api<NightlyBackups>('/api/backups')
 export const nightlyUrl = (date: string) => `/api/backups/${date}${devQuery()}`
+export const runBackupNow = () => api<{ ok: true }>('/api/backups/run', { method: 'POST', body: {} })
 
 export interface EventAdmins { owner: Id; admins: { email: Id; name: string }[] }
 

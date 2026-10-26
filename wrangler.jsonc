@@ -28,15 +28,13 @@
   // Sends sign-in codes. showctrl.no is enabled for sending (npx wrangler email sending enable showctrl.no).
   "send_email": [{ "name": "EMAIL" }],
 
-  // Uploaded documents and nightly backups, both EU-only. Off until R2 is enabled on the account
-  // (dashboard → R2), then:
+  // Uploaded documents and nightly backups, both EU-only. Created with:
   //   npx wrangler r2 bucket create showctrl-files --jurisdiction eu
   //   npx wrangler r2 bucket create showctrl-backups --jurisdiction eu
-  // and uncomment. Without them, uploads are refused (links still work) and the nightly run only logs.
-  // "r2_buckets": [
-  //   { "binding": "FILES", "bucket_name": "showctrl-files", "jurisdiction": "eu" },
-  //   { "binding": "BACKUPS", "bucket_name": "showctrl-backups", "jurisdiction": "eu" }
-  // ],
+  "r2_buckets": [
+    { "binding": "FILES", "bucket_name": "showctrl-files", "jurisdiction": "eu" },
+    { "binding": "BACKUPS", "bucket_name": "showctrl-backups", "jurisdiction": "eu" }
+  ],
 
   // The nightly backup, at 02:00 UTC (03:00 or 04:00 in Oslo).
   "triggers": { "crons": ["0 2 * * *"] },

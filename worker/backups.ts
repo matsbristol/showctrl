@@ -3,6 +3,7 @@
 //
 //   GET /api/backups          the nightly backups there are, newest first (superadmins)
 //   GET /api/backups/:date    download one (superadmins)
+//   POST /api/backups/run     make tonight's backup now (superadmins; replaces today's)
 
 import type { Env } from './env'
 import { fullBackup, isSuperadmin, json } from './orgs'
@@ -24,6 +25,12 @@ export async function nightlyBackup(env: Env, now = Date.now()): Promise<void> {
 }
 
 export async function backupRoutes(env: Env, me: string, url: URL, method: string): Promise<Response | null> {
+  if (url.pathname === '/api/backups/run' && method === 'POST') {
+    if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
+    if (!env.BACKUPS) return json({ error: 'Backups need file storage (R2), which isn’t switched on.' }, 503)
+    await nightlyBackup(env)
+    return json({ ok: true })
+  }
   const m = url.pathname.match(/^\/api\/backups(?:\/(\d{4}-\d{2}-\d{2}))?$/)
   if (!m || method !== 'GET') return null
   if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)

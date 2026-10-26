@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
+  addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, runBackupNow, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type NamedPerson, type NightlyBackups, type OrgSummary,
 } from './backend'
 import { FontPicker } from './FontPicker'
@@ -275,15 +275,24 @@ function NewOrg({ onCreated }: { onCreated: (o: OrgSummary) => void }) {
 function Nightly() {
   const [data, setData] = useState<NightlyBackups | null>(null)
   const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
   useEffect(() => {
     let alive = true
     listNightly().then(d => { if (alive) setData(d) }, e => { if (alive) setErr(errText(e, 'Could not load the backups.')) })
     return () => { alive = false }
   }, [])
+  const now = async () => {
+    setBusy(true)
+    setErr('')
+    try { await runBackupNow(); setData(await listNightly()) } catch (e) { setErr(errText(e, 'The backup failed. Try again.')) } finally { setBusy(false) }
+  }
   const size = (b: number) => (b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.max(1, Math.round(b / 1e3))} kB`)
   return (
     <div className="panel">
-      <h2>Nightly backups</h2>
+      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: '.5rem' }}>
+        <h2>Nightly backups</h2>
+        {data?.enabled && <button type="button" className="btn sm" disabled={busy} onClick={() => void now()}>{busy ? 'Backing up…' : 'Back up now'}</button>}
+      </div>
       <p className="small muted" style={{ margin: '.35rem 0 .75rem' }}>Every night at 02:00 UTC, a full backup of every customer and event, kept for 30 nights, stored in the EU.</p>
       {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
       {data && !data.enabled && <p className="small muted">Not running yet: they start once file storage (R2) is switched on for showctrl.</p>}

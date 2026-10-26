@@ -477,6 +477,8 @@ export interface FileDoc extends BaseDoc {
 export interface UserPrefs extends BaseDoc {
   /** When the user last opened Messages; drives the unread badge. */
   lastRead?: Ms
+  /** Hid the setup checklist on the overview. */
+  setupHidden?: boolean
 }
 
 /** Collection name → record type. Drives every data layer call. */

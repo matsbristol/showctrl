@@ -12,7 +12,7 @@ import { EventHub, type Peer } from './hub'
 const T = Date.UTC(2026, 6, 10, 18)
 const tick = () => new Promise(r => setTimeout(r, 0))
 
-function setup(superadmins: string[] = []) {
+function setup(superadmins: string[] = [], onNewMembers?: (emails: string[], by: string) => void) {
   const sample = buildSample(T)
   const audit: AuditEntry[] = []
   const writes: [string, string, unknown][] = []
@@ -23,7 +23,7 @@ function setup(superadmins: string[] = []) {
   }
   const core = new EventCore({ cfg: sample.cfg, roles: sample.roles, col: sample.col, owner: 'owner@example.com', superadmins }, storage)
   const peers: Peer[] = []
-  const hub = new EventHub(core, { peers: () => peers, now: () => T + 1000, readAudit: n => audit.slice(-n).reverse() })
+  const hub = new EventHub(core, { peers: () => peers, now: () => T + 1000, readAudit: n => audit.slice(-n).reverse(), onNewMembers })
   const sockets: { close: () => void }[] = []
 
   function client(email: string) {
@@ -84,6 +84,19 @@ describe('server: what each user sees', () => {
     await stranger.set('requests', 'new@example.com', { at: T, note: 'Backline tech', stage: 'main' })
     expect(core.col.requests['new@example.com'].note).toBe('Backline tech')
     expect(Object.keys(stranger.peek('requests')!)).toEqual(['new@example.com'])
+  })
+})
+
+describe('server: invitations', () => {
+  it('reports people who just got access, and who gave it, once', async () => {
+    const invited: [string[], string][] = []
+    const { client } = setup([], (e, by) => invited.push([e, by]))
+    const admin = client('demo-admin')
+    await tick()
+    await admin.set('members', 'kari@example.no', { role: 'pm', stages: {}, person: null, depts: [], name: 'Kari' })
+    await admin.update('members', 'kari@example.no', { name: 'Kari N.' }) // not new: no second invitation
+    await admin.update('stageteam', 'main', { crew: { 'ola@example.no': true } })
+    expect(invited).toEqual([[['kari@example.no'], 'demo-admin'], [['ola@example.no'], 'demo-admin']])
   })
 })
 

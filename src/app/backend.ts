@@ -61,8 +61,8 @@ async function api<T>(path: string, init?: { method?: string; body?: unknown }):
 /** Someone a superadmin names: the email they sign in with, and the name to show until they give their own. */
 export interface NamedPerson { email: string; name: string }
 
-export async function createEvent(name: string, sample: boolean, org: Id, admins: NamedPerson[]): Promise<Id> {
-  return (await api<{ id: Id }>('/api/events', { body: { name, sample, org, admins } })).id
+export async function createEvent(name: string, sample: boolean, org: Id, admins: NamedPerson[], modules?: string[]): Promise<Id> {
+  return (await api<{ id: Id }>('/api/events', { body: { name, sample, org, admins, modules } })).id
 }
 
 /** Superadmins: a new customer (a folder of events). */

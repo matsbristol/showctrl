@@ -11,6 +11,7 @@ import { MsgBlock } from '../messages/MsgBlock'
 import { DelayChip, KindTag, Slot, Tel } from '../runsheet/parts'
 import { useNowNext } from '../runsheet/helpers'
 import { useAccess, useNow, useTerms, useTz } from '../session'
+import { SetupChecklist } from '../SetupChecklist'
 
 function StageCard({ st }: { st: Stage }) {
   const { cur, next } = useNowNext(st.id)
@@ -104,6 +105,7 @@ export function OverviewPage() {
           <p>Every {t.stage.toLowerCase()} at a glance. Open {aOrAn(t.stage.toLowerCase())} for its own run sheet, crew and display.</p>
         </div>
       </div>
+      <SetupChecklist />
       <div className="grid g3" style={{ marginBottom: '1rem' }}>
         {stages.length ? stages.map(s => <StageCard key={s.id} st={s} />) : (
           <div className="panel"><p className="empty">No {t.stages.toLowerCase()} yet. {a.perm('admin') >= 2 && <>Add them in <Link to="/hq/admin">Admin</Link>.</>}</p></div>

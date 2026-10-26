@@ -130,7 +130,7 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
     const [person] = parsePeople([{ email: b.email, name: b.name }]) ?? []
     if (!person) return json({ error: 'That doesn’t look like an email address.' }, 400)
     const names = await namesFor(env, [person])
-    await stub.setEventAdmin(person.email, true, names.get(person.email) ?? person.name)
+    await stub.setEventAdmin(person.email, true, names.get(person.email) ?? person.name, me)
     return json({ owner: ev.owner, admins: await stub.admins() })
   }
   if (emailPart && request.method === 'DELETE') {

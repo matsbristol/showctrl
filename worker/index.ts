@@ -16,6 +16,7 @@
 //   everything else                  the built app (single-page fallback)
 
 import { blankEvent, buildSample } from '../src/data/sample'
+import { MODULE_IDS } from '../src/types/constants'
 import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
@@ -141,7 +142,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
 
 async function createEvent(request: Request, env: Env, me: string): Promise<Response> {
   if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins create events.' }, 403)
-  const body = await request.json<{ name?: string; sample?: boolean; org?: string; admins?: unknown }>()
+  const body = await request.json<{ name?: string; sample?: boolean; org?: string; admins?: unknown; modules?: unknown }>()
   const org = typeof body.org === 'string' ? body.org : null
   if (!org || !(await env.DB.prepare('SELECT 1 FROM orgs WHERE id = ?').bind(org).first())) return json({ error: 'Choose the customer the event is for.' }, 400)
   const admins = parsePeople(body.admins)
@@ -151,13 +152,20 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
   const id = crypto.randomUUID()
   const data = body.sample ? buildSample() : blankEvent()
   if (data.cfg) data.cfg = { ...data.cfg, name: body.sample ? data.cfg.name : name }
+  // A new (non-sample) event starts with only the modules chosen for it; the rest can be switched on later.
+  if (data.cfg && !body.sample && Array.isArray(body.modules)) {
+    const on = new Set(body.modules.filter((m): m is string => typeof m === 'string'))
+    data.cfg = { ...data.cfg, modules: Object.fromEntries(MODULE_IDS.map(id => [id, on.has(id)])) }
+  }
   delete data.col.members['demo-admin']
   // The creator owns the event; the admins they name run it (Festival admin, this event only).
   for (const a of [{ email: me, name: '' }, ...admins]) {
     data.col.members[a.email] ??= { id: a.email, name: names.get(a.email) || a.name || a.email, role: 'admin', person: null, depts: [], stages: {} }
   }
   await env.DB.prepare('INSERT INTO events (id, name, owner, created_at, org_id) VALUES (?, ?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now(), org).run()
-  await eventStub(env, id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
+  const stub = eventStub(env, id)
+  await stub.init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
+  if (admins.length) await stub.invite(admins.map(a => a.email), me)
   return json({ id }, 201)
 }
 

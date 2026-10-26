@@ -1,16 +1,22 @@
 import { useState } from 'react'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
-import { initials, personColor } from '../../shared/people'
+import { stageRoleOf } from '../../shared/access'
+import { initials, personColor, personName } from '../../shared/people'
+import { rid } from '../../lib/id'
+import { relTime } from '../../lib/time'
 import { TAPE } from '../../types/constants'
 import type { Id, Person } from '../../types/model'
 import { AccessForm } from '../admin/forms'
 import { ImportForm, PersonForm } from '../people/forms'
 import { Tel } from '../runsheet/parts'
-import { useAccess } from '../session'
+import { useAccess, useNow } from '../session'
 
-type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | { type: 'access'; person: Person } | null
+type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | { type: 'access'; person: Person } | { type: 'edit-access'; uid: Id } | { type: 'new-access' } | null
 
-/** HQ: the festival-wide contact list. Stage: "Crew & contacts" for that stage. */
+/**
+ * HQ "People": everyone on the event, their contact details and, for admins, their login (role,
+ * stages) in the same list, with requests to join on top. Stage: "Crew & contacts" for that stage.
+ */
 export function PersonnelPage({ sid }: { sid: Id | null }) {
   const a = useAccess()
   const cfg = useConfig('event')
@@ -26,9 +32,37 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
   const dept = (id?: Id | null) => cfg?.depts.find(d => d.id === id)
   const users = new Set(Object.values(members).map(m => m.person).filter(Boolean))
   const store = useStore()
-  // Live mode: someone listed here with an email but no login can be given one straight away.
-  const canGrant = store.mode === 'live' && a.canW('admin')
+  // Admins see and manage logins here (demo mode too, with demo people).
+  const canGrant = a.canW('admin')
   const hasLogin = (p: Person) => users.has(p.id) || (!!p.email && !!members[p.email.trim().toLowerCase()])
+  const stageteam = useCollection('stageteam')
+  const requests = useCollection('requests')
+  const now = useNow(60_000)
+  const admin = !sid && canGrant
+  // The login that belongs to a person: linked to their entry, or signing in with their email.
+  const loginOf = (p: Person): Id | undefined => Object.values(members).find(m => m.person === p.id)?.id ?? (p.email && members[p.email.trim().toLowerCase()] ? p.email.trim().toLowerCase() : undefined)
+  const roleText = (uid: Id) => {
+    const m = members[uid]
+    const st = a.stagesSorted().map(s => [s, stageRoleOf(members, stageteam, uid, s.id)] as const).filter(([, r]) => r).map(([s, r]) => `${r === 'manager' ? 'SM' : 'crew'} ${s.name}`)
+    return [m && m.role !== 'none' ? a.roleDef(m.role).label : '', ...st].filter(Boolean).join(' · ') || 'No role yet'
+  }
+  // Logins with no entry in the list (e.g. admins added by email): shown too, so this is the whole picture.
+  const linked = new Set(Object.values(people).map(p => loginOf(p)).filter(Boolean))
+  const loose = admin
+    ? [...new Set([...Object.keys(members), ...Object.values(stageteam).flatMap(x => Object.keys(x.crew ?? {}))])]
+      .filter(u => !linked.has(u) && (!q || `${personName(u, members, people)} ${u}`.toLowerCase().includes(q.toLowerCase())) && !fd && !fs)
+      .sort((x, y) => personName(x, members, people).localeCompare(personName(y, members, people)))
+    : []
+  const reqs = admin ? Object.values(requests).filter(r => !members[r.id] && !a.stagesSorted().some(s => stageRoleOf(members, stageteam, r.id, s.id))) : []
+  // Gives a login without an entry its own entry in the list, then opens it to fill in.
+  const addDetails = async (uid: Id) => {
+    const id = rid()
+    const m = members[uid]
+    const doc = { id, name: personName(uid, members, people), title: '', company: '', dept: m?.depts?.[0] ?? null, stages: [], phone: '', email: uid.includes('@') ? uid : '', lead: false, notes: '' } as Person
+    await store.set('people', id, doc)
+    if (m) await store.update('members', uid, { person: id })
+    setDialog({ type: 'person', person: doc })
+  }
 
   const list = Object.values(people)
     .filter(p => (!fs || p.stages.includes(fs)) && (!fd || p.dept === fd)
@@ -40,16 +74,35 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>{sid ? `Crew & contacts · ${stages[sid]?.name}` : 'Personnel'}</h1>
-          <p>{sid ? 'Everyone working on this stage, with how to reach them.' : 'The festival-wide contact list. Filter by stage or department, or paste a crew list straight from a spreadsheet.'}</p>
+          <h1>{sid ? `Crew & contacts · ${stages[sid]?.name}` : 'People'}</h1>
+          <p>{sid ? 'Everyone working on this stage, with how to reach them.' : admin
+            ? 'Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Paste a crew list straight from a spreadsheet.'
+            : 'Everyone on the event and how to reach them. Filter by stage or department.'}</p>
         </div>
         {w && (
           <div className="actions">
             <button type="button" className="btn" onClick={() => setDialog({ type: 'import' })}>Paste list</button>
+            {admin && <button type="button" className="btn" onClick={() => setDialog({ type: 'new-access' })}>+ Give someone access</button>}
             <button type="button" className="btn primary" onClick={() => setDialog({ type: 'person', person: null })}>+ Add person</button>
           </div>
         )}
       </div>
+      {reqs.length > 0 && (
+        <section className="panel" style={{ marginBottom: '1rem' }}>
+          <div className="ph"><h3>Waiting for access</h3><span className="badge">{reqs.length}</span></div>
+          <ul className="list">
+            {reqs.map(r => (
+              <li key={r.id}>
+                <div className="stack"><b>{personName(r.id, members, people)}</b><span className="small muted">{r.id}{r.note ? ` · ${r.note}` : ''}{r.stage ? ` · wants ${stages[r.stage]?.name}` : ''} · {relTime(r.at, now)}</span></div>
+                <div className="row" style={{ marginLeft: 'auto' }}>
+                  <button type="button" className="btn sm go" onClick={() => setDialog({ type: 'edit-access', uid: r.id })}>Give access</button>
+                  <button type="button" className="btn sm danger" onClick={() => void store.delete('requests', r.id)}>Decline</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="filters">
         <input type="search" placeholder="Search name, phone, company…" aria-label="Search personnel" value={q} onChange={e => setQ(e.target.value)} />
         {!sid && (
@@ -62,12 +115,12 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
           <option value="">All departments</option>
           {cfg?.depts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
-        <span className="small muted">{list.length} {list.length === 1 ? 'person' : 'people'}</span>
+        <span className="small muted">{list.length + loose.length} {list.length + loose.length === 1 ? 'person' : 'people'}</span>
       </div>
       <div className="panel tbl-wrap">
         <table>
           <thead>
-            <tr><th>Name</th><th>Role</th><th>Department</th>{!sid && <th>Stages</th>}<th>Phone</th><th>Email</th><th>Accreditation</th><th /></tr>
+            <tr><th>Name</th><th>Role</th><th>Department</th>{!sid && <th>Stages</th>}<th>Phone</th><th>Email</th><th>Accreditation</th>{admin && <th>Sign-in</th>}<th /></tr>
           </thead>
           <tbody>
             {list.map(p => {
@@ -87,20 +140,41 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                   <td className="small">{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</td>
                   <td>
                     {p.accred ? <span className="chip ac">{p.accred}</span> : '—'}
-                    {hasLogin(p) && <> <span className="chip go" title="Has access to showctrl.no">showctrl</span></>}
-                    {!hasLogin(p) && canGrant && p.email && <> <button type="button" className="btn sm" title="Listing someone here doesn’t let them sign in. This does." onClick={() => setDialog({ type: 'access', person: p })}>Give showctrl.no access</button></>}
+                    {!admin && hasLogin(p) && <> <span className="chip go" title="Has access to showctrl.no">showctrl</span></>}
                   </td>
+                  {admin && (
+                    <td className="signin">
+                      {(() => {
+                        const uid = loginOf(p)
+                        if (uid) return <><span className="chip go" title="Signs in to showctrl.no">showctrl</span> <span className="small">{roleText(uid)}</span> <button type="button" className="btn sm" aria-label={`Edit access for ${p.name}`} onClick={() => setDialog({ type: 'edit-access', uid })}>Edit access</button></>
+                        if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title="Being listed here doesn’t let them sign in. This does, and emails them." onClick={() => setDialog({ type: 'access', person: p })}>Give showctrl.no access</button>
+                        return <span className="small muted" title="Add an email to their entry to give them a login">No email</span>
+                      })()}
+                    </td>
+                  )}
                   <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={`Edit ${p.name}`}>Edit</button>}</td>
                 </tr>
               )
             })}
-            {!list.length && <tr><td colSpan={8} className="empty">Nobody listed yet.</td></tr>}
+            {loose.map(u => (
+              <tr key={`login-${u}`} className="loose">
+                <td><div className="row"><span className="av" style={{ ['--c' as string]: personColor(u) }}>{initials(personName(u, members, people))}</span><div className="stack"><b>{personName(u, members, people)}</b><span className="small muted">Not in the list yet</span></div></div></td>
+                <td>—</td><td>—</td><td>—</td><td>—</td>
+                <td className="small">{u.includes('@') ? <a href={`mailto:${u}`}>{u}</a> : '—'}</td>
+                <td>—</td>
+                <td className="signin"><span className="chip go">showctrl</span> <span className="small">{roleText(u)}</span> <button type="button" className="btn sm" aria-label={`Edit access for ${personName(u, members, people)}`} onClick={() => setDialog({ type: 'edit-access', uid: u })}>Edit access</button></td>
+                <td>{w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>Add details</button>}</td>
+              </tr>
+            ))}
+            {!list.length && !loose.length && <tr><td colSpan={9} className="empty">Nobody listed yet.</td></tr>}
           </tbody>
         </table>
       </div>
       {dialog?.type === 'person' && <PersonForm person={dialog.person} sid={sid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'import' && <ImportForm sid={sid} onClose={() => setDialog(null)} />}
-      {dialog?.type === 'access' && <AccessForm uid="" isNew preset={{ email: dialog.person.email ?? '', person: dialog.person.id }} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'access' && <AccessForm uid={store.mode === 'local' ? 'demo-' + rid() : ''} isNew preset={{ email: dialog.person.email ?? '', person: dialog.person.id }} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'edit-access' && <AccessForm uid={dialog.uid} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'new-access' && <AccessForm uid={store.mode === 'local' ? 'demo-' + rid() : ''} isNew onClose={() => setDialog(null)} />}
     </>
   )
 }

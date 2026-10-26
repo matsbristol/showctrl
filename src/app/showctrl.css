@@ -668,3 +668,24 @@
 /* Admin → Accreditation */
 .sc .accred-list li { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap }
 .sc .accred-list input { width: 12rem; max-width: 100% }
+
+/* Create an event: which modules */
+.sc .module-pick { border: 1px solid var(--line); border-radius: var(--r); padding: .6rem .8rem .8rem; margin: 0; display: grid; gap: .4rem; min-width: 0 }
+.sc .module-pick legend { font-size: .8rem; font-weight: 700; color: var(--ink2); padding: 0 .3rem }
+.sc .module-pick label { align-items: flex-start }
+.sc .module-pick input { margin-top: .2rem }
+
+/* Overview: setup checklist for a new event */
+.sc .setup-list { margin-bottom: 1rem; border-color: var(--accent) }
+.sc .setup-list ol { list-style: none; margin: 0; padding: .25rem 0 }
+.sc .setup-list li { display: flex; align-items: center; gap: .8rem; padding: .6rem 1rem; border-top: 1px solid var(--line) }
+.sc .setup-list li:first-child { border-top: 0 }
+.sc .setup-list .tick { flex: none; width: 1.4rem; height: 1.4rem; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-weight: 700; color: var(--go) }
+.sc .setup-list li.done .tick { border-color: var(--go); background: var(--go-soft) }
+.sc .setup-list li.done b { color: var(--ink3); text-decoration: line-through }
+.sc .setup-list li .btn { margin-left: auto; flex: none }
+
+/* People: sign-in column, and logins not in the list yet */
+.sc td.signin { white-space: normal; min-width: 14rem }
+.sc td.signin .btn { margin-left: .25rem }
+.sc tr.loose td { background: color-mix(in srgb, var(--accent-soft) 35%, transparent) }

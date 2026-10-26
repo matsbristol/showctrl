@@ -100,7 +100,7 @@ describe('admin', () => {
   })
 
   it('gives a new person crew access to a stage', async () => {
-    const store = mount('/hq/admin?tab=access', 'demo-admin')
+    const store = mount('/hq/personnel', 'demo-admin')
     await click(screen.getByRole('button', { name: '+ Give someone access' }))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Rita Rigger' } })
     const crewSet = screen.getByText('Stage crew on').closest('fieldset')!
@@ -111,7 +111,7 @@ describe('admin', () => {
   })
 
   it('stops admins removing their own admin role', async () => {
-    const store = mount('/hq/admin?tab=access', 'demo-admin')
+    const store = mount('/hq/personnel', 'demo-admin')
     const me = store.peek('people')[store.peek('members')['demo-admin'].person!].name
     await click(screen.getByRole('button', { name: `Edit access for ${me}` }))
     await change(screen.getByLabelText('Festival role'), 'pm')

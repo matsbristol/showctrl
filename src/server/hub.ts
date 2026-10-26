@@ -19,6 +19,8 @@ export interface HubOptions {
   readAudit: (limit: number) => AuditEntry[]
   /** Called when the set of members may have changed (to update the D1 membership index). */
   onMembersChanged?: (emails: Id[]) => void
+  /** People who just got access, and who gave it (to send them an invitation). */
+  onNewMembers?: (emails: Id[], by: Id) => void
 }
 
 export class EventHub {
@@ -52,10 +54,13 @@ export class EventHub {
       return EventHub.send(p, { t: 'audit', req: m.req, entries: this.opts.readAudit(Math.min(m.limit ?? 100, 1000)) })
     }
     if (m.t !== 'op') return
+    const before = new Set(this.core.memberEmails())
     const r = this.core.apply(p.email, m.op, this.now())
     if (!r.ok) return EventHub.send(p, { t: 'error', req: m.req, code: r.code, message: r.message })
     this.broadcast(r.effects)
     EventHub.send(p, { t: 'ack', req: m.req })
+    const added = this.core.memberEmails().filter(e => !before.has(e))
+    if (added.length) this.opts.onNewMembers?.(added, p.email)
   }
 
   /** Send each viewer their own view of what changed. */

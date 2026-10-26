@@ -10,6 +10,7 @@ import { EventHub, type Peer } from '../src/server/hub'
 import { COLLECTIONS } from '../src/types/constants'
 import { moduleOn } from '../src/shared/modules'
 import { personName } from '../src/shared/people'
+import { sendInvite } from './invite'
 import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
@@ -90,6 +91,7 @@ export class EventObject extends DurableObject<Env> {
         ...(r.patch ? { patch: JSON.parse(r.patch) } : {}),
       })),
       onMembersChanged: emails => this.ctx.waitUntil(this.syncMembers(emails)),
+      onNewMembers: (emails, by) => this.ctx.waitUntil(this.invite(emails, by)),
     })
   }
 
@@ -146,6 +148,19 @@ export class EventObject extends DurableObject<Env> {
     await this.syncMembers(this.hub.core.memberEmails())
   }
 
+  /** Emails the people who just got access: who gave it, and as what. */
+  async invite(emails: Id[], by: Id): Promise<void> {
+    const core = this.hub.core
+    const event = core.cfg?.name ?? 'an event'
+    const from = personName(by, core.col.members, core.col.people)
+    await Promise.all(emails.filter(e => e !== by).map(to => {
+      const a = core.access(to)
+      const stageRoles = a.myStages().map(s => `${a.stageRole(s.id) === 'manager' ? 'stage manager' : 'crew'} on ${s.name}`)
+      const as = a.role() !== 'none' ? a.roleDef().label : stageRoles.join(', ') || 'a member'
+      return sendInvite(this.env, { to, event, by: from, as })
+    }))
+  }
+
   /** The event's admins: the owner and every member with the Festival admin role, with the name shown for each. */
   async admins(): Promise<{ email: Id; name: string }[]> {
     const core = this.hub.core
@@ -158,7 +173,7 @@ export class EventObject extends DurableObject<Env> {
    * rules, as the owner, so it shows in the change history. Removing takes away the membership
    * only if it is the admin one; the owner always stays.
    */
-  async setEventAdmin(email: Id, on: boolean, name = ''): Promise<void> {
+  async setEventAdmin(email: Id, on: boolean, name = '', by = ''): Promise<void> {
     const core = this.hub.core
     const owner = core.owner
     if (!owner || email === owner) return
@@ -171,9 +186,12 @@ export class EventObject extends DurableObject<Env> {
       op = { kind: 'delete', col: 'members', id: email }
     }
     if (!op) return
+    const isNew = on && !cur
     const r = core.apply(owner, op, Date.now())
-    if (r.ok) this.hub.broadcast(r.effects)
-    else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
+    if (r.ok) {
+      this.hub.broadcast(r.effects)
+      if (isNew && by) await this.invite([email], by)
+    } else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
   }
 
   /** How much the event holds; `exists` is false for an empty object. */

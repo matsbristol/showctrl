@@ -36,7 +36,7 @@ export const HQ_NAV: Record<HqView, NavMeta> = {
   transport: { label: () => 'Transport', icon: 'car', group: 'logistics' },
   accommodation: { label: () => 'Accommodation', icon: 'accommodation', group: 'logistics' },
   facilities: { label: () => 'Facilities', icon: 'room', group: 'logistics' },
-  personnel: { label: () => 'Personnel', icon: 'personnel', group: 'team' },
+  personnel: { label: () => 'People', icon: 'personnel', group: 'team' },
   documents: { label: () => 'Documents', icon: 'file', group: 'team' },
   admin: { label: () => 'Admin', icon: 'admin', group: 'admin' },
 }

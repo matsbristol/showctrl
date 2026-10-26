@@ -11,6 +11,8 @@ export interface Env {
 
   /** Sends sign-in codes (Cloudflare Email Service; the from domain must be enabled for sending). */
   EMAIL?: SendEmail
+  /** The site's address, for links in emails. Default https://showctrl.no. */
+  PUBLIC_URL?: string
   /** Sender of sign-in codes. Default login@showctrl.no. */
   LOGIN_FROM?: string
 

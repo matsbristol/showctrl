@@ -3,7 +3,13 @@ import {
   addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, runBackupNow, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type NamedPerson, type NightlyBackups, type OrgSummary,
 } from './backend'
+import { MODULES } from '../shared/modules'
+import { MODULE_IDS } from '../types/constants'
+import type { ModuleId } from '../types/model'
 import { FontPicker } from './FontPicker'
+
+/** Ticked when a new event is created: what nearly every event uses on show days. */
+const STARTER_MODULES: ModuleId[] = ['messages', 'clocks', 'display', 'personnel']
 
 const errText = (e: unknown, fallback: string) => (e instanceof Error ? e.message : fallback)
 
@@ -197,6 +203,7 @@ function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary
   const [name, setName] = useState('')
   const [admins, setAdmins] = useState<NamedPerson[]>([{ name: '', email: '' }])
   const [sample, setSample] = useState(false)
+  const [modules, setModules] = useState<ModuleId[]>([...STARTER_MODULES])
   const setAdmin = (i: number, k: keyof NamedPerson, v: string) => setAdmins(list => list.map((a, j) => (j === i ? { ...a, [k]: v } : a)))
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
@@ -208,7 +215,7 @@ function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary
       const n = name.trim() || 'New festival'
       const named = admins.map(a => ({ name: a.name.trim(), email: a.email.trim() })).filter(a => a.email || a.name)
       if (named.some(a => !a.email || !a.name)) { setErr('Give each admin both a name and an email.'); return }
-      const id = await createEvent(n, sample, org, named)
+      const id = await createEvent(n, sample, org, named, sample ? undefined : modules)
       onCreated({ id, name: sample ? 'Nordlys Open Air 2026' : n, owner: '', org })
     } catch (e) {
       setErr(errText(e, 'Could not create the event.'))
@@ -232,7 +239,19 @@ function NewEvent({ org, onCreated }: { org: string; onCreated: (e: EventSummary
           ))}
           <div><button type="button" className="btn sm" onClick={() => setAdmins(list => [...list, { name: '', email: '' }])}>+ Add another admin</button></div>
         </fieldset>
-        <label className="row small"><input type="checkbox" checked={sample} onChange={e => setSample(e.target.checked)} /> Fill it with the sample festival (to try things out)</label>
+        {!sample && (
+          <fieldset className="module-pick">
+            <legend>What does this event need?</legend>
+            <p className="small muted">Run sheets, artists, stages and people are always there. Tick what else to show; you can change this later under Admin → Modules.</p>
+            {MODULE_IDS.map(id => (
+              <label key={id} className="row small" title={MODULES[id].description}>
+                <input type="checkbox" checked={modules.includes(id)} onChange={e => setModules(m => (e.target.checked ? [...m, id] : m.filter(x => x !== id)))} />
+                <span><b>{MODULES[id].label}</b> <span className="muted">{MODULES[id].description}</span></span>
+              </label>
+            ))}
+          </fieldset>
+        )}
+        <label className="row small"><input type="checkbox" checked={sample} onChange={e => setSample(e.target.checked)} /> Fill it with the sample festival instead (every module on, to try things out)</label>
         {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
         <div className="row"><button type="submit" className="btn primary" disabled={busy}>{busy ? 'Creating…' : 'Create event'}</button></div>
       </form>

@@ -34,7 +34,10 @@ export function AdminPage() {
   const t = useTerms()
   const [params, setParams] = useSearchParams()
   const want = params.get('tab') as Tab | null
-  const tab: Tab = want && TABS.includes(want) ? want : 'stages'
+  const cfgEv = useConfig('event')
+  // With the People module on, logins are managed on the People page; this tab is only a fallback.
+  const tabs = TABS.filter(k => k !== 'access' || !moduleOn(cfgEv, 'personnel'))
+  const tab: Tab = want && tabs.includes(want) ? want : 'stages'
   const [dialog, setDialog] = useState<Dialog>(null)
   const w = a.canW('admin')
   const labels: Record<Tab, string> = { stages: `${t.stages} & managers`, access: 'People with access', roles: 'Roles', modules: 'Modules', event: 'Event', depts: 'Departments', accred: 'Accreditation' }
@@ -46,7 +49,7 @@ export function AdminPage() {
         <div><h1>Admin</h1><p>Create the event, add {t.stages.toLowerCase()}, and hand each {t.stage.toLowerCase()} to its stage manager. They take it from there.</p></div>
       </div>
       <div className="tabs" role="tablist">
-        {TABS.map(k => (
+        {tabs.map(k => (
           <button key={k} type="button" role="tab" aria-selected={k === tab} onClick={() => setParams(p => { p.set('tab', k); return p }, { replace: true })}>{labels[k]}</button>
         ))}
       </div>

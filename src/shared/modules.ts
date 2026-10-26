@@ -46,8 +46,8 @@ export const MODULES: Record<ModuleId, ModuleDef> = {
     perms: [], collections: [], hqViews: [], stageViews: ['display'],
   },
   personnel: {
-    id: 'personnel', label: 'Personnel', defaultOn: true,
-    description: 'The contact list for HQ and every stage team, with paste-in import from spreadsheets.',
+    id: 'personnel', label: 'People', defaultOn: true,
+    description: 'Everyone on the event in one list: contact details, accreditation, and who can sign in. Paste-in import from spreadsheets.',
     // People records stay available: they also provide names for app users.
     perms: ['personnel'], collections: [], hqViews: ['personnel'], stageViews: ['personnel'],
   },

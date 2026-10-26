@@ -18,6 +18,7 @@ import { blankEvent, buildSample } from '../src/data/sample'
 import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
+import { eventStub, moveToEu } from './events'
 import { EMAIL_HEADER, NAME_HEADER } from './event'
 import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
@@ -63,7 +64,7 @@ export default {
           await env.DB.prepare('INSERT INTO users (email, name) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET name = ?2').bind(me, name).run()
           // Everyone in your events sees the new name on your messages.
           const { results } = await env.DB.prepare('SELECT event_id AS id FROM memberships WHERE email = ?1 UNION SELECT id FROM events WHERE owner = ?1').bind(me).all<{ id: string }>()
-          await Promise.all(results.map(e => env.EVENT.getByName(e.id).setMemberName(me, name)))
+          await Promise.all(results.map(e => eventStub(env, e.id).setMemberName(me, name)))
         }
         return json({ ok: true })
       }
@@ -73,6 +74,11 @@ export default {
         await env.DB.prepare('INSERT INTO users (email, last_event, seen_at) VALUES (?1, ?2, ?3) ON CONFLICT(email) DO UPDATE SET last_event = ?2, seen_at = ?3')
           .bind(me, id, Date.now()).run()
         return json({ ok: true })
+      }
+      // One-time: copy events made before EU storage into the EU (superadmins). ?purge=1 then removes the old copies.
+      if (url.pathname === '/api/admin/move-to-eu' && request.method === 'POST') {
+        if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
+        return json({ events: await moveToEu(env, url.searchParams.get('purge') === '1') })
       }
       const portfolio = await portfolioRoutes(request, env, me, url)
       if (portfolio) return portfolio
@@ -91,7 +97,7 @@ export default {
         headers.set(EMAIL_HEADER, me)
         const profile = await env.DB.prepare('SELECT name FROM users WHERE email = ?').bind(me).first<{ name: string | null }>()
         if (profile?.name) headers.set(NAME_HEADER, encodeURIComponent(profile.name))
-        return env.EVENT.getByName(ws[1]).fetch(new Request(request.url, { headers }))
+        return eventStub(env, ws[1]).fetch(new Request(request.url, { headers }))
       }
       return json({ error: 'Not found' }, 404)
     } catch (e) {
@@ -142,7 +148,7 @@ async function createEvent(request: Request, env: Env, me: string): Promise<Resp
     data.col.members[a.email] ??= { id: a.email, name: names.get(a.email) || a.name || a.email, role: 'admin', person: null, depts: [], stages: {} }
   }
   await env.DB.prepare('INSERT INTO events (id, name, owner, created_at, org_id) VALUES (?, ?, ?, ?, ?)').bind(id, data.cfg!.name, me, Date.now(), org).run()
-  await env.EVENT.getByName(id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
+  await eventStub(env, id).init(id, me, { cfg: data.cfg!, roles: data.roles!, col: data.col as unknown as CollectionData })
   return json({ id }, 201)
 }
 
@@ -150,7 +156,7 @@ const MAX_UPLOAD = 25 * 1024 * 1024
 
 async function upload(request: Request, env: Env, me: string, eventId: string, url: URL): Promise<Response> {
   if (!env.FILES) return json({ error: 'File uploads aren’t switched on for this site yet. Add a link instead.' }, 503)
-  const ok = await env.EVENT.getByName(eventId).canUpload(me, { stage: url.searchParams.get('stage'), artist: url.searchParams.get('artist') })
+  const ok = await eventStub(env, eventId).canUpload(me, { stage: url.searchParams.get('stage'), artist: url.searchParams.get('artist') })
   if (!ok) return json({ error: 'You can’t add documents here.' }, 403)
   const size = Number(request.headers.get('content-length') ?? 0)
   if (!size || size > MAX_UPLOAD) return json({ error: 'Files can be up to 25 MB.' }, 413)
@@ -162,7 +168,7 @@ async function upload(request: Request, env: Env, me: string, eventId: string, u
 }
 
 async function download(env: Env, me: string, eventId: string, key: string): Promise<Response> {
-  const meta = await env.EVENT.getByName(eventId).fileFor(me, key)
+  const meta = await eventStub(env, eventId).fileFor(me, key)
   if (!meta) return json({ error: 'Not found' }, 404)
   const obj = await env.FILES?.get(key)
   if (!obj) return json({ error: 'The file is missing.' }, 404)

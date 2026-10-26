@@ -176,6 +176,32 @@ export class EventObject extends DurableObject<Env> {
     else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
   }
 
+  /** How much the event holds; `exists` is false for an empty object. */
+  async counts(): Promise<{ exists: boolean; records: number; history: number }> {
+    const n = (sql: string) => this.sql.exec<{ n: number }>(sql).one().n
+    return { exists: !!this.meta('eventId'), records: n('SELECT COUNT(*) AS n FROM docs'), history: n('SELECT COUNT(*) AS n FROM audit') }
+  }
+
+  /** Every stored row as it is, for moving the event to another place (see worker/events.ts). */
+  async dumpRaw(): Promise<RawDump> {
+    return {
+      meta: this.sql.exec<{ key: string; value: string }>('SELECT key, value FROM meta').toArray(),
+      config: this.sql.exec<{ which: string; data: string }>('SELECT which, data FROM config').toArray(),
+      docs: this.sql.exec<{ col: string; id: string; data: string }>('SELECT col, id, data FROM docs').toArray(),
+      audit: this.sql.exec<RawDump['audit'][number]>('SELECT seq, at, actor, op, col, doc_id, patch FROM audit ORDER BY seq').toArray(),
+    }
+  }
+
+  /** Fills an empty event from `dumpRaw` of another. Refuses if this one already holds an event. */
+  async restore(d: RawDump): Promise<void> {
+    if (this.meta('eventId')) throw new Error('This event already has data.')
+    for (const m of d.meta) this.sql.exec('INSERT INTO meta (key, value) VALUES (?, ?)', m.key, m.value)
+    for (const c of d.config) this.sql.exec('INSERT INTO config (which, data) VALUES (?, ?)', c.which, c.data)
+    for (const r of d.docs) this.sql.exec('INSERT INTO docs (col, id, data) VALUES (?, ?, ?)', r.col, r.id, r.data)
+    for (const a of d.audit) this.sql.exec('INSERT INTO audit (seq, at, actor, op, col, doc_id, patch) VALUES (?, ?, ?, ?, ?, ?, ?)', a.seq, a.at, a.actor, a.op, a.col, a.doc_id, a.patch)
+    this.hub = this.load()
+  }
+
   /**
    * Everything stored for the event, unredacted, for a superadmin's backup: settings, every
    * record, the change history and the stored file keys (the files themselves stay in R2).
@@ -196,8 +222,8 @@ export class EventObject extends DurableObject<Env> {
    * Deletes the event for good: its uploaded files, every record, the change history.
    * Open connections are closed with code 4004. The Worker removes it from D1 first.
    */
-  async destroy(): Promise<void> {
-    const id = this.meta('eventId')
+  async destroy(keepFiles = false): Promise<void> {
+    const id = keepFiles ? null : this.meta('eventId')
     for (const ws of this.ctx.getWebSockets()) {
       try { ws.close(4004, 'This event was deleted.') } catch { /* already closed */ }
     }
@@ -253,3 +279,10 @@ export class EventObject extends DurableObject<Env> {
 }
 
 export { EMAIL_HEADER, NAME_HEADER }
+
+export interface RawDump {
+  meta: { key: string; value: string }[]
+  config: { which: string; data: string }[]
+  docs: { col: string; id: string; data: string }[]
+  audit: { seq: number; at: number; actor: string | null; op: string; col: string; doc_id: string; patch: string | null }[]
+}

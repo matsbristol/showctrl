@@ -12,6 +12,9 @@ export interface Env {
   /** Sender of sign-in codes. Default login@showctrl.no. */
   LOGIN_FROM?: string
 
+  /** "eu": events are stored in Cloudflare's EU jurisdiction. "local-eu" stands in for it under `wrangler dev`. */
+  EVENT_JURISDICTION?: string
+
   /** Optional: Cloudflare Access in front of the site, e.g. https://yourteam.cloudflareaccess.com */
   ACCESS_TEAM_DOMAIN?: string
   /** The Access application's "Application Audience (AUD) tag". */

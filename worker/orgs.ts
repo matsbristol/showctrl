@@ -17,6 +17,7 @@
 //   DELETE /api/events/:id/admins/:email   remove one (superadmins; not the event's creator)
 
 import type { Env } from './env'
+import { eventStub } from './events'
 
 export const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'cache-control': 'no-store' } })
 
@@ -89,7 +90,7 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
       env.DB.prepare('DELETE FROM memberships WHERE event_id = ?').bind(id),
       env.DB.prepare('UPDATE users SET last_event = NULL WHERE last_event = ?').bind(id),
     ])
-    await env.EVENT.getByName(id).destroy()
+    await eventStub(env, id).destroy()
     console.log(JSON.stringify({ level: 'info', what: 'event deleted', id, by: me }))
     return json({ ok: true })
   }
@@ -122,7 +123,7 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
   const [, eventId, emailPart] = admins!
   const ev = await env.DB.prepare('SELECT id, owner FROM events WHERE id = ?').bind(eventId).first<{ id: string; owner: string }>()
   if (!ev) return json({ error: 'No such event.' }, 404)
-  const stub = env.EVENT.getByName(eventId)
+  const stub = eventStub(env, eventId)
   if (!emailPart && request.method === 'GET') return json({ owner: ev.owner, admins: await stub.admins() })
   if (!emailPart && request.method === 'POST') {
     const b = await body(request)
@@ -144,7 +145,7 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
 type EventRow = { id: string; name: string; owner: string; org_id: string | null; created_at: number }
 
 async function eventBackup(env: Env, ev: EventRow, orgName: string | null) {
-  return { id: ev.id, name: ev.name, owner: ev.owner, customer: ev.org_id ? { id: ev.org_id, name: orgName } : null, createdAt: ev.created_at, ...((await env.EVENT.getByName(ev.id).exportAll()) as Record<string, unknown>) }
+  return { id: ev.id, name: ev.name, owner: ev.owner, customer: ev.org_id ? { id: ev.org_id, name: orgName } : null, createdAt: ev.created_at, ...((await eventStub(env, ev.id).exportAll()) as Record<string, unknown>) }
 }
 
 /**

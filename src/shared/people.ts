@@ -6,6 +6,12 @@ import { sortStages, stageRoleOf } from './access'
 
 export interface Profile { name?: string }
 
+/** A readable stand-in for someone who hasn't given a name yet: "mats.bristol@gmail.com" → "Mats Bristol". */
+export function nameFromEmail(email: string): string {
+  const words = email.split('@')[0].split(/[._-]+/).filter(w => w && !/^\d+$/.test(w))
+  return words.length ? words.map(w => w[0].toUpperCase() + w.slice(1)).join(' ') : email
+}
+
 export function personName(
   id: Id | null | undefined,
   members: Readonly<Record<Id, Member>>,
@@ -16,9 +22,9 @@ export function personName(
   if (!id) return 'Someone'
   const m = members[id]
   if (m?.person && people[m.person]) return people[m.person].name
-  if (m?.name) return m.name
+  if (m?.name && m.name !== id) return m.name
   if (profiles[id]?.name) return profiles[id].name!
-  if (id.includes('@')) return id // live users are known by their sign-in email
+  if (id.includes('@')) return nameFromEmail(id) // until they give a name: mats.bristol@… → Mats Bristol
   return id === me ? 'You' : 'Someone'
 }
 

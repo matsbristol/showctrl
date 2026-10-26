@@ -6,11 +6,12 @@ import { LocalStore } from '../data/localStore'
 import { blankEvent, buildSample } from '../data/sample'
 import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
-import { detectBackend, eventStore, rememberEvent, type Backend, type Me } from './backend'
+import { detectBackend, eventStore, rememberEvent, saveName, type Backend, type Me } from './backend'
 import { EventPicker } from './EventPicker'
 import { fontVars, initFont, useFont } from './font'
 import { FONTS } from '../shared/fonts'
 import { Login } from './Login'
+import { NamePrompt } from './YourName'
 import { Layout } from './Layout'
 import { LiveContext, type Live } from './live'
 import { SessionProvider } from './SessionProvider'
@@ -82,10 +83,16 @@ function LiveApp({ me }: { me: Me }) {
     setOrg(events.find(e => e.id === id)?.org ?? org)
     setEventId(id)
   }
-  const live = useMemo<Live>(() => ({ events, switchEvent: () => setEventId(null) }), [events])
+  const [name, setName] = useState(me.name ?? null)
+  const live = useMemo<Live>(() => ({
+    events, switchEvent: () => setEventId(null),
+    name, setName: async (n: string) => { await saveName(n); setName(n.replace(/\s+/g, ' ').trim()) },
+  }), [events, name])
   if (!eventId) {
     return (
+      <LiveContext.Provider value={live}>
       <Frame>
+        <NamePrompt />
         <EventPicker
           me={me} orgs={orgs} events={events} org={org} onOrg={setOrg} onOpen={open}
           onCreated={e => { setEvents(list => [{ ...e, owner: me.email }, ...list]); rememberEvent(e.id); setEventId(e.id) }}
@@ -95,6 +102,7 @@ function LiveApp({ me }: { me: Me }) {
           onOrgDeleted={id => { setOrgs(list => list.filter(o => o.id !== id)); setOrg(null) }}
         />
       </Frame>
+      </LiveContext.Provider>
     )
   }
   return <LiveEvent id={eventId} me={me.email} live={live} />

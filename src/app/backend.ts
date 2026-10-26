@@ -19,6 +19,8 @@ export interface Me {
   canCreate: boolean
   /** The person's chosen typeface (src/shared/fonts.ts). */
   font?: string | null
+  /** The name they go by. Null until they give one. */
+  name?: string | null
 }
 
 export type Backend = { mode: 'demo' } | { mode: 'live'; me: Me } | { mode: 'login' } | { mode: 'error'; message: string }
@@ -86,6 +88,9 @@ export const addEventAdmin = (id: Id, email: string) =>
 
 export const removeEventAdmin = (id: Id, email: string) =>
   api<EventAdmins>(`/api/events/${encodeURIComponent(id)}/admins/${encodeURIComponent(email)}`, { method: 'DELETE' })
+
+/** Saves the name you go by; the server copies it into every event you belong to. */
+export const saveName = (name: string) => api<{ ok: true }>('/api/me/prefs', { body: { name } })
 
 /** Sign-in step 1: emails a code (if showctrl knows the address). `devCode` only from `wrangler dev`. */
 export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>('/api/auth/start', { body: { email } })

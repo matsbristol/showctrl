@@ -13,6 +13,7 @@ import { useAccess, useNow, useSession, useTerms, useTz } from './session'
 import { useSyncState } from './time'
 import { logout } from './backend'
 import { FontPicker } from './FontPicker'
+import { NamePrompt, YourNameButton } from './YourName'
 import { useLive } from './live'
 import { CloudflareStore, type ConnectionStatus } from '../data/cloudflareStore'
 import { useUnreadCount } from './messages/hooks'
@@ -37,6 +38,7 @@ export function Layout() {
       </header>
       <ContextBar />
       <UrgentBanner />
+      <NamePrompt />
       <PreviewBar />
       <div className="shell">
         <SideNav />
@@ -119,7 +121,7 @@ function Who() {
     const label = a.role() !== 'none' ? a.roleDef().label : a.myStages().map(s => `${STAGE_ROLES[a.stageRole(s.id)!]}, ${s.name}`)[0] ?? a.roleDef().label
     return (
       <div className="who">
-        <span className="who-name" title={`${name} · ${label}`}>{name} <span className="role">· {label}</span></span>
+        <YourNameButton title={`${name} · ${label}`} label={<>{name} <span className="role">· {label}</span></>} />
         {me && <Avatar id={me} name={name} />}
         <FontPicker className="who-btn" />
         {live && <button type="button" className="who-btn" onClick={live.switchEvent}>Events</button>}

@@ -44,6 +44,27 @@ r = await call(boss, 'GET', '/api/me'); const owner = r.body.email
 r = await call(boss, 'DELETE', `/api/events/${fest}/admins/${encodeURIComponent(owner)}`); check('the event’s creator cannot be removed', r.status === 400, r)
 w = await ws(SUPER2, fest); check('another superadmin is admin in every event without being added', w.result === 'snapshot' && w.isOwner && w.artists > 0, w)
 r = await call(SUPER2, 'GET', '/api/me'); check('…and sees the whole portfolio', [fest, winter, ofest].every(id => r.body.events.some(e => e.id === id)), r.body.events.length)
+// Names
+r = await call(kari, 'POST', '/api/me/prefs', { name: 'kari@acme.no' }); check('an email is refused as a name', r.status === 400, r)
+r = await call(kari, 'POST', '/api/me/prefs', { name: '  Kari   Nordmann ' }); check('Kari saves her name', r.status === 200, r)
+r = await call(kari, 'GET', '/api/me'); check('…and it comes back tidied', r.body.name === 'Kari Nordmann', r.body.name)
+{
+  const named = await new Promise(res => {
+    const s = new WebSocket(`ws://localhost:8787/api/events/${fest}/ws${as(SUPER2)}`)
+    s.onmessage = e => { const m = JSON.parse(e.data); if (m.t === 'snapshot') { res(m.col.members[kari]?.name); s.close() } }
+  })
+  check('her entry in her event now shows that name to others', named === 'Kari Nordmann', named)
+  // Joining an event later: the name fills in when she opens it.
+  await call(boss, 'POST', `/api/events/${winter}/admins`, { email: kari })
+  await ws(kari, winter)
+  const later = await new Promise(res => {
+    const s = new WebSocket(`ws://localhost:8787/api/events/${winter}/ws${as(SUPER2)}`)
+    s.onmessage = e => { const m = JSON.parse(e.data); if (m.t === 'snapshot') { res(m.col.members[kari]?.name); s.close() } }
+  })
+  check('an event she joins later picks up her name when she opens it', later === 'Kari Nordmann', later)
+  await call(boss, 'DELETE', `/api/events/${winter}/admins/${encodeURIComponent(kari)}`)
+}
+
 // Backups
 r = await call(kari, 'GET', `/api/events/${fest}/backup`); check('an event admin cannot download a backup', r.status === 403, r)
 r = await call(kari, 'GET', '/api/backup'); check('…nor the full backup', r.status === 403, r)

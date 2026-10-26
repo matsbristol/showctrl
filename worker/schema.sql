@@ -39,7 +39,8 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT PRIMARY KEY,
   last_event TEXT,
   seen_at INTEGER,
-  font TEXT                     -- chosen typeface (src/shared/fonts.ts)
+  font TEXT,                    -- chosen typeface (src/shared/fonts.ts)
+  name TEXT                     -- the name they go by, shown on messages and lists
 );
 
 -- Sign-in (worker/login.ts): pending codes, a send log for rate limits, and sessions.

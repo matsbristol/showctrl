@@ -14,6 +14,8 @@ import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig 
 import type { Env } from './env'
 
 const EMAIL_HEADER = 'x-showctrl-email'
+/** The name the person gave showctrl (users.name), so their entry here can show it. */
+const NAME_HEADER = 'x-showctrl-name'
 
 export class EventObject extends DurableObject<Env> {
   private hub!: EventHub
@@ -210,12 +212,27 @@ export class EventObject extends DurableObject<Env> {
     this.hub = this.load()
   }
 
+  /**
+   * Shows the name a person chose in this event. `onlyIfUnnamed`: on connect, fill in a name an
+   * admin never set (still blank or the email), without overwriting one they typed.
+   */
+  async setMemberName(email: Id, name: string, onlyIfUnnamed = false): Promise<void> {
+    const core = this.hub.core
+    const m = core.col.members[email]
+    if (!m || !core.owner || m.name === name) return
+    if (onlyIfUnnamed && m.name && m.name !== email) return
+    const r = core.apply(core.owner, { kind: 'update', col: 'members', id: email, patch: { name } }, Date.now())
+    if (r.ok) this.hub.broadcast(r.effects)
+  }
+
   /* ---------------- WebSockets ---------------- */
 
   async fetch(request: Request): Promise<Response> {
     const email = request.headers.get(EMAIL_HEADER)
     if (!email || request.headers.get('upgrade') !== 'websocket') return new Response('Expected a WebSocket', { status: 400 })
     if (!this.meta('eventId')) return new Response('No such event', { status: 404 })
+    const name = request.headers.get(NAME_HEADER)
+    if (name) await this.setMemberName(email, decodeURIComponent(name), true)
     const { 0: client, 1: server } = new WebSocketPair()
     this.ctx.acceptWebSocket(server)
     server.serializeAttachment({ email })
@@ -233,4 +250,4 @@ export class EventObject extends DurableObject<Env> {
   }
 }
 
-export { EMAIL_HEADER }
+export { EMAIL_HEADER, NAME_HEADER }

@@ -8,7 +8,7 @@
 //   GET  /api/backup, /api/events/:id/backup   JSON backups (superadmins)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
-//   POST /api/me/prefs               save your settings { font }
+//   POST /api/me/prefs               save your settings { font?, name? } (a new name is copied into your events)
 //   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)
 //   GET  /api/events/:id/files/:key  download one, if you may see its document
 //   GET  /api/events/:id/ws          WebSocket to the event's Durable Object
@@ -18,7 +18,7 @@ import { blankEvent, buildSample } from '../src/data/sample'
 import type { CollectionData } from '../src/server/core'
 import { authenticate } from './auth'
 import type { Env } from './env'
-import { EMAIL_HEADER } from './event'
+import { EMAIL_HEADER, NAME_HEADER } from './event'
 import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
 import { isEmail, isSuperadmin, json, mayConnect, normEmail, portfolioRoutes } from './orgs'
@@ -52,9 +52,19 @@ export default {
       if (url.pathname === '/api/me' && request.method === 'GET') return await getMe(env, me)
       if (url.pathname === '/api/events' && request.method === 'POST') return await createEvent(request, env, me)
       if (url.pathname === '/api/me/prefs' && request.method === 'POST') {
-        const { font } = await request.json<{ font?: unknown }>().catch(() => ({} as { font?: unknown }))
-        if (!isFontId(font)) return json({ error: 'Unknown font.' }, 400)
-        await env.DB.prepare('INSERT INTO users (email, font) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET font = ?2').bind(me, font).run()
+        const body = await request.json<{ font?: unknown; name?: unknown }>().catch(() => ({} as { font?: unknown; name?: unknown }))
+        if (body.font !== undefined) {
+          if (!isFontId(body.font)) return json({ error: 'Unknown font.' }, 400)
+          await env.DB.prepare('INSERT INTO users (email, font) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET font = ?2').bind(me, body.font).run()
+        }
+        if (body.name !== undefined) {
+          const name = typeof body.name === 'string' ? body.name.replace(/\s+/g, ' ').trim().slice(0, 60) : ''
+          if (!name || name.includes('@')) return json({ error: 'Type your name, not an email address.' }, 400)
+          await env.DB.prepare('INSERT INTO users (email, name) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET name = ?2').bind(me, name).run()
+          // Everyone in your events sees the new name on your messages.
+          const { results } = await env.DB.prepare('SELECT event_id AS id FROM memberships WHERE email = ?1 UNION SELECT id FROM events WHERE owner = ?1').bind(me).all<{ id: string }>()
+          await Promise.all(results.map(e => env.EVENT.getByName(e.id).setMemberName(me, name)))
+        }
         return json({ ok: true })
       }
       if (url.pathname === '/api/me/last-event' && request.method === 'POST') {
@@ -79,6 +89,8 @@ export default {
         if (!(await mayConnect(env, me, ev))) return json({ error: 'No such event' }, 404)
         const headers = new Headers(request.headers)
         headers.set(EMAIL_HEADER, me)
+        const profile = await env.DB.prepare('SELECT name FROM users WHERE email = ?').bind(me).first<{ name: string | null }>()
+        if (profile?.name) headers.set(NAME_HEADER, encodeURIComponent(profile.name))
         return env.EVENT.getByName(ws[1]).fetch(new Request(request.url, { headers }))
       }
       return json({ error: 'Not found' }, 404)
@@ -98,7 +110,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     env.DB.prepare(
       `SELECT o.id, o.name FROM orgs o WHERE ?2 = 1 OR o.id IN (SELECT e.org_id FROM events e WHERE ${mine}) ORDER BY o.name COLLATE NOCASE`,
     ).bind(me, sup),
-    env.DB.prepare('SELECT last_event, font FROM users WHERE email = ?').bind(me),
+    env.DB.prepare('SELECT last_event, font, name FROM users WHERE email = ?').bind(me),
   ])
   return json({
     email: me,
@@ -108,6 +120,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     lastEvent: (user.results[0]?.last_event as string | null | undefined) ?? null,
     canCreate: !!sup,
     font: (user.results[0]?.font as string | null | undefined) ?? null,
+    name: (user.results[0]?.name as string | null | undefined) ?? null,
   })
 }
 

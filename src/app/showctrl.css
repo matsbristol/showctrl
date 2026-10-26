@@ -645,3 +645,12 @@
 /* The Edit button over the selected plot item */
 .sc .plot-edit-pill { position: absolute; left: 0; top: 0; z-index: 4; font: inherit; font-size: .8rem; font-weight: 700; padding: .25rem .65rem; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .3); white-space: nowrap; max-width: 14rem; overflow: hidden; text-overflow: ellipsis }
 .sc .plot-edit-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px }
+
+/* Your name: the prompt until it's given, and the top-bar name to change it */
+.sc .yourname-prompt { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .6rem 1rem; background: var(--accent-soft); color: var(--ink); border-bottom: 1px solid var(--line) }
+.sc .yourname-form { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem }
+.sc .yourname-form input { padding: .35rem .55rem; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); color: var(--ink); font: inherit; min-width: 0; width: 14rem; max-width: 100% }
+.sc .yourname { position: relative; display: flex; min-width: 0 }
+.sc button.who-name { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: left; white-space: nowrap }
+.sc button.who-name:hover { text-decoration: underline }
+.sc .yourname-pop { position: absolute; left: 0; top: calc(100% + 10px); z-index: 60; display: grid; gap: .5rem; width: min(20rem, 88vw); padding: .75rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3); white-space: normal }

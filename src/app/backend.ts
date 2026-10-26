@@ -3,6 +3,7 @@
 
 import { CloudflareStore, type SocketLike } from '../data/cloudflareStore'
 import type { Id } from '../types/model'
+import type { ImportResult } from '../shared/importSchema'
 import { getLang } from '../i18n'
 
 export interface EventSummary { id: Id; name: string; owner: Id; org?: Id | null }
@@ -144,6 +145,12 @@ export function fileUrl(key: string): string {
 }
 
 /** The live store for an event. One at a time: opening another event closes the previous connection. */
+/** Admin → Import: Claude reads the pasted text for the open event. Saves nothing. */
+export async function readImport(text: string): Promise<ImportResult> {
+  if (!current) throw new Error('Import works only on showctrl.no, not in demo mode.')
+  return (await api<{ result: ImportResult }>(`/api/events/${encodeURIComponent(current.id)}/import`, { body: { text } })).result
+}
+
 export function eventStore(id: Id): CloudflareStore {
   if (current?.id === id) return current.store
   current?.store.dispose()

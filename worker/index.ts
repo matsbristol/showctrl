@@ -28,6 +28,8 @@ import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
 import { isSuperadmin, json, mayConnect, namesFor, parsePeople, portfolioRoutes } from './orgs'
 
+import { importRoute } from './import'
+
 export { EventObject } from './event'
 
 export default {
@@ -96,6 +98,8 @@ export default {
       if (up && request.method === 'POST') return await upload(request, env, me, up[1], url)
       const down = url.pathname.match(/^\/api\/events\/([\w-]+)\/files\/([\w-]+)$/)
       if (down && request.method === 'GET') return await download(env, me, down[1], `${down[1]}/${down[2]}`)
+      const imp = url.pathname.match(/^\/api\/events\/([\w-]+)\/import$/)
+      if (imp && request.method === 'POST') return await importRoute(request, env, me, imp[1])
       const ws = url.pathname.match(/^\/api\/events\/([\w-]+)\/ws$/)
       if (ws) {
         if (request.headers.get('upgrade') !== 'websocket') return json({ error: 'Expected a WebSocket' }, 426)

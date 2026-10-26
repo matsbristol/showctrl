@@ -293,3 +293,6 @@ export function defaultDepts(): Dept[] {
     { id: 'site', name: 'Site', tape: 'white' },
   ]
 }
+
+/** Longest text one Admin → Import reads (about 10,000 words). */
+export const IMPORT_MAX_CHARS = 60_000

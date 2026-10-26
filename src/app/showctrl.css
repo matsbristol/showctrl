@@ -672,6 +672,9 @@
 /* Admin → Accreditation */
 .sc .accred-list li { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap }
 .sc .accred-list input { width: 12rem; max-width: 100% }
+.sc .import-text { width: 100%; font: inherit; font-size: .9rem; line-height: 1.45; padding: .6rem .75rem; resize: vertical }
+.sc .import-list li.blocked { opacity: .6 }
+.sc .import-list input[type=checkbox] { margin-top: .25rem }
 
 /* Create an event: which modules */
 .sc .module-pick { border: 1px solid var(--line); border-radius: var(--r); padding: .6rem .8rem .8rem; margin: 0; display: grid; gap: .4rem; min-width: 0 }

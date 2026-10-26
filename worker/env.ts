@@ -16,6 +16,9 @@ export interface Env {
   /** Sender of sign-in codes. Default login@showctrl.no. */
   LOGIN_FROM?: string
 
+  /** Admin → Import reads pasted text with Claude. Secret: `npx wrangler secret put ANTHROPIC_API_KEY`. */
+  ANTHROPIC_API_KEY?: string
+
   /** "eu": events are stored in Cloudflare's EU jurisdiction. "local-eu" stands in for it under `wrangler dev`. */
   EVENT_JURISDICTION?: string
 

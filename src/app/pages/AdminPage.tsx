@@ -13,12 +13,13 @@ import { initials, personColor, personName, peopleFor } from '../../shared/peopl
 import { DEFAULT_ROLES, EVENT_TYPES, LEVELS, PERM_KEYS, TAPE } from '../../types/constants'
 import type { Dept, Id, ModuleId, PermKey, PermLevel, Stage } from '../../types/model'
 import { AccessForm, DeptForm, EventForm, ManagerForm, RoleAddForm} from '../admin/forms'
+import { ImportTab } from '../admin/ImportTab'
 import { roleLabel } from '../admin/roleLabel'
 import { StageForm } from '../setup/forms'
 import { useAccess, useNow, useSession, useTerms } from '../session'
 import { useToast } from '../ui/toast'
 
-const TABS = ['stages', 'access', 'roles', 'modules', 'event', 'depts', 'accred'] as const
+const TABS = ['stages', 'access', 'roles', 'modules', 'event', 'depts', 'accred', 'import'] as const
 type Tab = (typeof TABS)[number]
 
 type Dialog =
@@ -42,7 +43,7 @@ export function AdminPage() {
   const tab: Tab = want && tabs.includes(want) ? want : 'stages'
   const [dialog, setDialog] = useState<Dialog>(null)
   const w = a.canW('admin')
-  const labels: Record<Tab, string> = { stages: tr('{stages} & managers', { stages: t.stages }), access: tr('People with access'), roles: tr('Roles'), modules: tr('Modules'), event: tr('Event'), depts: tr('Departments'), accred: tr('Accreditation') }
+  const labels: Record<Tab, string> = { stages: tr('{stages} & managers', { stages: t.stages }), access: tr('People with access'), roles: tr('Roles'), modules: tr('Modules'), event: tr('Event'), depts: tr('Departments'), accred: tr('Accreditation'), import: tr('Import') }
   const close = () => setDialog(null)
 
   return (
@@ -62,6 +63,7 @@ export function AdminPage() {
       {tab === 'event' && <EventTab w={w} open={setDialog} />}
       {tab === 'depts' && <DeptsTab w={w} open={setDialog} />}
       {tab === 'accred' && <AccredTab w={w} />}
+      {tab === 'import' && <ImportTab w={w} />}
 
       {dialog?.type === 'stage' && <StageForm stage={dialog.stage} onClose={close} />}
       {dialog?.type === 'manager' && <ManagerForm sid={dialog.sid} onClose={close} />}

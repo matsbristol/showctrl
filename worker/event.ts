@@ -12,6 +12,8 @@ import { moduleOn } from '../src/shared/modules'
 import { personName } from '../src/shared/people'
 import { sendInvite } from './invite'
 import { trIn } from '../src/i18n'
+import { accredLevels } from '../src/lib/accred'
+import type { ImportContext } from '../src/shared/importSchema'
 import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
@@ -118,6 +120,26 @@ export class EventObject extends DurableObject<Env> {
     if (!doc || !moduleOn(core.cfg, 'documents')) return null
     const seen = core.viewDoc(core.access(email), 'files', doc as unknown as Record<string, unknown>)
     return seen ? { name: doc.name, type: doc.blob!.type } : null
+  }
+
+  /**
+   * Import check: event admins only, at most 30 reads an hour per event (each one costs money).
+   * Returns what the event already has, so Claude can match names to it.
+   */
+  async importContext(email: Id): Promise<ImportContext | 'denied' | 'busy'> {
+    const core = this.hub.core
+    if (!core.access(email).canW('admin')) return 'denied'
+    const now = Date.now()
+    const recent = (JSON.parse(this.meta('imports') ?? '[]') as number[]).filter(t => t > now - 3_600_000)
+    if (recent.length >= 30) return 'busy'
+    this.sql.exec('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)', 'imports', JSON.stringify([...recent, now]))
+    const cfg = core.cfg
+    const names = <T extends { name: string }>(r: Record<Id, T>) => Object.values(r).map(x => x.name).sort()
+    return {
+      name: cfg?.name ?? '', type: cfg?.type ?? 'festival', tz: cfg?.tz ?? 'Europe/Oslo', start: cfg?.start, end: cfg?.end,
+      stages: names(core.col.stages), artists: names(core.col.artists), hotels: names(core.col.hotels),
+      depts: (cfg?.depts ?? []).map(d => d.name), accred: accredLevels(cfg),
+    }
   }
 
   private peer(ws: WebSocket): Peer {

@@ -167,7 +167,7 @@ function AccessTab({ w, open }: TabProps) {
                     <td><div className="row"><Avatar uid={u} name={name(u)} /><b>{name(u)}</b></div></td>
                     <td>{roleLabel(a.roleDef(m?.role || 'none'))}</td>
                     <td>{st.length ? st.map(([s, r]) => (
-                      <span key={s.id} className="chip" style={{ marginRight: '.25rem' }}><span className="tape" style={{ ['--c' as string]: TAPE[s.tape], width: 10 }} />{s.name} · {r === 'manager' ? 'SM' : 'crew'}</span>
+                      <span key={s.id} className="chip" style={{ marginRight: '.25rem' }}><span className="tape" style={{ ['--c' as string]: TAPE[s.tape], width: 10 }} />{s.name} · {r === 'manager' ? tr('Stage manager') : tr('Crew')}</span>
                     )) : '—'}</td>
                     <td className="small">{m?.person && people[m.person] ? people[m.person].name : <span className="muted">—</span>}</td>
                     <td>{w && <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: name(u) })} onClick={() => open({ type: 'access', uid: u })}>{tr('Edit')}</button>}</td>

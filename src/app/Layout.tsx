@@ -170,7 +170,7 @@ function ContextBar() {
             <span className="tape" style={{ ['--c' as string]: tapeHex(s.tape) }} />
             {s.name}
             {cur?.kind === 'show' && <span className="live" title={tr('Show running')} />}
-            {a.stageRole(s.id) === 'manager' && <span className="role">SM</span>}
+            {a.stageRole(s.id) === 'manager' && <span className="role">{tr('Stage manager')}</span>}
           </Link>
         )
       })}

@@ -153,7 +153,7 @@ export default {
   Hospitality: 'Hospitality',
   'Technical production': 'Teknisk produksjon',
   'Site & security': 'Område og sikkerhet',
-  'Stage access only': 'Kun scenetilgang',
+  'Stage access only': 'Kun stage access',
   'Stage manager': 'Stage manager',
   'Stage crew': 'Scenecrew',
 

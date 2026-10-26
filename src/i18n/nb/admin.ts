@@ -9,7 +9,7 @@ export default {
   Hospitality: 'Hospitality',
   'Technical production': 'Teknisk produksjon',
   'Site & security': 'Område og sikkerhet',
-  'Stage access only': 'Kun scenetilgang',
+  'Stage access only': 'Kun stage access',
 
   // Permissions (PERM_KEYS) and levels (LEVELS)
   'Festival overview': 'Festivaloversikt',
@@ -86,7 +86,7 @@ export default {
   'Get in (min before show)': 'Get in (min før show)',
   'Load in starts (min before show)': 'Load in starter (min før show)',
   'Load in length (min)': 'Load in varighet (min)',
-  'Stage access (min before show)': 'Scenetilgang (min før show)',
+  'Stage access (min before show)': 'Stage access (min før show)',
   'Changeover length (min)': 'Changeover varighet (min)',
   'Load out starts (min after show)': 'Load out starter (min etter show)',
   'Load out length (min)': 'Load out varighet (min)',
@@ -290,4 +290,7 @@ export default {
   'Nobody yet.': 'Ingen ennå.',
   'Stage crew can see this stage’s run sheet, {performers}, crew list and display, and send messages. Only stage managers change things.':
     'Scenecrew kan se scenens run sheet, {performers}, crewliste og skjerm, og sende meldinger. Bare stage managers kan endre noe.',
+  // People page, sign-in column
+  'Can’t sign in yet': 'Kan ikke logge inn ennå',
+  'Stage manager': 'Stage manager', Crew: 'Crew',
 } satisfies Record<string, string>

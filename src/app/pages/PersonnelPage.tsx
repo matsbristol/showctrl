@@ -43,10 +43,19 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
   const admin = !sid && canGrant
   // The login that belongs to a person: linked to their entry, or signing in with their email.
   const loginOf = (p: Person): Id | undefined => Object.values(members).find(m => m.person === p.id)?.id ?? (p.email && members[p.email.trim().toLowerCase()] ? p.email.trim().toLowerCase() : undefined)
-  const roleText = (uid: Id) => {
+  // A login's access, laid out: the festival role, then one line per kind of stage role.
+  const signIn = (uid: Id) => {
     const m = members[uid]
-    const st = a.stagesSorted().map(s => [s, stageRoleOf(members, stageteam, uid, s.id)] as const).filter(([, r]) => r).map(([s, r]) => `${r === 'manager' ? 'SM' : 'crew'} ${s.name}`)
-    return [m && m.role !== 'none' ? roleLabel(a.roleDef(m.role)) : '', ...st].filter(Boolean).join(' · ') || tr('No role yet')
+    const on = (role: 'manager' | 'crew') => a.stagesSorted().filter(s => stageRoleOf(members, stageteam, uid, s.id) === role).map(s => s.name)
+    const managerOf = on('manager'), crewOf = on('crew')
+    const role = m && m.role !== 'none' ? roleLabel(a.roleDef(m.role)) : ''
+    return (
+      <div className="signin-info">
+        <b><span className="signin-dot" title={tr('Signs in to showctrl.no')} />{role || (managerOf.length || crewOf.length ? tr('Stage access only') : tr('No role yet'))}</b>
+        {managerOf.length > 0 && <span className="small muted">{tr('Stage manager')}: {managerOf.join(', ')}</span>}
+        {crewOf.length > 0 && <span className="small muted">{tr('Crew')}: {crewOf.join(', ')}</span>}
+      </div>
+    )
   }
   // Logins with no entry in the list (e.g. admins added by email): shown too, so this is the whole picture.
   const linked = new Set(Object.values(people).map(p => loginOf(p)).filter(Boolean))
@@ -148,13 +157,23 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                     <td className="signin">
                       {(() => {
                         const uid = loginOf(p)
-                        if (uid) return <><span className="chip go" title={tr('Signs in to showctrl.no')}>showctrl</span> <span className="small">{roleText(uid)}</span> <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: p.name })} onClick={() => setDialog({ type: 'edit-access', uid })}>{tr('Edit access')}</button></>
-                        if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title={tr('Being listed here doesn’t let them sign in. This does, and emails them.')} onClick={() => setDialog({ type: 'access', person: p })}>{tr('Give showctrl.no access')}</button>
+                        if (uid) return signIn(uid)
+                        if (p.email || store.mode === 'local') return <span className="small muted">{tr('Can’t sign in yet')}</span>
                         return <span className="small muted" title={tr('Add an email to their entry to give them a login')}>{tr('No email')}</span>
                       })()}
                     </td>
                   )}
-                  <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={tr('Edit {name}', { name: p.name })}>{tr('Edit')}</button>}</td>
+                  <td>
+                    <div className="row-actions">
+                      {canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={tr('Edit {name}', { name: p.name })}>{tr('Edit')}</button>}
+                      {admin && (() => {
+                        const uid = loginOf(p)
+                        if (uid) return <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: p.name })} onClick={() => setDialog({ type: 'edit-access', uid })}>{tr('Edit access')}</button>
+                        if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title={tr('Being listed here doesn’t let them sign in. This does, and emails them.')} onClick={() => setDialog({ type: 'access', person: p })}>{tr('Give showctrl.no access')}</button>
+                        return null
+                      })()}
+                    </div>
+                  </td>
                 </tr>
               )
             })}
@@ -164,8 +183,13 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                 <td>—</td><td>—</td><td>—</td><td>—</td>
                 <td className="small">{u.includes('@') ? <a href={`mailto:${u}`}>{u}</a> : '—'}</td>
                 <td>—</td>
-                <td className="signin"><span className="chip go">showctrl</span> <span className="small">{roleText(u)}</span> <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: personName(u, members, people) })} onClick={() => setDialog({ type: 'edit-access', uid: u })}>{tr('Edit access')}</button></td>
-                <td>{w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>{tr('Add details')}</button>}</td>
+                <td className="signin">{signIn(u)}</td>
+                <td>
+                  <div className="row-actions">
+                    {w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>{tr('Add details')}</button>}
+                    <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: personName(u, members, people) })} onClick={() => setDialog({ type: 'edit-access', uid: u })}>{tr('Edit access')}</button>
+                  </div>
+                </td>
               </tr>
             ))}
             {!list.length && !loose.length && <tr><td colSpan={9} className="empty">{tr('Nobody listed yet.')}</td></tr>}

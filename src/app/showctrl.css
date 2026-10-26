@@ -690,8 +690,11 @@
 .sc .setup-list li .btn { margin-left: auto; flex: none }
 
 /* People: sign-in column, and logins not in the list yet */
-.sc td.signin { white-space: normal; min-width: 14rem }
-.sc td.signin .btn { margin-left: .25rem }
+.sc td.signin { white-space: normal; min-width: 13rem }
+.sc .signin-info { display: grid; gap: .1rem; line-height: 1.35 }
+.sc .signin-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--go); margin-right: .45rem; vertical-align: .1em }
+.sc .row-actions { display: grid; gap: .35rem; justify-items: stretch; width: 9.5rem }
+.sc .row-actions .btn { justify-content: center; white-space: normal; text-align: center; line-height: 1.25 }
 .sc tr.loose td { background: color-mix(in srgb, var(--accent-soft) 35%, transparent) }
 
 /* Sign-in page: language choice */

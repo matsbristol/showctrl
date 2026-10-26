@@ -30,7 +30,7 @@ function StageCard({ st }: { st: Stage }) {
       <Slot label={tr('Now')} item={cur} isNow />
       <Slot label={tr('Next')} item={next} isNow={false} />
       <div className="sc-meta">
-        {lead ? <span>SM <b>{lead.name}</b> <Tel phone={lead.phone} /></span> : <span>{tr('No stage manager yet')}</span>}
+        {lead ? <span>{tr('Stage manager')} <b>{lead.name}</b> <Tel phone={lead.phone} /></span> : <span>{tr('No stage manager yet')}</span>}
         {st.radio && <span>{tr('Radio')} <b>{st.radio}</b></span>}
         <span><b>{crew}</b> crew</span>
       </div>

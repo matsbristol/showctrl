@@ -51,7 +51,7 @@ export default {
   'Create day sheet': 'Lag dagsplan',
   'No day sheet yet.': 'Ingen dagsplan ennå.',
   'Create one from the stage template: arrival, get in, load in, stage access, changeover, show, load out and departure.':
-    'Lag en fra scenemalen: ankomst, get in, load in, scenetilgang, changeover, show, load out og avreise.',
+    'Lag en fra scenemalen: ankomst, get in, load in, stage access, changeover, show, load out og avreise.',
   Contacts: 'Kontakter',
   '+ Add': '+ Legg til',
   'No contacts yet.': 'Ingen kontakter ennå.',

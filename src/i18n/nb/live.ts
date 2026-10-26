@@ -1,11 +1,11 @@
 // Norwegian for the live screens (see src/i18n/README in the glossary). English text → bokmål.
 export default {
   // Run sheet kinds (KINDS, LEGACY_KINDS) and tracks (TRACKS). Crew terms stay in English.
-  Arrival: 'Ankomst', 'Get in': 'Get in', 'Load in': 'Load in', 'Stage access': 'Scenetilgang',
+  Arrival: 'Ankomst', 'Get in': 'Get in', 'Load in': 'Load in', 'Stage access': 'Stage access',
   Soundcheck: 'Soundcheck', 'Line check': 'Line check', Changeover: 'Changeover', Show: 'Show',
   'Load out': 'Load out', Departure: 'Avreise', Doors: 'Doors', Curfew: 'Stengetid', Meeting: 'Møte',
   Other: 'Annet', Break: 'Pause',
-  'On stage': 'På scenen', 'Dock & backstage': 'Dokk og backstage',
+  'On stage': 'På scenen', 'Dock & backstage': 'Dock og backstage',
   // Artist statuses as shown on chips (the stored values stay in English)
   confirmed: 'bekreftet', travelling: 'på vei', arrived: 'ankommet', backstage: 'backstage', ready: 'klar',
   'on stage': 'på scenen', done: 'ferdig', cancelled: 'avlyst',
@@ -19,7 +19,7 @@ export default {
   '+ Add {performer} with day sheet': '+ Legg til {performer} med dagsplan',
   Everything: 'Alt',
   'On stage only': 'Bare på scenen',
-  'Dock & backstage only': 'Bare dokk og backstage',
+  'Dock & backstage only': 'Bare dock og backstage',
   'Hide finished': 'Skjul ferdige',
   'Put this day back on the planned times?': 'Sette denne dagen tilbake til planlagte tider?',
   'Back on planned times': 'Tilbake til planlagte tider',
@@ -66,7 +66,7 @@ export default {
   Reason: 'Årsak',
   'e.g. Late arrival, power issue, weather': 'f.eks. Sen ankomst, strømproblem, vær',
   'Also move': 'Flytt også',
-  'Dock and backstage items (load in, load out, departures)': 'Dokk- og backstagepunkter (load in, load out, avreiser)',
+  'Dock and backstage items (load in, load out, departures)': 'Dock- og backstagepunkter (load in, load out, avreiser)',
   'Day sheet · {name}': 'Dagsplan · {name}',
   'Create day sheet': 'Lag dagsplan',
   'Set the on-stage time and show length.': 'Sett tid på scenen og lengde på showet.',
@@ -76,7 +76,7 @@ export default {
   Replace: 'Erstatt',
   'Replace this {performer}’s existing items that day': 'Erstatt eksisterende punkter den dagen',
   'Uses {stage}’s template: arrival, get in, load in, stage access, changeover, show, load out and departure. You can adjust each item afterwards.':
-    'Bruker malen til {stage}: ankomst, get in, load in, scenetilgang, changeover, show, load out og avreise. Du kan justere hvert punkt etterpå.',
+    'Bruker malen til {stage}: ankomst, get in, load in, stage access, changeover, show, load out og avreise. Du kan justere hvert punkt etterpå.',
   'Add {aPerformer} with day sheet': 'Legg til {performer} med dagsplan',
   'Enter a name.': 'Skriv inn et navn.',
   '{name} added with {n} run sheet items.': '{name} er lagt til med {n} punkter i run sheet.',
@@ -167,7 +167,7 @@ export default {
   // Screens
   Screens: 'Skjermer',
   'One layout per monitor: the production office, an FOH desk, the dock gate. Open a screen on the computer driving that monitor and press full screen.':
-    'Ett oppsett per monitor: produksjonskontoret, en FOH-pult, porten ved dokka. Åpne en skjerm på maskinen som styrer monitoren og trykk fullskjerm.',
+    'Ett oppsett per monitor: produksjonskontoret, en FOH-pult, dock-porten. Åpne en skjerm på maskinen som styrer monitoren og trykk fullskjerm.',
   '+ Add screen': '+ Legg til skjerm',
   'Every {stage}': 'Hver {stage}',
   'No screens yet.': 'Ingen skjermer ennå.',
@@ -178,7 +178,7 @@ export default {
   'Add screen': 'Legg til skjerm',
   'Give the screen a name, e.g. where it hangs.': 'Gi skjermen et navn, f.eks. hvor den henger.',
   'Choose at least one thing to show.': 'Velg minst én ting å vise.',
-  'e.g. Production office, FOH Main Stage, Dock gate': 'f.eks. Produksjonskontor, FOH Main Stage, Dokkport',
+  'e.g. Production office, FOH Main Stage, Dock gate': 'f.eks. Produksjonskontor, FOH Main Stage, Dock gate',
   '{stages} it follows': '{stages} den følger',
   'None ticked: every {stage}.': 'Ingen valgt: hver {stage}.',
   Shows: 'Viser',

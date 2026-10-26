@@ -18,12 +18,13 @@ You need a Cloudflare account with Workers, plus Zero Trust for Access. Zero Tru
    ```
 2. Create the database:
    ```sh
-   npx wrangler d1 create showctrl
+   npx wrangler d1 create showctrl-eu --jurisdiction eu
    ```
    Copy the `database_id` it prints into `wrangler.jsonc`, replacing the zeros.
-3. Create the storage bucket for uploaded documents:
+3. Enable R2 in the dashboard, then create the buckets for uploaded documents and nightly backups (both EU-only), and uncomment `r2_buckets` in `wrangler.jsonc`:
    ```sh
-   npx wrangler r2 bucket create showctrl-files
+   npx wrangler r2 bucket create showctrl-files --jurisdiction eu
+   npx wrangler r2 bucket create showctrl-backups --jurisdiction eu
    ```
 4. Create the tables:
    ```sh
@@ -95,6 +96,11 @@ Someone who signs in before being added sees **Ask for access**. Their request t
   - messages get acknowledged, and hotel check-ins and riders progress
 
   Run it against an existing event with `npm run simulate -- --event <id>`, and stop it with Ctrl+C.
+
+## Where data lives, and backups
+
+- **EU only:** events are Durable Objects in Cloudflare's EU jurisdiction (`EVENT_JURISDICTION: "eu"`), the database is created with `--jurisdiction eu`, and so are both R2 buckets. Cloudflare has no Norway-only option. Events made before EU storage are copied across once with `POST /api/admin/move-to-eu` (superadmin), which checks record counts; `?purge=1` then removes the old copies.
+- **Nightly backups:** a cron trigger (02:00 UTC) writes one full backup to `showctrl-backups`, keeps 30 nights, and superadmins download them from the Customers page. Without the bucket the run only logs.
 
 ## Good to know
 

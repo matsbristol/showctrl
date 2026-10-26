@@ -35,13 +35,15 @@
 
   // Create with: npx wrangler d1 create showctrl — then paste the id here.
   "d1_databases": [
-    { "binding": "DB", "database_name": "showctrl", "database_id": "bf83e827-ec54-43c9-aef1-545cc7d3aa14" }
+    { "binding": "DB", "database_name": "showctrl-eu", "database_id": "188dc3be-d693-4131-a297-01b1e9f81676" }
   ],
 
   // Optional: ACCESS_TEAM_DOMAIN and ACCESS_AUD accept Cloudflare Access tokens too (see DEPLOY.md).
   // Left out, so only showctrl's own sign-in counts and Log out always signs out.
   // SUPERADMINS: who runs showctrl itself and adds organisations (comma-separated emails).
   "vars": {
-    "SUPERADMINS": "mats@larkolluka.no,mats.bristol@gmail.com"
+    "SUPERADMINS": "mats@larkolluka.no,mats.bristol@gmail.com",
+    // Events are stored and processed only in Cloudflare's EU jurisdiction (see worker/events.ts).
+    "EVENT_JURISDICTION": "eu"
   }
 }

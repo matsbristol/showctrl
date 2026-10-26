@@ -629,3 +629,10 @@
 .sc .fp-clock { font-family: var(--clock); font-stretch: var(--clock-stretch); font-weight: var(--clock-w); font-size: 1.3rem; font-variant-numeric: tabular-nums; grid-row: span 2; align-self: center }
 .sc .fp-body { font-family: var(--body); font-size: .9rem }
 .sc .fp-note { grid-column: 1 / -1; font-family: var(--body); font-size: .75rem; color: var(--ink3) }
+
+/* Risers: one section per system (Prolyte, Nivtec) */
+.sc .riser-system > h2 { font-size: 1.5rem; margin: .25rem 0 .75rem }
+
+/* The Edit button over the selected plot item */
+.sc .plot-edit-pill { position: absolute; left: 0; top: 0; z-index: 4; font: inherit; font-size: .8rem; font-weight: 700; padding: .25rem .65rem; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, .3); white-space: nowrap; max-width: 14rem; overflow: hidden; text-overflow: ellipsis }
+.sc .plot-edit-pill:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px }

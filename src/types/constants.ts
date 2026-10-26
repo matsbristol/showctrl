@@ -225,13 +225,28 @@ export const PLOT_KINDS = {
   other: { label: 'Other', w: 1, d: 1 },
 } as const
 
-/** Standard riser decks: size in feet as the label, metres for the stage plot. */
-export const RISER_SIZES = {
+/**
+ * The riser systems festivals stock, each with its own decks and legs, so they're counted
+ * separately. Deck keys are width × depth in metres; w/d place them on the stage plot.
+ */
+export const RISER_SYSTEMS = {
+  prolyte: {
+    label: 'Prolyte',
+    sizes: { '2x1': { w: 2, d: 1 }, '1x1': { w: 1, d: 1 }, '2x0.5': { w: 2, d: 0.5 }, '1x0.5': { w: 1, d: 0.5 } },
+  },
+  nivtec: {
+    label: 'Nivtec',
+    sizes: { '2x1': { w: 2, d: 1 }, '1x1': { w: 1, d: 1 }, '2x0.5': { w: 2, d: 0.5 }, '1x0.5': { w: 1, d: 0.5 } },
+  },
+} as const
+
+/** US 8 ft decks from older plots. Still read (and counted as Prolyte), no longer offered. */
+export const LEGACY_RISER_SIZES: Record<string, { w: number; d: number }> = {
   '8x8': { w: 2.44, d: 2.44 },
   '8x4': { w: 2.44, d: 1.22 },
   '6x8': { w: 1.83, d: 2.44 },
   '4x4': { w: 1.22, d: 1.22 },
-} as const
+}
 
 export const TRANSFER_STATUS = ['planned', 'confirmed', 'en route', 'done', 'cancelled'] as const
 

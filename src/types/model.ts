@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SIZES, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
+  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SYSTEMS, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -32,7 +32,9 @@ export type ModuleId = (typeof MODULE_IDS)[number]
 export type RiskLevel = keyof typeof RISK_LEVELS
 export type ScreenBlock = keyof typeof SCREEN_BLOCKS
 export type PlotKind = keyof typeof PLOT_KINDS
-export type RiserSize = keyof typeof RISER_SIZES
+export type RiserSystem = keyof typeof RISER_SYSTEMS
+/** A deck key such as '2x1' (metres), or a legacy '8x8' (feet). */
+export type RiserSize = string
 export type TransferStatus = (typeof TRANSFER_STATUS)[number]
 export type FacilityKind = keyof typeof FACILITY_KINDS
 export type LocationKind = keyof typeof LOCATION_KINDS
@@ -372,7 +374,8 @@ export interface PlotItem {
   y: number
   w: number
   d: number
-  /** Risers: deck size and height in centimetres. */
+  /** Risers: which system (default Prolyte), the deck, and the height in centimetres. */
+  system?: RiserSystem
   size?: RiserSize
   height?: number
   /** Risers: on wheels, so it can be built off stage and rolled on. */
@@ -392,12 +395,19 @@ export interface Plot extends BaseDoc {
   updated?: Ms
 }
 
-/** A stage's riser stock. Id is the stage id. */
+/** One riser system's stock on a stage: decks per size, and the leg heights in centimetres. */
+export interface RiserSystemStock {
+  decks: Record<RiserSize, number>
+  heights: number[]
+}
+
+/** A stage's riser stock, per system. Id is the stage id. */
 export interface RiserStock extends BaseDoc {
   stage: Id
-  decks: Partial<Record<RiserSize, number>>
-  /** Leg heights available, in centimetres. */
-  heights: number[]
+  systems?: Partial<Record<RiserSystem, Partial<RiserSystemStock>>>
+  /** Before systems: one stock, read as Prolyte. */
+  decks?: Record<RiserSize, number>
+  heights?: number[]
   notes?: string
 }
 

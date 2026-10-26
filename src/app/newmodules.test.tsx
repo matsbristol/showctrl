@@ -101,9 +101,41 @@ describe('input lists and plots', () => {
 
   it('checks riser stock against the plots and flags shortages', async () => {
     const store = mount('/s/tent/risers', 'demo-sm-tent')
-    await blur(screen.getByLabelText('8x8 ft decks'), '0')
-    expect(store.peek('risers').tent.decks['8x8']).toBe(0)
-    expect(document.querySelectorAll('main tr.clash').length).toBeGreaterThan(0)
+    expect(screen.getByRole('region', { name: 'Prolyte' })).toBeTruthy()
+    const nivtec = within(screen.getByRole('region', { name: 'Nivtec' }))
+    expect(nivtec.queryAllByRole('row').filter(r => r.classList.contains('clash'))).toHaveLength(0)
+    await blur(nivtec.getByLabelText('Nivtec 2×1 m decks'), '0')
+    expect(store.peek('risers').tent.systems?.nivtec?.decks?.['2x1']).toBe(0)
+    expect(nivtec.queryAllByRole('row').filter(r => r.classList.contains('clash')).length).toBeGreaterThan(0)
+  })
+
+  it('opens the item editor only from Edit, a double-click or Enter, never from a click or drag', async () => {
+    mount('/s/forest/plots?act=a14', 'demo-sm-forest')
+    const item = () => document.querySelector<SVGGElement>('g.plot-item[aria-label="Lead vox"]')!
+    await act(async () => { fireEvent.pointerDown(item(), { pointerId: 1 }) })
+    await act(async () => { fireEvent.pointerUp(item(), { pointerId: 1 }) })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await click(screen.getByRole('button', { name: 'Edit Lead vox' }))
+    expect(screen.getByRole('dialog', { name: 'Edit Lead vox' })).toBeTruthy()
+    await act(async () => { fireEvent.keyDown(window, { key: 'Escape' }) })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await act(async () => { fireEvent.doubleClick(item()) })
+    expect(screen.getByRole('dialog', { name: 'Edit Lead vox' })).toBeTruthy()
+    await act(async () => { fireEvent.pointerDown(item(), { pointerId: 1 }) })
+    await act(async () => { fireEvent.pointerUp(item(), { pointerId: 1 }) })
+    expect(screen.queryByRole('dialog')).toBeNull()
+    await act(async () => { fireEvent.keyDown(item(), { key: 'Enter' }) })
+    expect(screen.getByRole('dialog', { name: 'Edit Lead vox' })).toBeTruthy()
+  })
+
+  it('gives a new riser this stage’s system, and lets you switch it', async () => {
+    const store = mount('/s/forest/plots?act=a14', 'demo-sm-forest')
+    await click(screen.getByRole('button', { name: '+ Riser' }))
+    const riser = () => Object.values(store.peek('plots').a14.items).find(i => i.kind === 'riser' && i.label === 'Riser')!
+    expect(riser()).toMatchObject({ system: 'nivtec', size: '2x1', w: 2, d: 1 })
+    await act(async () => { fireEvent.change(screen.getByLabelText('System'), { target: { value: 'prolyte' } }) })
+    await act(async () => { fireEvent.change(screen.getByLabelText('Deck'), { target: { value: '1x0.5' } }) })
+    expect(riser()).toMatchObject({ system: 'prolyte', size: '1x0.5', w: 1, d: 0.5 })
   })
 })
 

@@ -74,9 +74,9 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 
 **`lines`** (Input lists; id = artist id): `inputs` {id: {ch, name, mic, stand, phantom, box, notes}}, `outputs` {id: {n, name, type, notes}}. Keyed maps so parallel edits to different channels don't collide. Paste parser in `src/lib/lines.ts`.
 
-**`plots`** (Stage plots; id = artist id): `items` {id: {kind, label, x, y (metres from the left as seen from FOH, and from the front edge), w, d, size?, height?, rolling?}}, `width`, `depth`.
+**`plots`** (Stage plots; id = artist id): `items` {id: {kind, label, x, y (metres from the left as seen from FOH, and from the front edge), w, d, rot?, and for risers system (prolyte | nivtec), size (deck, e.g. `2x1` metres), height, rolling}}, `width`, `depth`. Clicking or dragging an item only selects it; its editor opens from the Edit button, a double-click or Enter.
 
-**`risers`** (Risers; id = stage id): `decks` {8x8 | 8x4 | 6x8 | 4x4: count}, `heights` [cm]. `src/lib/risers.ts` checks each act's plot against the stock in running order. The next act's rolling risers count as in use during the current show.
+**`risers`** (Risers; id = stage id): `systems` {prolyte | nivtec: {decks {size: count}, heights [cm]}} (`RISER_SYSTEMS`; older docs have one `decks`/`heights`, read as Prolyte). `src/lib/risers.ts` checks each act's plot against the stock in running order, one system at a time. The next act's rolling risers count as in use during the current show.
 
 **`transfers`** (Transport): `artist` or `guest`, `pax`, `from`, `to`, `at`, `vehicle`, `driver`, `phone`, `status` (planned | confirmed | en route | done | cancelled), `item` (the arrival or departure it serves). Permission key `transport`.
 

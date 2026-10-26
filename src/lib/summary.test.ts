@@ -31,10 +31,10 @@ describe('technical summary', () => {
 
   it('describes risers from the stage plot', () => {
     expect(riserText({ id: 'p', artist: 'a', items: {
-      a: { id: 'a', kind: 'riser', label: 'Drums', x: 0, y: 0, w: 2.4, d: 2.4, size: '8x8', height: 40 },
-      b: { id: 'b', kind: 'riser', label: 'Keys', x: 0, y: 0, w: 2.4, d: 1.2, size: '8x4', height: 40 },
-      c: { id: 'c', kind: 'riser', label: 'Drums 2', x: 0, y: 0, w: 2.4, d: 2.4, size: '8x8', height: 40 },
-    } })).toBe('2 × 8x8 @ 40 cm, 1 × 8x4 @ 40 cm')
+      a: { id: 'a', kind: 'riser', label: 'Drums', x: 0, y: 0, w: 2, d: 1, system: 'prolyte', size: '2x1', height: 40 },
+      b: { id: 'b', kind: 'riser', label: 'Keys', x: 0, y: 0, w: 1, d: 1, system: 'nivtec', size: '1x1', height: 40 },
+      c: { id: 'c', kind: 'riser', label: 'Drums', x: 0, y: 0, w: 2, d: 1, system: 'prolyte', size: '2x1', height: 40 },
+    } })).toBe('2 × Prolyte 2×1 m @ 40 cm, 1 × Nivtec 1×1 m @ 40 cm')
     expect(riserText(undefined)).toBe('')
   })
 

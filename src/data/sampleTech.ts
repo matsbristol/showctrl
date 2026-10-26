@@ -27,14 +27,19 @@ export function sampleLines(a: Artist, i: number): Lines {
 export function samplePlot(a: Artist, headliner: boolean, i: number): Plot {
   const items: PlotItem[] = []
   const put = (id: string, kind: PlotItem['kind'], label: string, x: number, y: number, w: number, d: number, extra: Partial<PlotItem> = {}) => items.push({ id, kind, label, x, y, w, d, ...extra })
+  // The big stages stock Prolyte, the smaller ones Nivtec. A 2 × 2 m riser is two 2 × 1 m decks.
+  const system = BIG_STAGES.includes(a.stage) ? 'prolyte' : 'nivtec'
+  const deck = (height: number) => ({ system, size: '2x1', height, rolling: headliner }) as const
   if (isDj(a)) {
-    put('r1', 'riser', 'DJ riser', 7, 4.5, 2.44, 2.44, { size: '8x8', height: 60, rolling: headliner })
+    put('r1', 'riser', 'DJ riser', 7, 5, 2, 1, deck(60))
+    put('r1b', 'riser', 'DJ riser', 7, 4, 2, 1, deck(60))
     put('dj', 'other', 'DJ table', 7, 4.6, 2, 0.8)
     put('m1', 'monitor', 'Booth', 8.6, 4.5, 0.7, 0.5)
   } else {
-    put('r1', 'riser', 'Drum riser', 7, 6, 2.44, 2.44, { size: '8x8', height: 40, rolling: headliner })
+    put('r1', 'riser', 'Drum riser', 7, 6.5, 2, 1, deck(40))
+    put('r1b', 'riser', 'Drum riser', 7, 5.5, 2, 1, deck(40))
     put('dr', 'drums', 'Drums', 7, 6, 2, 2)
-    if (i % 2 === 0) { put('r2', 'riser', 'Keys riser', 10.5, 5.4, 2.44, 1.22, { size: '8x4', height: 40, rolling: headliner }); put('kb', 'keys', 'Keys', 10.5, 5.4, 1.4, 0.6) }
+    if (i % 2 === 0) { put('r2', 'riser', 'Keys riser', 10.5, 5.4, 2, 1, deck(40)); put('kb', 'keys', 'Keys', 10.5, 5.4, 1.4, 0.6) }
     put('ba', 'amp', 'Bass amp', 4.6, 6.6, 0.9, 0.6)
     put('ga', 'amp', 'Gtr amp', 9.4, 6.8, 0.8, 0.5)
     put('v1', 'vocal', 'Lead vox', 7, 1.6, 0.5, 0.5)
@@ -49,7 +54,14 @@ export function samplePlot(a: Artist, headliner: boolean, i: number): Plot {
   return { id: a.id, artist: a.id, items: Object.fromEntries(items.map(x => [x.id, x])), width: 14, depth: 9, notes: '' }
 }
 
+const BIG_STAGES = ['main', 'fjord']
+
 export function sampleRiserStock(stage: Id): RiserStock {
-  const big = stage === 'main' || stage === 'fjord'
-  return { id: stage, stage, decks: big ? { '8x8': 6, '8x4': 4, '4x4': 2 } : { '8x8': 2, '8x4': 2 }, heights: [20, 40, 60], notes: '' }
+  const big = BIG_STAGES.includes(stage)
+  return {
+    id: stage, stage, notes: '',
+    systems: big
+      ? { prolyte: { decks: { '2x1': 10, '1x1': 4, '2x0.5': 4 }, heights: [20, 40, 60, 80] }, nivtec: { decks: { '2x1': 4, '1x1': 2 }, heights: [20, 40, 60] } }
+      : { nivtec: { decks: { '2x1': 5, '1x1': 2 }, heights: [20, 40, 60] } },
+  }
 }

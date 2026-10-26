@@ -92,6 +92,7 @@ async function start(request: Request, env: Env): Promise<Response> {
   const b = await body(request)
   if (!isEmail(b.email)) return json({ error: 'That doesn’t look like an email address.' }, 400)
   const email = normEmail(b.email)
+  const nb = b.lang === 'nb'
   const ip = request.headers.get('cf-connecting-ip') ?? 'local'
   const now = Date.now()
 
@@ -125,9 +126,11 @@ async function start(request: Request, env: Env): Promise<Response> {
     await env.EMAIL.send({
       to: email,
       from: { email: env.LOGIN_FROM ?? 'login@showctrl.no', name: 'showctrl' },
-      subject: `${code} is your showctrl code`,
-      text: `Your showctrl sign-in code is ${code}\n\nIt works for 10 minutes. If you didn’t ask for it, you can ignore this email.\n`,
-      html: codeEmail(code, new URL(request.url).origin),
+      subject: nb ? `${code} er koden din til showctrl` : `${code} is your showctrl code`,
+      text: nb
+        ? `Koden din for å logge inn på showctrl er ${code}\n\nDen virker i 10 minutter. Har du ikke bedt om den, kan du se bort fra denne e-posten.\n`
+        : `Your showctrl sign-in code is ${code}\n\nIt works for 10 minutes. If you didn’t ask for it, you can ignore this email.\n`,
+      html: codeEmail(code, new URL(request.url).origin, nb),
     })
   } catch (e) {
     console.error(JSON.stringify({ level: 'error', what: 'login email', error: String(e) }))
@@ -168,13 +171,13 @@ async function logout(request: Request, env: Env, url: URL): Promise<Response> {
   return Response.json({ ok: true }, { headers: { 'set-cookie': sessionCookie('', 0, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 
-function codeEmail(code: string, origin: string): string {
+function codeEmail(code: string, origin: string, nb = false): string {
   return `<!doctype html><html><body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#fff;border-radius:10px;padding:32px">
 <tr><td><img src="${origin}/brand/logo-dark.png" alt="showctrl" height="28" style="display:block;height:28px;width:auto"></td></tr>
-<tr><td style="padding-top:24px;font-size:16px">Your sign-in code:</td></tr>
+<tr><td style="padding-top:24px;font-size:16px">${nb ? 'Koden din for å logge inn:' : 'Your sign-in code:'}</td></tr>
 <tr><td style="padding:12px 0 20px;font-size:36px;font-weight:700;letter-spacing:8px">${code}</td></tr>
-<tr><td style="font-size:14px;color:#555">It works for 10 minutes. If you didn’t ask for it, you can ignore this email.</td></tr>
+<tr><td style="font-size:14px;color:#555">${nb ? 'Den virker i 10 minutter. Har du ikke bedt om den, kan du se bort fra denne e-posten.' : 'It works for 10 minutes. If you didn’t ask for it, you can ignore this email.'}</td></tr>
 </table></td></tr></table></body></html>`
 }

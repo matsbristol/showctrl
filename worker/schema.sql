@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS users (
   last_event TEXT,
   seen_at INTEGER,
   font TEXT,                    -- chosen typeface (src/shared/fonts.ts)
-  name TEXT                     -- the name they go by, shown on messages and lists
+  name TEXT,                    -- the name they go by, shown on messages and lists
+  lang TEXT                     -- interface language: en | nb
 );
 
 -- Sign-in (worker/login.ts): pending codes, a send log for rate limits, and sessions.

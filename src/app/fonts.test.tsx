@@ -27,7 +27,7 @@ describe('fonts', () => {
     initFont(null, false)
     mount()
     expect(root().style.getPropertyValue('--clock')).toContain('Barlow Condensed')
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Choose font' })) })
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Choose language and font' })) })
     const list = within(screen.getByRole('listbox', { name: 'Font' }))
     expect(list.getAllByRole('option')).toHaveLength(FONT_IDS.length)
     await act(async () => { fireEvent.click(list.getByRole('option', { name: /IBM Plex/ })) })

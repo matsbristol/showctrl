@@ -13,6 +13,6 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["./**/*.ts", "../src/server/**/*.ts", "../src/shared/**/*.ts", "../src/lib/**/*.ts", "../src/types/**/*.ts", "../src/data/sample.ts", "../src/data/store.ts", "../src/data/collections.ts"],
+  "include": ["./**/*.ts", "../src/server/**/*.ts", "../src/shared/**/*.ts", "../src/lib/**/*.ts", "../src/types/**/*.ts", "../src/i18n/**/*.ts", "../src/data/sample.ts", "../src/data/store.ts", "../src/data/collections.ts"],
   "exclude": ["../src/**/*.test.ts"]
 }

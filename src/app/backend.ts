@@ -3,6 +3,7 @@
 
 import { CloudflareStore, type SocketLike } from '../data/cloudflareStore'
 import type { Id } from '../types/model'
+import { getLang } from '../i18n'
 
 export interface EventSummary { id: Id; name: string; owner: Id; org?: Id | null }
 
@@ -21,6 +22,8 @@ export interface Me {
   font?: string | null
   /** The name they go by. Null until they give one. */
   name?: string | null
+  /** Interface language: 'en' or 'nb'. */
+  lang?: string | null
 }
 
 export type Backend = { mode: 'demo' } | { mode: 'live'; me: Me } | { mode: 'login' } | { mode: 'error'; message: string }
@@ -103,7 +106,7 @@ export const removeEventAdmin = (id: Id, email: string) =>
 export const saveName = (name: string) => api<{ ok: true }>('/api/me/prefs', { body: { name } })
 
 /** Sign-in step 1: emails a code (if showctrl knows the address). `devCode` only from `wrangler dev`. */
-export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>('/api/auth/start', { body: { email } })
+export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>('/api/auth/start', { body: { email, lang: getLang() } })
 
 /** Sign-in step 2: the code from the email. Sets the session cookie. */
 export const verifyLogin = (email: string, code: string) => api<{ ok: true }>('/api/auth/verify', { body: { email, code } })

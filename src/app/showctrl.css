@@ -630,7 +630,11 @@
 
 /* Font picker ("Aa") */
 .sc .fontpick { position: relative; display: inline-flex }
-.sc .fontpick-list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(23rem, 92vw); max-height: 70vh; overflow: auto; margin: 0; padding: .35rem; list-style: none; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3) }
+.sc .fontpick-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(23rem, 92vw); max-height: 75vh; overflow: auto; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, .3) }
+.sc .fontpick-list { margin: 0; padding: .35rem; list-style: none }
+.sc .langpick { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; padding: .5rem .5rem .35rem; border-bottom: 1px solid var(--line) }
+.sc .langpick button { font: inherit; font-weight: 700; padding: .4rem; border-radius: 6px; border: 1px solid var(--line); background: var(--surface2); color: var(--ink); cursor: pointer }
+.sc .langpick button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
 .sc .fontpick-list button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 .8rem; width: 100%; text-align: left; background: none; border: 0; border-radius: 6px; padding: .55rem .65rem; color: inherit; cursor: pointer; font: inherit }
 .sc .fontpick-list button:hover, .sc .fontpick-list button:focus-visible { background: var(--surface2); outline: none }
 .sc .fontpick-list button[aria-selected="true"] { background: var(--accent-soft) }

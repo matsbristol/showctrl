@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createDataStore } from '../data/createDataStore'
 import { DataProvider } from '../data/DataProvider'
 import { useConfig, useStore } from '../data/hooks'
@@ -9,6 +9,7 @@ import type { Id } from '../types/model'
 import { detectBackend, eventStore, rememberEvent, saveName, type Backend, type Me } from './backend'
 import { EventPicker } from './EventPicker'
 import { fontVars, initFont, useFont } from './font'
+import { initLang, useLang } from './lang'
 import { FONTS } from '../shared/fonts'
 import { Login } from './Login'
 import { NamePrompt } from './YourName'
@@ -52,8 +53,9 @@ function Boot() {
   const [backend, setBackend] = useState<Backend | null>(null)
   useEffect(() => {
     void detectBackend().then(b => {
-      if (b.mode === 'live') initFont(b.me.font, true)
-      else if (b.mode === 'demo') initFont(null, false)
+      if (b.mode === 'live') { initFont(b.me.font, true); initLang(b.me.lang, true) }
+      else if (b.mode === 'demo') { initFont(null, false); initLang(null, false) }
+      else initLang(null, false)
       setBackend(b)
     })
   }, [])
@@ -134,10 +136,12 @@ function Frame({ children }: { children: ReactNode }) {
   }, [])
   const wall = useMemo(() => ({ on, enter, exit }), [on, enter, exit])
   const font = useFont()
+  const lang = useLang()
   return (
     <WallContext.Provider value={wall}>
-      <div className={`sc${on ? ' wallmode' : ''}`} style={fontVars(FONTS[font])}>
-        {children}
+      <div className={`sc${on ? ' wallmode' : ''}`} style={fontVars(FONTS[font])} lang={lang === 'nb' ? 'nb' : 'en'}>
+        {/* Changing language redraws everything in the new language (the data stays loaded). */}
+        <Fragment key={lang}>{children}</Fragment>
         {on && <button type="button" className="btn exitwall" onClick={exit}>Exit wall mode</button>}
       </div>
     </WallContext.Provider>

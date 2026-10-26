@@ -11,6 +11,7 @@ import { COLLECTIONS } from '../src/types/constants'
 import { moduleOn } from '../src/shared/modules'
 import { personName } from '../src/shared/people'
 import { sendInvite } from './invite'
+import { trIn } from '../src/i18n'
 import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
 import type { Env } from './env'
@@ -153,11 +154,14 @@ export class EventObject extends DurableObject<Env> {
     const core = this.hub.core
     const event = core.cfg?.name ?? 'an event'
     const from = personName(by, core.col.members, core.col.people)
-    await Promise.all(emails.filter(e => e !== by).map(to => {
+    await Promise.all(emails.filter(e => e !== by).map(async to => {
+      // In their own language if they've chosen one; otherwise Norwegian for events in Norway.
+      const saved = await this.env.DB.prepare('SELECT lang FROM users WHERE email = ?').bind(to).first<{ lang: string | null }>().catch(() => null)
+      const nb = saved?.lang ? saved.lang === 'nb' : core.cfg?.tz === 'Europe/Oslo'
       const a = core.access(to)
-      const stageRoles = a.myStages().map(s => `${a.stageRole(s.id) === 'manager' ? 'stage manager' : 'crew'} on ${s.name}`)
-      const as = a.role() !== 'none' ? a.roleDef().label : stageRoles.join(', ') || 'a member'
-      return sendInvite(this.env, { to, event, by: from, as })
+      const stageRoles = a.myStages().map(s => `${a.stageRole(s.id) === 'manager' ? 'stage manager' : 'crew'} ${nb ? 'på' : 'on'} ${s.name}`)
+      const as = a.role() !== 'none' ? trIn(nb ? 'nb' : 'en', a.roleDef().label) : stageRoles.join(', ') || (nb ? 'medlem' : 'a member')
+      return sendInvite(this.env, { to, event, by: from, as, nb })
     }))
   }
 

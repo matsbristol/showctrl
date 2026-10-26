@@ -9,7 +9,7 @@
 //   GET  /api/backups[/:date]        nightly backups (superadmins; see backups.ts)
 //        /api/orgs…, /api/events/:id/admins…   customers and event admins (superadmins; see orgs.ts)
 //   POST /api/me/last-event          remember which event you opened { id }
-//   POST /api/me/prefs               save your settings { font?, name? } (a new name is copied into your events)
+//   POST /api/me/prefs               save your settings { font?, name?, lang? } (a new name is copied into your events)
 //   POST /api/events/:id/files       upload a document file (raw body; ?name=&stage=&artist=)
 //   GET  /api/events/:id/files/:key  download one, if you may see its document
 //   GET  /api/events/:id/ws          WebSocket to the event's Durable Object
@@ -23,6 +23,7 @@ import type { Env } from './env'
 import { backupRoutes, nightlyBackup } from './backups'
 import { eventStub, moveToEu } from './events'
 import { EMAIL_HEADER, NAME_HEADER } from './event'
+import { isLang } from '../src/i18n'
 import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes } from './login'
 import { isSuperadmin, json, mayConnect, namesFor, parsePeople, portfolioRoutes } from './orgs'
@@ -56,7 +57,11 @@ export default {
       if (url.pathname === '/api/me' && request.method === 'GET') return await getMe(env, me)
       if (url.pathname === '/api/events' && request.method === 'POST') return await createEvent(request, env, me)
       if (url.pathname === '/api/me/prefs' && request.method === 'POST') {
-        const body = await request.json<{ font?: unknown; name?: unknown }>().catch(() => ({} as { font?: unknown; name?: unknown }))
+        const body = await request.json<{ font?: unknown; name?: unknown; lang?: unknown }>().catch(() => ({} as { font?: unknown; name?: unknown; lang?: unknown }))
+        if (body.lang !== undefined) {
+          if (!isLang(body.lang)) return json({ error: 'Unknown language.' }, 400)
+          await env.DB.prepare('INSERT INTO users (email, lang) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET lang = ?2').bind(me, body.lang).run()
+        }
         if (body.font !== undefined) {
           if (!isFontId(body.font)) return json({ error: 'Unknown font.' }, 400)
           await env.DB.prepare('INSERT INTO users (email, font) VALUES (?1, ?2) ON CONFLICT(email) DO UPDATE SET font = ?2').bind(me, body.font).run()
@@ -126,7 +131,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     env.DB.prepare(
       `SELECT o.id, o.name FROM orgs o WHERE ?2 = 1 OR o.id IN (SELECT e.org_id FROM events e WHERE ${mine}) ORDER BY o.name COLLATE NOCASE`,
     ).bind(me, sup),
-    env.DB.prepare('SELECT last_event, font, name FROM users WHERE email = ?').bind(me),
+    env.DB.prepare('SELECT last_event, font, name, lang FROM users WHERE email = ?').bind(me),
   ])
   return json({
     email: me,
@@ -137,6 +142,7 @@ async function getMe(env: Env, me: string): Promise<Response> {
     canCreate: !!sup,
     font: (user.results[0]?.font as string | null | undefined) ?? null,
     name: (user.results[0]?.name as string | null | undefined) ?? null,
+    lang: (user.results[0]?.lang as string | null | undefined) ?? null,
   })
 }
 

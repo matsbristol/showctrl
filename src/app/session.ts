@@ -3,6 +3,7 @@ import { useCollection, useConfig } from '../data/hooks'
 import { createAccess, type Access, type Preview } from '../shared/access'
 import { DEFAULT_TZ, EVENT_TYPES } from '../types/constants'
 import type { Id, Terms } from '../types/model'
+import { tr } from '../i18n'
 
 export interface Session {
   /** The signed-in user (in demo mode: the persona being viewed as). */
@@ -43,9 +44,11 @@ export function useTz(): string {
 }
 
 /** Labels for performers and stages. Never hard-code "Artist" or "Stage" in UI text. */
+/** The event's words for performers and stages, in the interface language (custom words stay as typed). */
 export function useTerms(): Terms {
   const cfg = useConfig('event')
-  return { ...EVENT_TYPES.festival.terms, ...cfg?.terms }
+  const terms = { ...EVENT_TYPES.festival.terms, ...cfg?.terms }
+  return { performer: tr(terms.performer), performers: tr(terms.performers), stage: tr(terms.stage), stages: tr(terms.stages) }
 }
 
 export { useNow } from './time'

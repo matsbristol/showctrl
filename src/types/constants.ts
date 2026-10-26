@@ -294,5 +294,8 @@ export function defaultDepts(): Dept[] {
   ]
 }
 
+/** Admin → Import (paste text, Claude sorts it). Built but dormant: off hides the tab and refuses the endpoint. */
+export const PASTE_IMPORT_ON = false
+
 /** Longest text one Admin → Import reads (about 10,000 words). */
 export const IMPORT_MAX_CHARS = 60_000

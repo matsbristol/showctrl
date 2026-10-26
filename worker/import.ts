@@ -9,7 +9,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { ImportSchema, type ImportContext } from '../src/shared/importSchema'
-import { IMPORT_MAX_CHARS, KINDS } from '../src/types/constants'
+import { IMPORT_MAX_CHARS, KINDS, PASTE_IMPORT_ON } from '../src/types/constants'
 import { eventStub } from './events'
 import { json } from './orgs'
 import type { Env } from './env'
@@ -17,6 +17,7 @@ import type { Env } from './env'
 const MODEL = 'claude-opus-5-5'
 
 export async function importRoute(request: Request, env: Env, me: string, eventId: string): Promise<Response> {
+  if (!PASTE_IMPORT_ON) return json({ error: 'Not found' }, 404)
   if (!env.ANTHROPIC_API_KEY) return json({ error: 'Import needs an Anthropic API key on the server.' }, 503)
   const body = await request.json<{ text?: unknown }>().catch(() => ({} as { text?: unknown }))
   const text = typeof body.text === 'string' ? body.text.trim() : ''

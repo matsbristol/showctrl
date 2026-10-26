@@ -10,10 +10,11 @@ import type { Id, Person } from '../../types/model'
 import { AccessForm} from '../admin/forms'
 import { roleLabel } from '../admin/roleLabel'
 import { ImportForm, PersonForm } from '../people/forms'
+import { ExportForm, FileImportForm } from '../people/FileImport'
 import { Tel } from '../runsheet/parts'
 import { useAccess, useNow } from '../session'
 
-type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | { type: 'access'; person: Person } | { type: 'edit-access'; uid: Id } | { type: 'new-access' } | null
+type Dialog = { type: 'person'; person: Person | null } | { type: 'import' } | { type: 'file' } | { type: 'export' } | { type: 'access'; person: Person } | { type: 'edit-access'; uid: Id } | { type: 'new-access' } | null
 
 /**
  * HQ "People": everyone on the event, their contact details and, for admins, their login (role,
@@ -87,12 +88,14 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
         <div>
           <h1>{sid ? tr('Crew & contacts · {stage}', { stage: stages[sid]?.name ?? '' }) : tr('People')}</h1>
           <p>{sid ? tr('Everyone working on this stage, with how to reach them.') : admin
-            ? tr('Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Paste a crew list straight from a spreadsheet.')
+            ? tr('Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Import a crew list from Excel or CSV, or paste it.')
             : tr('Everyone on the event and how to reach them. Filter by stage or department.')}</p>
         </div>
         {w && (
           <div className="actions">
+            <button type="button" className="btn" onClick={() => setDialog({ type: 'file' })}>{tr('Import file')}</button>
             <button type="button" className="btn" onClick={() => setDialog({ type: 'import' })}>{tr('Paste list')}</button>
+            <button type="button" className="btn" onClick={() => setDialog({ type: 'export' })}>{tr('Export')}</button>
             {admin && <button type="button" className="btn" onClick={() => setDialog({ type: 'new-access' })}>{tr('+ Give someone access')}</button>}
             <button type="button" className="btn primary" onClick={() => setDialog({ type: 'person', person: null })}>{tr('+ Add person')}</button>
           </div>
@@ -198,6 +201,11 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
       </div>
       {dialog?.type === 'person' && <PersonForm person={dialog.person} sid={sid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'import' && <ImportForm sid={sid} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'file' && <FileImportForm sid={sid} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'export' && (
+        <ExportForm list={list} all={Object.values(people).filter(p => !sid || p.stages.includes(sid)).sort((x, y) => x.name.localeCompare(y.name))} sid={sid} onClose={() => setDialog(null)}
+          signIn={admin ? p => { const u = loginOf(p); return u ? (members[u] && members[u].role !== 'none' ? roleLabel(a.roleDef(members[u].role)) : tr('Stage access only')) : '' } : undefined} />
+      )}
       {dialog?.type === 'access' && <AccessForm uid={store.mode === 'local' ? 'demo-' + rid() : ''} isNew preset={{ email: dialog.person.email ?? '', person: dialog.person.id }} onClose={() => setDialog(null)} />}
       {dialog?.type === 'edit-access' && <AccessForm uid={dialog.uid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'new-access' && <AccessForm uid={store.mode === 'local' ? 'demo-' + rid() : ''} isNew onClose={() => setDialog(null)} />}

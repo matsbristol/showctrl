@@ -10,7 +10,7 @@ import { rid } from '../../lib/id'
 import { stageRoleOf } from '../../shared/access'
 import { MODULES, moduleOn, permHidden } from '../../shared/modules'
 import { initials, personColor, personName, peopleFor } from '../../shared/people'
-import { DEFAULT_ROLES, EVENT_TYPES, LEVELS, PERM_KEYS, TAPE } from '../../types/constants'
+import { DEFAULT_ROLES, EVENT_TYPES, LEVELS, PASTE_IMPORT_ON, PERM_KEYS, TAPE } from '../../types/constants'
 import type { Dept, Id, ModuleId, PermKey, PermLevel, Stage } from '../../types/model'
 import { AccessForm, DeptForm, EventForm, ManagerForm, RoleAddForm} from '../admin/forms'
 import { ImportTab } from '../admin/ImportTab'
@@ -39,7 +39,7 @@ export function AdminPage() {
   const want = params.get('tab') as Tab | null
   const cfgEv = useConfig('event')
   // With the People module on, logins are managed on the People page; this tab is only a fallback.
-  const tabs = TABS.filter(k => k !== 'access' || !moduleOn(cfgEv, 'personnel'))
+  const tabs = TABS.filter(k => (k !== 'access' || !moduleOn(cfgEv, 'personnel')) && (k !== 'import' || PASTE_IMPORT_ON))
   const tab: Tab = want && tabs.includes(want) ? want : 'stages'
   const [dialog, setDialog] = useState<Dialog>(null)
   const w = a.canW('admin')

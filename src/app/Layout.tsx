@@ -119,7 +119,7 @@ function Who() {
     const label = a.role() !== 'none' ? a.roleDef().label : a.myStages().map(s => `${STAGE_ROLES[a.stageRole(s.id)!]}, ${s.name}`)[0] ?? a.roleDef().label
     return (
       <div className="who">
-        <span>{name} <span className="role">· {label}</span></span>
+        <span className="who-name" title={`${name} · ${label}`}>{name} <span className="role">· {label}</span></span>
         {me && <Avatar id={me} name={name} />}
         <FontPicker className="who-btn" />
         {live && <button type="button" className="who-btn" onClick={live.switchEvent}>Events</button>}

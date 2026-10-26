@@ -20,6 +20,7 @@
   color: var(--ink);
   font: 16px/1.5 var(--body);
   -webkit-font-smoothing: antialiased;
+  overflow-x: clip; /* nothing may push the page sideways on a phone */
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -66,6 +67,14 @@
 .sc .who select { background: transparent; border: 0; color: var(--strip-ink); max-width: 16ch; padding: .15rem }
 .sc .who select option { color: #1A1F27 }
 .sc .who .role { color: var(--strip-ink2) }
+.sc .who { min-width: 0; max-width: 100% }
+.sc .who-name { min-width: 0; overflow: hidden; text-overflow: ellipsis }
+/* Phones: the account pill gets its own line; the name shortens, the buttons always fit. */
+@media (max-width: 600px) {
+  .sc .who { flex: 1 1 100%; padding-left: .6rem }
+  .sc .who .role { display: none }
+  .sc .who-name { flex: 1 1 auto }
+}
 .sc .av { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: .75rem; color: #fff; background: var(--c, #555); flex: none; overflow: hidden }
 
 .sc .preview { background: var(--standby); color: #1A1F27; padding: .4rem 1rem; font-size: .9rem; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap }

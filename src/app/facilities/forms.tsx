@@ -6,6 +6,7 @@ import { FACILITY_KINDS } from '../../types/constants'
 import type { Allocation, Facility, FacilityKind, Id } from '../../types/model'
 import { useAccess, useTerms } from '../session'
 import { DateTimeInput, Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 export function FacilityForm({ facility, sid, onClose }: { facility: Facility | null; sid: Id | null; onClose: () => void }) {
   const store = useStore()
@@ -19,28 +20,28 @@ export function FacilityForm({ facility, sid, onClose }: { facility: Facility | 
   const set = <K extends keyof typeof v>(k: K, x: (typeof v)[K]) => setV(o => ({ ...o, [k]: x }))
   return (
     <FormDialog
-      title={f ? `Edit ${f.name}` : 'Add facility'}
+      title={f ? tr('Edit {name}', { name: f.name }) : tr('Add facility')}
       onClose={onClose}
       onDelete={f ? () => store.delete('facilities', f.id) : undefined}
       onSave={async () => {
-        if (!v.name.trim()) return 'Enter a name.'
+        if (!v.name.trim()) return tr('Enter a name.')
         await store.set('facilities', f?.id ?? rid(), { name: v.name.trim(), kind: v.kind, stage: v.stage || null, capacity: v.capacity === '' ? null : Number(v.capacity), notes: v.notes })
       }}
     >
-      <Field label="Name" full><input value={v.name} placeholder="e.g. Dressing room 3, Production office" onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Type">
+      <Field label={tr('Name')} full><input value={v.name} placeholder={tr('e.g. Dressing room 3, Production office')} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Type')}>
         <select value={v.kind} onChange={e => set('kind', e.target.value as FacilityKind)}>
-          {Object.entries(FACILITY_KINDS).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+          {Object.entries(FACILITY_KINDS).map(([k, l]) => <option key={k} value={k}>{tr(l)}</option>)}
         </select>
       </Field>
-      <Field label="Belongs to">
+      <Field label={tr('Belongs to')}>
         <select value={v.stage} onChange={e => set('stage', e.target.value)}>
-          {a.canW('facilities') && <option value="">Whole festival</option>}
+          {a.canW('facilities') && <option value="">{tr('Whole festival')}</option>}
           {stageOpts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>
-      <Field label="Bookings at once (empty: 1)"><input type="number" min={1} value={v.capacity} onChange={e => set('capacity', e.target.value)} /></Field>
-      <Field label="Notes" full><textarea value={v.notes} placeholder="Where it is, key holder, what’s in it" onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Bookings at once (empty: 1)')}><input type="number" min={1} value={v.capacity} onChange={e => set('capacity', e.target.value)} /></Field>
+      <Field label={tr('Notes')} full><textarea value={v.notes} placeholder={tr('Where it is, key holder, what’s in it')} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }
@@ -59,31 +60,31 @@ export function AllocationForm({ alloc, draft, onClose }: { alloc: Allocation | 
   const set = <K extends keyof typeof v>(k: K, val: (typeof v)[K]) => setV(o => ({ ...o, [k]: val }))
   return (
     <FormDialog
-      title={alloc ? 'Edit booking' : 'Book facility'}
+      title={alloc ? tr('Edit booking') : tr('Book facility')}
       onClose={onClose}
       onDelete={alloc ? () => store.delete('allocations', alloc.id) : undefined}
       onSave={async () => {
-        if (!v.facility) return 'Add a facility first.'
-        if (!v.artist && !v.label.trim()) return `Choose ${aOrAn(t.performer.toLowerCase())} or say who it’s for.`
-        if (!v.from || !v.to || v.to <= v.from) return 'The end must be after the start.'
+        if (!v.facility) return tr('Add a facility first.')
+        if (!v.artist && !v.label.trim()) return tr('Choose {aPerformer} or say who it’s for.', { aPerformer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })
+        if (!v.from || !v.to || v.to <= v.from) return tr('The end must be after the start.')
         await store.set('allocations', alloc?.id ?? rid(), { facility: v.facility, artist: v.artist || null, ...(v.artist ? {} : { label: v.label.trim() }), from: v.from, to: v.to, notes: v.notes })
       }}
     >
-      <Field label="Facility">
+      <Field label={tr('Facility')}>
         <select value={v.facility} onChange={e => set('facility', e.target.value)}>
           {facs.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
         </select>
       </Field>
       <Field label={t.performer}>
         <select value={v.artist} onChange={e => set('artist', e.target.value)}>
-          <option value="">Not {aOrAn(t.performer.toLowerCase())}</option>
+          <option value="">{tr('Not {aPerformer}', { aPerformer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })}</option>
           {Object.values(artists).sort((p, q) => p.name.localeCompare(q.name)).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </Field>
-      <Field label="Who" hidden={!!v.artist}><input value={v.label} placeholder="e.g. Press, Catering crew" onChange={e => set('label', e.target.value)} /></Field>
-      <Field label="From"><DateTimeInput value={v.from} onChange={val => set('from', val)} /></Field>
-      <Field label="To"><DateTimeInput value={v.to} onChange={val => set('to', val)} /></Field>
-      <Field label="Notes" full><input value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Who')} hidden={!!v.artist}><input value={v.label} placeholder={tr('e.g. Press, Catering crew')} onChange={e => set('label', e.target.value)} /></Field>
+      <Field label={tr('From')}><DateTimeInput value={v.from} onChange={val => set('from', val)} /></Field>
+      <Field label={tr('To')}><DateTimeInput value={v.to} onChange={val => set('to', val)} /></Field>
+      <Field label={tr('Notes')} full><input value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }

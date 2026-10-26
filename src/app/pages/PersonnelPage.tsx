@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
+import { tr } from '../../i18n'
 import { stageRoleOf } from '../../shared/access'
 import { initials, personColor, personName } from '../../shared/people'
 import { rid } from '../../lib/id'
 import { relTime } from '../../lib/time'
 import { TAPE } from '../../types/constants'
 import type { Id, Person } from '../../types/model'
-import { AccessForm } from '../admin/forms'
+import { AccessForm} from '../admin/forms'
+import { roleLabel } from '../admin/roleLabel'
 import { ImportForm, PersonForm } from '../people/forms'
 import { Tel } from '../runsheet/parts'
 import { useAccess, useNow } from '../session'
@@ -44,7 +46,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
   const roleText = (uid: Id) => {
     const m = members[uid]
     const st = a.stagesSorted().map(s => [s, stageRoleOf(members, stageteam, uid, s.id)] as const).filter(([, r]) => r).map(([s, r]) => `${r === 'manager' ? 'SM' : 'crew'} ${s.name}`)
-    return [m && m.role !== 'none' ? a.roleDef(m.role).label : '', ...st].filter(Boolean).join(' · ') || 'No role yet'
+    return [m && m.role !== 'none' ? roleLabel(a.roleDef(m.role)) : '', ...st].filter(Boolean).join(' · ') || tr('No role yet')
   }
   // Logins with no entry in the list (e.g. admins added by email): shown too, so this is the whole picture.
   const linked = new Set(Object.values(people).map(p => loginOf(p)).filter(Boolean))
@@ -74,29 +76,29 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>{sid ? `Crew & contacts · ${stages[sid]?.name}` : 'People'}</h1>
-          <p>{sid ? 'Everyone working on this stage, with how to reach them.' : admin
-            ? 'Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Paste a crew list straight from a spreadsheet.'
-            : 'Everyone on the event and how to reach them. Filter by stage or department.'}</p>
+          <h1>{sid ? tr('Crew & contacts · {stage}', { stage: stages[sid]?.name ?? '' }) : tr('People')}</h1>
+          <p>{sid ? tr('Everyone working on this stage, with how to reach them.') : admin
+            ? tr('Everyone on the event: how to reach them, and who can sign in to showctrl.no and as what. Paste a crew list straight from a spreadsheet.')
+            : tr('Everyone on the event and how to reach them. Filter by stage or department.')}</p>
         </div>
         {w && (
           <div className="actions">
-            <button type="button" className="btn" onClick={() => setDialog({ type: 'import' })}>Paste list</button>
-            {admin && <button type="button" className="btn" onClick={() => setDialog({ type: 'new-access' })}>+ Give someone access</button>}
-            <button type="button" className="btn primary" onClick={() => setDialog({ type: 'person', person: null })}>+ Add person</button>
+            <button type="button" className="btn" onClick={() => setDialog({ type: 'import' })}>{tr('Paste list')}</button>
+            {admin && <button type="button" className="btn" onClick={() => setDialog({ type: 'new-access' })}>{tr('+ Give someone access')}</button>}
+            <button type="button" className="btn primary" onClick={() => setDialog({ type: 'person', person: null })}>{tr('+ Add person')}</button>
           </div>
         )}
       </div>
       {reqs.length > 0 && (
         <section className="panel" style={{ marginBottom: '1rem' }}>
-          <div className="ph"><h3>Waiting for access</h3><span className="badge">{reqs.length}</span></div>
+          <div className="ph"><h3>{tr('Waiting for access')}</h3><span className="badge">{reqs.length}</span></div>
           <ul className="list">
             {reqs.map(r => (
               <li key={r.id}>
-                <div className="stack"><b>{personName(r.id, members, people)}</b><span className="small muted">{r.id}{r.note ? ` · ${r.note}` : ''}{r.stage ? ` · wants ${stages[r.stage]?.name}` : ''} · {relTime(r.at, now)}</span></div>
+                <div className="stack"><b>{personName(r.id, members, people)}</b><span className="small muted">{r.id}{r.note ? ` · ${r.note}` : ''}{r.stage ? ` · ${tr('wants {stage}', { stage: stages[r.stage]?.name ?? '' })}` : ''} · {relTime(r.at, now)}</span></div>
                 <div className="row" style={{ marginLeft: 'auto' }}>
-                  <button type="button" className="btn sm go" onClick={() => setDialog({ type: 'edit-access', uid: r.id })}>Give access</button>
-                  <button type="button" className="btn sm danger" onClick={() => void store.delete('requests', r.id)}>Decline</button>
+                  <button type="button" className="btn sm go" onClick={() => setDialog({ type: 'edit-access', uid: r.id })}>{tr('Give access')}</button>
+                  <button type="button" className="btn sm danger" onClick={() => void store.delete('requests', r.id)}>{tr('Decline')}</button>
                 </div>
               </li>
             ))}
@@ -104,23 +106,23 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
         </section>
       )}
       <div className="filters">
-        <input type="search" placeholder="Search name, phone, company…" aria-label="Search personnel" value={q} onChange={e => setQ(e.target.value)} />
+        <input type="search" placeholder={tr('Search name, phone, company…')} aria-label={tr('Search personnel')} value={q} onChange={e => setQ(e.target.value)} />
         {!sid && (
-          <select aria-label="Stage" value={fsState} onChange={e => setFs(e.target.value)}>
-            <option value="">All stages and HQ</option>
+          <select aria-label={tr('Stage')} value={fsState} onChange={e => setFs(e.target.value)}>
+            <option value="">{tr('All stages and HQ')}</option>
             {a.stagesSorted().map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         )}
-        <select aria-label="Department" value={fd} onChange={e => setFd(e.target.value)}>
-          <option value="">All departments</option>
+        <select aria-label={tr('Department')} value={fd} onChange={e => setFd(e.target.value)}>
+          <option value="">{tr('All departments')}</option>
           {cfg?.depts.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
-        <span className="small muted">{list.length + loose.length} {list.length + loose.length === 1 ? 'person' : 'people'}</span>
+        <span className="small muted">{list.length + loose.length === 1 ? tr('1 person') : tr('{n} people', { n: list.length + loose.length })}</span>
       </div>
       <div className="panel tbl-wrap">
         <table>
           <thead>
-            <tr><th>Name</th><th>Role</th><th>Department</th>{!sid && <th>Stages</th>}<th>Phone</th><th>Email</th><th>Accreditation</th>{admin && <th>Sign-in</th>}<th /></tr>
+            <tr><th>{tr('Name')}</th><th>{tr('Role')}</th><th>{tr('Department')}</th>{!sid && <th>{tr('Stages')}</th>}<th>{tr('Phone')}</th><th>{tr('Email')}</th><th>{tr('Accreditation')}</th>{admin && <th>{tr('Sign-in')}</th>}<th /></tr>
           </thead>
           <tbody>
             {list.map(p => {
@@ -133,40 +135,40 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                       <div className="stack"><b>{p.name}</b>{p.company && <span className="small muted">{p.company}</span>}</div>
                     </div>
                   </td>
-                  <td>{p.title}{p.lead && <> <span className="chip ac">Lead</span></>}</td>
+                  <td>{p.title}{p.lead && <> <span className="chip ac">{tr('Lead')}</span></>}</td>
                   <td>{d ? <span className="row"><span className="tape" style={{ ['--c' as string]: TAPE[d.tape], width: 10 }} />{d.name}</span> : '—'}</td>
                   {!sid && <td className="small">{p.stages.map(s => stages[s]?.name).filter(Boolean).join(', ') || 'HQ'}</td>}
                   <td>{p.phone ? <Tel phone={p.phone} /> : '—'}</td>
                   <td className="small">{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</td>
                   <td>
                     {p.accred ? <span className="chip ac">{p.accred}</span> : '—'}
-                    {!admin && hasLogin(p) && <> <span className="chip go" title="Has access to showctrl.no">showctrl</span></>}
+                    {!admin && hasLogin(p) && <> <span className="chip go" title={tr('Has access to showctrl.no')}>showctrl</span></>}
                   </td>
                   {admin && (
                     <td className="signin">
                       {(() => {
                         const uid = loginOf(p)
-                        if (uid) return <><span className="chip go" title="Signs in to showctrl.no">showctrl</span> <span className="small">{roleText(uid)}</span> <button type="button" className="btn sm" aria-label={`Edit access for ${p.name}`} onClick={() => setDialog({ type: 'edit-access', uid })}>Edit access</button></>
-                        if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title="Being listed here doesn’t let them sign in. This does, and emails them." onClick={() => setDialog({ type: 'access', person: p })}>Give showctrl.no access</button>
-                        return <span className="small muted" title="Add an email to their entry to give them a login">No email</span>
+                        if (uid) return <><span className="chip go" title={tr('Signs in to showctrl.no')}>showctrl</span> <span className="small">{roleText(uid)}</span> <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: p.name })} onClick={() => setDialog({ type: 'edit-access', uid })}>{tr('Edit access')}</button></>
+                        if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title={tr('Being listed here doesn’t let them sign in. This does, and emails them.')} onClick={() => setDialog({ type: 'access', person: p })}>{tr('Give showctrl.no access')}</button>
+                        return <span className="small muted" title={tr('Add an email to their entry to give them a login')}>{tr('No email')}</span>
                       })()}
                     </td>
                   )}
-                  <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={`Edit ${p.name}`}>Edit</button>}</td>
+                  <td>{canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={tr('Edit {name}', { name: p.name })}>{tr('Edit')}</button>}</td>
                 </tr>
               )
             })}
             {loose.map(u => (
               <tr key={`login-${u}`} className="loose">
-                <td><div className="row"><span className="av" style={{ ['--c' as string]: personColor(u) }}>{initials(personName(u, members, people))}</span><div className="stack"><b>{personName(u, members, people)}</b><span className="small muted">Not in the list yet</span></div></div></td>
+                <td><div className="row"><span className="av" style={{ ['--c' as string]: personColor(u) }}>{initials(personName(u, members, people))}</span><div className="stack"><b>{personName(u, members, people)}</b><span className="small muted">{tr('Not in the list yet')}</span></div></div></td>
                 <td>—</td><td>—</td><td>—</td><td>—</td>
                 <td className="small">{u.includes('@') ? <a href={`mailto:${u}`}>{u}</a> : '—'}</td>
                 <td>—</td>
-                <td className="signin"><span className="chip go">showctrl</span> <span className="small">{roleText(u)}</span> <button type="button" className="btn sm" aria-label={`Edit access for ${personName(u, members, people)}`} onClick={() => setDialog({ type: 'edit-access', uid: u })}>Edit access</button></td>
-                <td>{w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>Add details</button>}</td>
+                <td className="signin"><span className="chip go">showctrl</span> <span className="small">{roleText(u)}</span> <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: personName(u, members, people) })} onClick={() => setDialog({ type: 'edit-access', uid: u })}>{tr('Edit access')}</button></td>
+                <td>{w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>{tr('Add details')}</button>}</td>
               </tr>
             ))}
-            {!list.length && !loose.length && <tr><td colSpan={9} className="empty">Nobody listed yet.</td></tr>}
+            {!list.length && !loose.length && <tr><td colSpan={9} className="empty">{tr('Nobody listed yet.')}</td></tr>}
           </tbody>
         </table>
       </div>

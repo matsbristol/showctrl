@@ -11,6 +11,7 @@ import { useDay } from '../day'
 import { KindTag } from '../runsheet/parts'
 import { useAccess, useNow, useTerms, useTz } from '../session'
 import { LocationForm } from '../trucks/LocationForm'
+import { tr } from '../../i18n'
 
 /** Truck movements for a day, where each one goes, clashes at full locations, and the locations themselves. */
 export function TrucksPage({ sid }: { sid: Id | null }) {
@@ -43,20 +44,20 @@ export function TrucksPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>{sid ? `Trucks · ${stages[sid]?.name}` : 'Trucks & docks'}</h1>
-          <p>Every truck coming in or going out, and where to send it when it arrives. Set trucks and a location on load in and load out in the run sheet.</p>
+          <h1>{sid ? tr('Trucks · {stage}', { stage: stages[sid]?.name ?? '' }) : tr('Trucks & docks')}</h1>
+          <p>{tr('Every truck coming in or going out, and where to send it when it arrives. Set trucks and a location on load in and load out in the run sheet.')}</p>
         </div>
         <div className="actions"><DaySelector /></div>
       </div>
 
       {found.length > 0 && (
         <div className="panel clash-box" role="alert">
-          <div className="ph"><h3>Clashes</h3><span className="badge">{found.length}</span></div>
+          <div className="ph"><h3>{tr('Clashes')}</h3><span className="badge">{found.length}</span></div>
           <ul className="list">
             {found.map(c => (
               <li key={`${c.location}-${c.from}`}>
                 <b className="num">{fmtTime(c.from, tz)}–{fmtTime(c.to, tz)}</b>
-                <span><b>{locations[c.location]?.name}</b> has {c.trucks} trucks booked, room for {c.capacity}: {c.items.map(id => (ros[id]?.artist && artists[ros[id].artist!]?.name) || ros[id]?.title).join(', ')}</span>
+                <span><b>{locations[c.location]?.name}</b> {tr('has {trucks} trucks booked, room for {capacity}: {acts}', { trucks: c.trucks, capacity: c.capacity, acts: c.items.map(id => (ros[id]?.artist && artists[ros[id].artist!]?.name) || ros[id]?.title).join(', ') })}</span>
               </li>
             ))}
           </ul>
@@ -64,10 +65,10 @@ export function TrucksPage({ sid }: { sid: Id | null }) {
       )}
 
       <section className="panel tbl-wrap" style={{ marginBottom: '1rem' }}>
-        <div className="ph"><h3>Movements</h3><span className="small muted">{total} {total === 1 ? 'truck' : 'trucks'} this day</span></div>
+        <div className="ph"><h3>{tr('Movements')}</h3><span className="small muted">{total === 1 ? tr('1 truck this day') : tr('{n} trucks this day', { n: total })}</span></div>
         <table>
           <thead>
-            <tr><th>Time</th>{!sid && <th>{t.stage}</th>}<th>{t.performer}</th><th>Movement</th><th>Trucks</th><th>Send to</th><th /></tr>
+            <tr><th>{tr('Time')}</th>{!sid && <th>{t.stage}</th>}<th>{t.performer}</th><th>{tr('Movement')}</th><th>{tr('Trucks')}</th><th>{tr('Send to')}</th><th /></tr>
           </thead>
           <tbody>
             {moves.map(i => {
@@ -84,26 +85,26 @@ export function TrucksPage({ sid }: { sid: Id | null }) {
                   <td className="num"><b>{i.trucks}</b></td>
                   <td>
                     {w ? (
-                      <select className="inline-sel" aria-label={`Send ${i.title} to`} value={i.dest ?? ''} onChange={ev => void store.update('ros', i.id, { dest: ev.target.value || null })}>
-                        <option value="">Not set</option>
+                      <select className="inline-sel" aria-label={tr('Send {title} to', { title: i.title })} value={i.dest ?? ''} onChange={ev => void store.update('ros', i.id, { dest: ev.target.value || null })}>
+                        <option value="">{tr('Not set')}</option>
                         {destOpts(i.stage).map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
                       </select>
                     ) : (i.dest ? locations[i.dest]?.name : '—')}
-                    {clashIds.has(i.id) && <span className="chip st" style={{ marginLeft: '.4rem' }}>Clash</span>}
+                    {clashIds.has(i.id) && <span className="chip st" style={{ marginLeft: '.4rem' }}>{tr('Clash')}</span>}
                   </td>
-                  <td>{i.status === 'live' ? <span className="chip go">On site</span> : i.status === 'done' ? <span className="chip">Done</span> : soon ? <span className="chip sb">Due</span> : null}</td>
+                  <td>{i.status === 'live' ? <span className="chip go">{tr('On site')}</span> : i.status === 'done' ? <span className="chip">{tr('Done')}</span> : soon ? <span className="chip sb">{tr('Due')}</span> : null}</td>
                 </tr>
               )
             })}
-            {!moves.length && <tr><td colSpan={7} className="empty">No trucks this day. Add trucks to load in and load out items in the run sheet.</td></tr>}
+            {!moves.length && <tr><td colSpan={7} className="empty">{tr('No trucks this day. Add trucks to load in and load out items in the run sheet.')}</td></tr>}
           </tbody>
         </table>
       </section>
 
       <section className="panel">
         <div className="ph">
-          <h3>Locations</h3>
-          {canAddPlace && <div className="actions"><button type="button" className="btn sm" onClick={() => setEditing('new')}>+ Add location</button></div>}
+          <h3>{tr('Locations')}</h3>
+          {canAddPlace && <div className="actions"><button type="button" className="btn sm" onClick={() => setEditing('new')}>{tr('+ Add location')}</button></div>}
         </div>
         <ul className="list">
           {places.map(l => {
@@ -111,18 +112,18 @@ export function TrucksPage({ sid }: { sid: Id | null }) {
             const w = a.canW('schedule', l.stage ?? null)
             return (
               <li key={l.id}>
-                <span className="chip">{LOCATION_KINDS[l.kind]}</span>
+                <span className="chip">{tr(LOCATION_KINDS[l.kind])}</span>
                 <div className="stack">
                   <b>{l.name}</b>
                   <span className="small muted">
-                    {l.stage ? stages[l.stage]?.name : 'Whole festival'} · {Number.isFinite(cap) ? `${cap} at a time` : 'no limit'}{l.notes ? ` · ${l.notes}` : ''}
+                    {l.stage ? stages[l.stage]?.name : tr('Whole festival')} · {Number.isFinite(cap) ? tr('{n} at a time', { n: cap }) : tr('no limit')}{l.notes ? ` · ${l.notes}` : ''}
                   </span>
                 </div>
-                {w && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setEditing(l)}>Edit</button>}
+                {w && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setEditing(l)}>{tr('Edit')}</button>}
               </li>
             )
           })}
-          {!places.length && <li className="muted">No locations yet. Add load bays, staging areas and truck parks.</li>}
+          {!places.length && <li className="muted">{tr('No locations yet. Add load bays, staging areas and truck parks.')}</li>}
         </ul>
       </section>
 

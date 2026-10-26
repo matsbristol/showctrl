@@ -4,6 +4,7 @@ import { openItems, riderId } from '../../lib/riders'
 import type { Id, RiderKind } from '../../types/model'
 import { RiderPanel } from '../riders/RiderPanel'
 import { useAccess, useTerms } from '../session'
+import { tr } from '../../i18n'
 
 /** Technical and hospitality riders for every visible performer (HQ) or one stage. */
 export function RidersPage({ sid }: { sid: Id | null }) {
@@ -26,13 +27,13 @@ export function RidersPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>{sid ? `Riders · ${stages[sid]?.name}` : 'Riders'}</h1>
-          <p>Paste a rider in line by line, then assign each item to the department that sources it.</p>
+          <h1>{sid ? tr('Riders · {stage}', { stage: stages[sid]?.name ?? '' }) : tr('Riders')}</h1>
+          <p>{tr('Paste a rider in line by line, then assign each item to the department that sources it.')}</p>
         </div>
         {!sid && (
           <div className="actions">
-            <select className="inline-sel" aria-label="Stage" value={fsState} onChange={e => setFs(e.target.value)}>
-              <option value="">All stages</option>
+            <select className="inline-sel" aria-label={tr('Stage')} value={fsState} onChange={e => setFs(e.target.value)}>
+              <option value="">{tr('All stages')}</option>
               {a.stagesSorted().map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
@@ -41,14 +42,14 @@ export function RidersPage({ sid }: { sid: Id | null }) {
       <div className="tabs" role="tablist">
         {kinds.map(k => (
           <button key={k} type="button" role="tab" aria-selected={k === kind} onClick={() => setKind(k)}>
-            {k === 'tech' ? 'Technical riders' : 'Hospitality riders'}
+            {k === 'tech' ? tr('Technical riders') : tr('Hospitality riders')}
           </button>
         ))}
-        <span className="small muted" style={{ marginLeft: 'auto', alignSelf: 'center' }}>{open} open item{open === 1 ? '' : 's'}</span>
+        <span className="small muted" style={{ marginLeft: 'auto', alignSelf: 'center' }}>{tr(open === 1 ? '{n} open item' : '{n} open items', { n: open })}</span>
       </div>
       <div className="grid g2">
         {kind && list.map(x => <RiderPanel key={`${x.id}_${kind}`} artistId={x.id} kind={kind} />)}
-        {!list.length && <div className="panel"><p className="empty">No {t.performers.toLowerCase()} here yet.</p></div>}
+        {!list.length && <div className="panel"><p className="empty">{tr('No {performers} here yet.', { performers: t.performers.toLowerCase() })}</p></div>}
       </div>
     </>
   )

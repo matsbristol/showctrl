@@ -9,6 +9,7 @@ import type { Id, RosItem } from '../../types/model'
 import { Icon } from '../Icon'
 import { KindTag } from '../runsheet/parts'
 import { useNow, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** "2 trucks → Staging area North" under a run sheet item, when the Trucks module is on. */
 export function TruckLine({ item, clash }: { item: RosItem; clash?: boolean }) {
@@ -18,8 +19,8 @@ export function TruckLine({ item, clash }: { item: RosItem; clash?: boolean }) {
   const dest = item.dest ? locations[item.dest]?.name : null
   return (
     <div className={`truckline${clash ? ' clash' : ''}`}>
-      <Icon name="truck" />{item.trucks} {item.trucks === 1 ? 'truck' : 'trucks'}{dest ? ` → ${dest}` : ' · no location set'}
-      {clash && <b> · clash</b>}
+      <Icon name="truck" />{item.trucks === 1 ? tr('1 truck') : tr('{n} trucks', { n: item.trucks })}{dest ? ` → ${dest}` : ` · ${tr('no location set')}`}
+      {clash && <b> · {tr('clash')}</b>}
     </div>
   )
 }
@@ -36,7 +37,7 @@ export function TrucksSoon({ sid }: { sid: Id }) {
   const soon = truckMoves(ros, { stage: sid, from: now - 15 * MIN, to: now + 4 * HOUR }).filter(i => i.status !== 'done')
   return (
     <section className="panel">
-      <div className="ph"><h3>Trucks, next 4 hours</h3><div className="actions"><Link className="btn sm" to={`/s/${sid}/trucks`}>All trucks</Link></div></div>
+      <div className="ph"><h3>{tr('Trucks, next 4 hours')}</h3><div className="actions"><Link className="btn sm" to={`/s/${sid}/trucks`}>{tr('All trucks')}</Link></div></div>
       {soon.length ? (
         <ul className="list">
           {soon.map(i => (
@@ -44,13 +45,13 @@ export function TrucksSoon({ sid }: { sid: Id }) {
               <span className="num" style={{ minWidth: '3.2rem' }}><b>{fmtTime(eff(i).s, tz)}</b></span>
               <KindTag kind={i.kind} />
               <span>
-                {(i.artist && artists[i.artist]?.name) || i.title} · <b>{i.trucks}</b> {i.trucks === 1 ? 'truck' : 'trucks'}
-                <span className="muted small"> → {i.dest ? locations[i.dest]?.name : 'no location set'}</span>
+                {(i.artist && artists[i.artist]?.name) || i.title} · <b>{i.trucks}</b> {i.trucks === 1 ? tr('truck') : tr('trucks')}
+                <span className="muted small"> → {i.dest ? locations[i.dest]?.name : tr('no location set')}</span>
               </span>
             </li>
           ))}
         </ul>
-      ) : <p className="empty">No trucks due in the next four hours.</p>}
+      ) : <p className="empty">{tr('No trucks due in the next four hours.')}</p>}
     </section>
   )
 }

@@ -7,6 +7,7 @@ import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
 import { DelayChip, Lanes, SheetRow } from '../runsheet/parts'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** HQ running order: on-stage activity across every visible stage. */
 export function SchedulePage() {
@@ -24,8 +25,8 @@ export function SchedulePage() {
     <>
       <div className="head">
         <div>
-          <h1>Running order</h1>
-          <p>All {t.stages.toLowerCase()}, on-stage activity only. Open {aOrAn(t.stage.toLowerCase())}’s run sheet for get in, load in and load out.</p>
+          <h1>{tr('Running order')}</h1>
+          <p>{tr('All {stages}, on-stage activity only. Open {aStage}’s run sheet for get in, load in and load out.', { stages: t.stages.toLowerCase(), aStage: aOrAn(t.stage.toLowerCase()), stage: t.stage.toLowerCase() })}</p>
         </div>
         <div className="actions"><DaySelector /></div>
       </div>
@@ -38,9 +39,9 @@ export function SchedulePage() {
               <div className="ph">
                 <h3>{s.name}</h3>
                 <DelayChip sid={s.id} />
-                <div className="actions"><Link className="btn sm" to={`/s/${s.id}/runsheet?day=${day}`}>Run sheet</Link></div>
+                <div className="actions"><Link className="btn sm" to={`/s/${s.id}/runsheet?day=${day}`}>{tr('Run sheet')}</Link></div>
               </div>
-              {shows.length ? <ul className="sheet">{shows.map(i => <SheetRow key={i.id} item={i} showArtist />)}</ul> : <p className="empty">No shows this day.</p>}
+              {shows.length ? <ul className="sheet">{shows.map(i => <SheetRow key={i.id} item={i} showArtist />)}</ul> : <p className="empty">{tr('No shows this day.')}</p>}
             </section>
           )
         })}

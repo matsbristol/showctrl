@@ -3,6 +3,7 @@
 import { HOUR } from '../types/constants'
 import type { Dept, Id, Ms, Msg, Stage, TapeColor } from '../types/model'
 import type { Access } from './access'
+import { tr } from '../i18n'
 
 export interface Channel {
   /** inbox | all | direct | urgent | stage:<id> | dept:<id> */
@@ -15,12 +16,12 @@ export interface Channel {
 export function messageChannels(a: Access, stages: Stage[], depts: Dept[]): Channel[] {
   const deptIds = a.perm('admin') >= 2 ? depts.map(d => d.id) : a.myDepts()
   return [
-    { id: 'inbox', label: 'Everything for you' },
-    { id: 'all', label: 'Everyone' },
+    { id: 'inbox', label: tr('Everything for you') },
+    { id: 'all', label: tr('Everyone') },
     ...stages.filter(s => a.stageRole(s.id) || a.perm('messages') >= 1).map(s => ({ id: `stage:${s.id}`, label: s.name, tape: s.tape })),
     ...deptIds.map(id => depts.find(d => d.id === id)).filter((d): d is Dept => !!d).map(d => ({ id: `dept:${d.id}`, label: d.name, tape: d.tape })),
-    { id: 'direct', label: 'Direct messages' },
-    { id: 'urgent', label: 'Urgent' },
+    { id: 'direct', label: tr('Direct messages') },
+    { id: 'urgent', label: tr('Urgent') },
   ]
 }
 

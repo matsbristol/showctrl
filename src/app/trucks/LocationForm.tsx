@@ -5,6 +5,7 @@ import { LOCATION_KINDS } from '../../types/constants'
 import type { Id, Location, LocationKind } from '../../types/model'
 import { useAccess, useTerms } from '../session'
 import { Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 /** A place trucks are sent to. Stage managers add their own stage's; festival-wide places need festival schedule rights. */
 export function LocationForm({ location, sid, onClose }: { location: Location | null; sid: Id | null; onClose: () => void }) {
@@ -21,33 +22,33 @@ export function LocationForm({ location, sid, onClose }: { location: Location | 
   const set = <K extends keyof typeof v>(k: K, x: (typeof v)[K]) => setV(o => ({ ...o, [k]: x }))
   return (
     <FormDialog
-      title={l ? `Edit ${l.name}` : 'Add location'}
+      title={l ? tr('Edit {name}', { name: l.name }) : tr('Add location')}
       onClose={onClose}
       onDelete={l ? () => store.delete('locations', l.id) : undefined}
       onSave={async () => {
-        if (!v.name.trim()) return 'Enter a name.'
+        if (!v.name.trim()) return tr('Enter a name.')
         await store.set('locations', l?.id ?? rid(), {
           name: v.name.trim(), kind: v.kind, stage: v.stage || null, capacity: v.capacity === '' ? null : Number(v.capacity), notes: v.notes,
         })
       }}
     >
-      <Field label="Name" full><input value={v.name} placeholder="e.g. Load bay 2, Staging area North" onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Type">
+      <Field label={tr('Name')} full><input value={v.name} placeholder={tr('e.g. Load bay 2, Staging area North')} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Type')}>
         <select value={v.kind} onChange={e => set('kind', e.target.value as LocationKind)}>
-          {Object.entries(LOCATION_KINDS).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+          {Object.entries(LOCATION_KINDS).map(([k, label]) => <option key={k} value={k}>{tr(label)}</option>)}
         </select>
       </Field>
-      <Field label="Belongs to">
+      <Field label={tr('Belongs to')}>
         <select value={v.stage} onChange={e => set('stage', e.target.value)}>
-          {a.canW('schedule') && <option value="">Whole festival</option>}
+          {a.canW('schedule') && <option value="">{tr('Whole festival')}</option>}
           {stageOpts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>
-      <Field label="Trucks at once (empty: 1 for load bays and docks, unlimited otherwise)" full>
+      <Field label={tr('Trucks at once (empty: 1 for load bays and docks, unlimited otherwise)')} full>
         <input type="number" min={1} value={v.capacity} onChange={e => set('capacity', e.target.value)} />
       </Field>
-      <Field label="Notes for drivers" full><textarea value={v.notes} placeholder="e.g. Enter via gate 7, wait for a call on Ch 1" onChange={e => set('notes', e.target.value)} /></Field>
-      <p className="fld full small muted">A location can belong to one {t.stage.toLowerCase()} (its load bay) or the whole festival (staging areas, truck parks).</p>
+      <Field label={tr('Notes for drivers')} full><textarea value={v.notes} placeholder={tr('e.g. Enter via gate 7, wait for a call on Ch 1')} onChange={e => set('notes', e.target.value)} /></Field>
+      <p className="fld full small muted">{tr('A location can belong to one {stage} (its load bay) or the whole festival (staging areas, truck parks).', { stage: t.stage.toLowerCase() })}</p>
     </FormDialog>
   )
 }

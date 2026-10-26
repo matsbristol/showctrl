@@ -11,6 +11,7 @@ import { useDay } from '../day'
 import { KindTag, Tel } from '../runsheet/parts'
 import { useAccess, useNow, useTz } from '../session'
 import { TransferForm } from '../transport/TransferForm'
+import { tr } from '../../i18n'
 
 const STATUS_CHIP: Record<TransferStatus, string> = { planned: 'sb', confirmed: 'ac', 'en route': 'go', done: '', cancelled: 'st' }
 
@@ -45,20 +46,20 @@ export function TransportPage({ sid }: { sid: Id | null }) {
   const needs = Object.values(ros)
     .filter(i => (i.kind === 'arrival' || i.kind === 'departure') && i.artist && festDay(i.start, tz) === day && inScope(i.artist) && !covered.has(i.id) && i.status !== 'done')
     .sort((x, y) => eff(x).s - eff(y).s)
-  const who = (x: Transfer) => (x.artist ? artists[x.artist]?.name ?? 'Removed' : x.guest || 'Guest')
+  const who = (x: Transfer) => (x.artist ? artists[x.artist]?.name ?? tr('Removed') : x.guest || tr('Guest'))
 
   return (
     <>
       <div className="head">
-        <div><h1>Transport</h1><p>Pickups and drop-offs for the day. Arrivals and departures without a ride are listed underneath, ready to book.</p></div>
+        <div><h1>{tr('Transport')}</h1><p>{tr('Pickups and drop-offs for the day. Arrivals and departures without a ride are listed underneath, ready to book.')}</p></div>
         <div className="actions">
           <DaySelector />
-          {w && <button type="button" className="btn primary" onClick={() => setEditing({ transfer: null })}>+ Add transfer</button>}
+          {w && <button type="button" className="btn primary" onClick={() => setEditing({ transfer: null })}>{tr('+ Add transfer')}</button>}
         </div>
       </div>
       <section className="panel tbl-wrap" style={{ marginBottom: '1rem' }}>
         <table>
-          <thead><tr><th>Pickup</th><th>Who</th><th>People</th><th>From → to</th><th>Vehicle &amp; driver</th><th>Status</th><th /></tr></thead>
+          <thead><tr><th>{tr('Pickup')}</th><th>{tr('Who')}</th><th>{tr('People')}</th><th>{tr('From → to')}</th><th>{tr('Vehicle & driver')}</th><th>{tr('Status')}</th><th /></tr></thead>
           <tbody>
             {list.map(x => {
               const soon = x.status !== 'done' && x.status !== 'cancelled' && x.at - now < 30 * MIN && x.at > now - 30 * MIN
@@ -76,39 +77,39 @@ export function TransportPage({ sid }: { sid: Id | null }) {
                   <td>
                     {w
                       ? (
-                        <select className="inline-sel" aria-label={`Status of ${who(x)} pickup`} value={x.status} onChange={e => void store.update('transfers', x.id, { status: e.target.value as TransferStatus })}>
-                          {TRANSFER_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                        <select className="inline-sel" aria-label={tr('Status of {name} pickup', { name: who(x) })} value={x.status} onChange={e => void store.update('transfers', x.id, { status: e.target.value as TransferStatus })}>
+                          {TRANSFER_STATUS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
                         </select>
                       )
-                      : <span className={`chip ${STATUS_CHIP[x.status]}`}>{x.status}</span>}
+                      : <span className={`chip ${STATUS_CHIP[x.status]}`}>{tr(x.status)}</span>}
                   </td>
-                  <td>{w && <button type="button" className="btn sm" onClick={() => setEditing({ transfer: x })}>Edit</button>}</td>
+                  <td>{w && <button type="button" className="btn sm" onClick={() => setEditing({ transfer: x })}>{tr('Edit')}</button>}</td>
                 </tr>
               )
             })}
-            {!list.length && <tr><td colSpan={7} className="empty">No transfers this day.</td></tr>}
+            {!list.length && <tr><td colSpan={7} className="empty">{tr('No transfers this day.')}</td></tr>}
           </tbody>
         </table>
       </section>
       <section className="panel">
-        <div className="ph"><h3>Still needs a ride</h3><span className="small muted">{needs.length} arrivals and departures</span></div>
+        <div className="ph"><h3>{tr('Still needs a ride')}</h3><span className="small muted">{tr('{n} arrivals and departures', { n: needs.length })}</span></div>
         {needs.length ? (
           <ul className="list">
             {needs.map(i => (
               <li key={i.id}>
                 <span className="num" style={{ minWidth: '3.2rem' }}><b>{fmtTime(eff(i).s, tz)}</b></span>
                 <KindTag kind={i.kind} />
-                <span>{artists[i.artist!]?.name} <span className="small muted">· {stages[i.stage]?.name} · {artists[i.artist!]?.party ?? '?'} people</span></span>
+                <span>{artists[i.artist!]?.name} <span className="small muted">· {stages[i.stage]?.name} · {tr('{n} people', { n: artists[i.artist!]?.party ?? '?' })}</span></span>
                 {w && (
                   <span className="row" style={{ marginLeft: 'auto' }}>
-                    <button type="button" className="btn sm" onClick={() => setEditing({ transfer: null, draft: draftFor(i, artists[i.artist!]?.party) })}>Book ride</button>
-                    <button type="button" className="btn sm" onClick={() => void store.set('transfers', rid(), { ...draftFor(i, artists[i.artist!]?.party), status: 'cancelled', notes: 'Own transport' } as Omit<Transfer, 'id'>)}>Own transport</button>
+                    <button type="button" className="btn sm" onClick={() => setEditing({ transfer: null, draft: draftFor(i, artists[i.artist!]?.party) })}>{tr('Book ride')}</button>
+                    <button type="button" className="btn sm" onClick={() => void store.set('transfers', rid(), { ...draftFor(i, artists[i.artist!]?.party), status: 'cancelled', notes: 'Own transport' } as Omit<Transfer, 'id'>)}>{tr('Own transport')}</button>
                   </span>
                 )}
               </li>
             ))}
           </ul>
-        ) : <p className="empty">Every arrival and departure has a ride.</p>}
+        ) : <p className="empty">{tr('Every arrival and departure has a ride.')}</p>}
       </section>
       {editing && <TransferForm transfer={editing.transfer} draft={editing.draft} onClose={() => setEditing(null)} />}
     </>

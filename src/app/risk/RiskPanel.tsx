@@ -7,6 +7,7 @@ import type { Artist } from '../../types/model'
 import { useAccess, useNow } from '../session'
 import { RiskBadge } from './RiskChip'
 import { RiskForm } from './RiskForm'
+import { tr } from '../../i18n'
 
 /** The artist page's risk panel. */
 export function RiskPanel({ artist }: { artist: Artist }) {
@@ -22,17 +23,17 @@ export function RiskPanel({ artist }: { artist: Artist }) {
   return (
     <section className={`panel risk-panel${risk ? ` risk-${risk.level}` : ''}`}>
       <div className="ph">
-        <h3>Risk assessment</h3>
+        <h3>{tr('Risk assessment')}</h3>
         <RiskBadge level={risk?.level ?? null} />
-        {w && <div className="actions"><button type="button" className="btn sm" onClick={() => setEditing(true)}>{risk ? 'Edit' : 'Assess'}</button></div>}
+        {w && <div className="actions"><button type="button" className="btn sm" onClick={() => setEditing(true)}>{risk ? tr('Edit') : tr('Assess')}</button></div>}
       </div>
       {risk ? (
         <div className="pb stack">
-          {risk.factors.length > 0 && <div className="row">{risk.factors.map(f => <span key={f} className="chip">{f}</span>)}</div>}
+          {risk.factors.length > 0 && <div className="row">{risk.factors.map(f => <span key={f} className="chip">{tr(f)}</span>)}</div>}
           {risk.notes && <p style={{ whiteSpace: 'pre-wrap' }}>{risk.notes}</p>}
-          {risk.at && <span className="small muted">Assessed by {personName(risk.by, members, people)} · {relTime(risk.at, now)}</span>}
+          {risk.at && <span className="small muted">{tr('Assessed by {name} · {time}', { name: personName(risk.by, members, people), time: relTime(risk.at, now) })}</span>}
         </div>
-      ) : <p className="empty">Not assessed yet.</p>}
+      ) : <p className="empty">{tr('Not assessed yet.')}</p>}
       {editing && <RiskForm artist={artist} onClose={() => setEditing(false)} />}
     </section>
   )

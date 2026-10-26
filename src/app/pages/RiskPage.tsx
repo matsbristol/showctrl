@@ -10,6 +10,7 @@ import { useDay } from '../day'
 import { RiskBadge } from '../risk/RiskChip'
 import { RiskForm } from '../risk/RiskForm'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 type Filter = RiskLevel | 'none' | 'all'
 
@@ -39,17 +40,17 @@ export function RiskPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>{sid ? `Risk · ${stages[sid]?.name}` : 'Risk assessment'}</h1>
-          <p>Each {t.performer.toLowerCase()}’s rating with its factors and measures. Ratings show on run sheets and now/next cards too.</p>
+          <h1>{sid ? tr('Risk · {stage}', { stage: stages[sid]?.name ?? '' }) : tr('Risk assessment')}</h1>
+          <p>{tr('Each {performer}’s rating with its factors and measures. Ratings show on run sheets and now/next cards too.', { performer: t.performer.toLowerCase() })}</p>
         </div>
         <div className="actions"><DaySelector /></div>
       </div>
 
-      <div className="risk-summary" role="group" aria-label="Filter by rating">
+      <div className="risk-summary" role="group" aria-label={tr('Filter by rating')}>
         {(['red', 'orange', 'green', 'none'] as const).map(l => (
           <button key={l} type="button" className={`risk-${l}`} aria-pressed={filter === l} onClick={() => setFilter(f => (f === l ? 'all' : l))}>
             <b className="num">{counts[l]}</b>
-            <span>{l === 'none' ? 'Not assessed' : RISK_LEVELS[l].label}</span>
+            <span>{l === 'none' ? tr('Not assessed') : tr(RISK_LEVELS[l].label)}</span>
           </button>
         ))}
       </div>
@@ -57,7 +58,7 @@ export function RiskPage({ sid }: { sid: Id | null }) {
       <section className="panel tbl-wrap">
         <table>
           <thead>
-            <tr><th>On stage</th>{!sid && <th>{t.stage}</th>}<th>{t.performer}</th><th>Rating</th><th>Factors</th><th>Measures and notes</th><th /></tr>
+            <tr><th>{tr('On stage')}</th>{!sid && <th>{t.stage}</th>}<th>{t.performer}</th><th>{tr('Rating')}</th><th>{tr('Factors')}</th><th>{tr('Measures and notes')}</th><th /></tr>
           </thead>
           <tbody>
             {list.map(s => {
@@ -70,13 +71,13 @@ export function RiskPage({ sid }: { sid: Id | null }) {
                   {!sid && <td>{st && <span className="row" style={{ flexWrap: 'nowrap', whiteSpace: 'nowrap' }}><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>}</td>}
                   <td><Link to={`${base}/artists/${art.id}`} style={{ color: 'inherit' }}><b>{art.name}</b></Link></td>
                   <td><RiskBadge level={r?.level ?? null} /></td>
-                  <td className="small">{r?.factors.join(', ') || '—'}</td>
+                  <td className="small">{r?.factors.map(f => tr(f)).join(', ') || '—'}</td>
                   <td className="small" style={{ maxWidth: '32ch' }}>{r?.notes || '—'}</td>
-                  <td>{a.canW('risk', art.stage) && <button type="button" className="btn sm" onClick={() => setEditing(art)}>{r ? 'Edit' : 'Assess'}</button>}</td>
+                  <td>{a.canW('risk', art.stage) && <button type="button" className="btn sm" onClick={() => setEditing(art)}>{r ? tr('Edit') : tr('Assess')}</button>}</td>
                 </tr>
               )
             })}
-            {!list.length && <tr><td colSpan={7} className="empty">No shows {filter === 'all' ? 'this day' : 'with this rating'}.</td></tr>}
+            {!list.length && <tr><td colSpan={7} className="empty">{filter === 'all' ? tr('No shows this day.') : tr('No shows with this rating.')}</td></tr>}
           </tbody>
         </table>
       </section>

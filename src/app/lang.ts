@@ -11,18 +11,20 @@ const fromBrowser = (): Lang => (typeof navigator !== 'undefined' && /^(nb|nn|no
 
 export function initLang(saved: unknown, isLive: boolean) {
   live = isLive
-  let l = saved
-  if (!isLive) { try { l = localStorage.getItem(DEMO_KEY) } catch { l = null } }
+  // This browser's last choice: the demo's setting, or what was picked on the sign-in page.
+  let here: unknown = null
+  try { here = localStorage.getItem(DEMO_KEY) } catch { /* private window */ }
+  if (isLive && !isLang(saved) && isLang(here)) { setLang(here); return } // first sign-in: keep the sign-in page's choice
+  const l = isLive ? saved : here
   setLangValue(isLang(l) ? l : fromBrowser())
 }
 
 export function setLang(l: Lang) {
   setLangValue(l)
+  try { localStorage.setItem(DEMO_KEY, l) } catch { /* private window: this visit only */ }
   if (live) {
     const as = new URLSearchParams(location.search).get('as')
     void fetch(`/api/me/prefs${as ? `?as=${encodeURIComponent(as)}` : ''}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ lang: l }) }).catch(() => {})
-  } else {
-    try { localStorage.setItem(DEMO_KEY, l) } catch { /* private window: this visit only */ }
   }
 }
 

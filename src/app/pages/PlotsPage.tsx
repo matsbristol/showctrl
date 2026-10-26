@@ -7,6 +7,7 @@ import { useActs, useSelectedAct } from '../acts/acts'
 import { DaySelector } from '../DaySelector'
 import { PlotEditor } from '../plots/PlotEditor'
 import { useTerms } from '../session'
+import { tr } from '../../i18n'
 
 export function PlotsPage({ sid }: { sid: Id | null }) {
   const t = useTerms()
@@ -16,8 +17,8 @@ export function PlotsPage({ sid }: { sid: Id | null }) {
   return (
     <>
       <div className="head no-print">
-        <div><h1>Stage plots</h1><p>To scale, seen from FOH. Add items, drag them into place, and give risers their deck size and height. The riser planner reads these.</p></div>
-        <div className="actions"><DaySelector /><button type="button" className="btn" onClick={() => window.print()}>Print</button></div>
+        <div><h1>{tr('Stage plots')}</h1><p>{tr('To scale, seen from FOH. Add items, drag them into place, and give risers their deck size and height. The riser planner reads these.')}</p></div>
+        <div className="actions"><DaySelector /><button type="button" className="btn" onClick={() => window.print()}>{tr('Print')}</button></div>
       </div>
       <div className="split">
         <div className="no-print">
@@ -28,7 +29,7 @@ export function PlotsPage({ sid }: { sid: Id | null }) {
             <h2><Link to={`/s/${sel.stage}/artists/${sel.id}`} style={{ color: 'inherit' }}>{sel.name}</Link></h2>
             <PlotEditor key={sel.id} artist={sel} />
           </div>
-        ) : <div className="panel"><p className="empty">Choose {aOrAn(t.performer.toLowerCase())}.</p></div>}
+        ) : <div className="panel"><p className="empty">{tr('Choose {a_performer}.', { a_performer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })}</p></div>}
       </div>
     </>
   )

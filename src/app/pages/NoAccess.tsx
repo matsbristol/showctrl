@@ -5,6 +5,7 @@ import { homePath } from '../../shared/views'
 import { useAccess, useTerms } from '../session'
 import { useServerTime } from '../time'
 import { Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 export function NoAccess({ message }: { message?: string }) {
   const a = useAccess()
@@ -16,13 +17,13 @@ export function NoAccess({ message }: { message?: string }) {
   return (
     <div className="setup">
       <div className="panel">
-        <h2>{message ?? (nothing ? "You don't have access yet" : 'Your access does not include this page')}</h2>
+        <h2>{message ?? (nothing ? tr("You don't have access yet") : tr('Your access does not include this page'))}</h2>
         <p className="muted" style={{ margin: '.5rem 0 1rem' }}>
-          {nothing ? 'Ask the festival admin or your stage manager to add you.' : 'Ask the festival admin if you need it.'}
+          {nothing ? tr('Ask the festival admin or your stage manager to add you.') : tr('Ask the festival admin if you need it.')}
         </p>
-        {nothing && requested && <p className="chip sb">Request sent</p>}
-        {nothing && !requested && store.mode === 'live' && <button type="button" className="btn primary" onClick={() => setAsking(true)}>Ask for access</button>}
-        {!nothing && <Link className="btn primary" to={homePath(a)}>Go to my start page</Link>}
+        {nothing && requested && <p className="chip sb">{tr('Request sent')}</p>}
+        {nothing && !requested && store.mode === 'live' && <button type="button" className="btn primary" onClick={() => setAsking(true)}>{tr('Ask for access')}</button>}
+        {!nothing && <Link className="btn primary" to={homePath(a)}>{tr('Go to my start page')}</Link>}
       </div>
       {asking && <RequestForm onClose={() => setAsking(false)} />}
     </div>
@@ -39,18 +40,18 @@ function RequestForm({ onClose }: { onClose: () => void }) {
   const [stage, setStage] = useState('')
   return (
     <FormDialog
-      title="Ask for access"
-      saveLabel="Send request"
+      title={tr('Ask for access')}
+      saveLabel={tr('Send request')}
       onClose={onClose}
       onSave={async () => {
-        if (!a.me) return 'You need to be signed in.'
+        if (!a.me) return tr('You need to be signed in.')
         await store.set('requests', a.me, { at: now(), note: note.trim(), stage: stage || null })
       }}
     >
-      <Field label="Your job title" full><input value={note} placeholder="e.g. Backline tech" onChange={e => setNote(e.target.value)} /></Field>
-      <Field label={`Which ${t.stage.toLowerCase()} do you work on?`} full>
+      <Field label={tr('Your job title')} full><input value={note} placeholder={tr('e.g. Backline tech')} onChange={e => setNote(e.target.value)} /></Field>
+      <Field label={tr('Which {stage} do you work on?', { stage: t.stage.toLowerCase() })} full>
         <select value={stage} onChange={e => setStage(e.target.value)}>
-          <option value="">Festival-wide / not sure</option>
+          <option value="">{tr('Festival-wide / not sure')}</option>
           {a.stagesSorted().map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>

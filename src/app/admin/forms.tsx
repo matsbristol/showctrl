@@ -2,10 +2,13 @@ import { useState } from 'react'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { rid } from '../../lib/id'
 import { personName } from '../../shared/people'
+import { tr } from '../../i18n'
 import { EVENT_TYPES, TAPE, TZS } from '../../types/constants'
 import type { Dept, EventConfig, EventType, Id, Member, TapeColor } from '../../types/model'
 import { useAccess } from '../session'
 import { Field, FormDialog } from '../ui/Dialog'
+import { roleLabel } from './roleLabel'
+
 
 /** Event name, type (which sets the vocabulary), time zone, dates and size. */
 export function EventForm({ onClose }: { onClose: () => void }) {
@@ -15,34 +18,34 @@ export function EventForm({ onClose }: { onClose: () => void }) {
   const set = <K extends keyof typeof v>(k: K, x: (typeof v)[K]) => setV(o => ({ ...o, [k]: x }))
   return (
     <FormDialog
-      title="Edit event"
+      title={tr('Edit event')}
       onClose={onClose}
       onSave={async () => {
-        if (!v.start || !v.end) return 'Set the first and last day.'
-        if (v.end < v.start) return 'The last day must be after the first day.'
+        if (!v.start || !v.end) return tr('Set the first and last day.')
+        if (v.end < v.start) return tr('The last day must be after the first day.')
         const next: EventConfig = {
-          ...c, name: v.name.trim() || 'Untitled event', type: v.type, tz: v.tz, start: v.start, end: v.end,
+          ...c, name: v.name.trim() || tr('Untitled event'), type: v.type, tz: v.tz, start: v.start, end: v.end,
           visitors: v.visitors === '' ? null : Number(v.visitors), terms: EVENT_TYPES[v.type].terms,
         }
         await store.setConfig('event', next)
       }}
     >
-      <Field label="Event name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Event type">
+      <Field label={tr('Event name')} full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Event type')}>
         <select value={v.type} onChange={e => set('type', e.target.value as EventType)}>
-          {Object.entries(EVENT_TYPES).map(([k, x]) => <option key={k} value={k}>{x.label}</option>)}
+          {Object.entries(EVENT_TYPES).map(([k, x]) => <option key={k} value={k}>{tr(x.label)}</option>)}
         </select>
       </Field>
-      <Field label="Time zone">
+      <Field label={tr('Time zone')}>
         <select value={v.tz} onChange={e => set('tz', e.target.value)}>
           {(TZS as readonly string[]).includes(v.tz) ? null : <option value={v.tz}>{v.tz}</option>}
           {TZS.map(z => <option key={z} value={z}>{z}</option>)}
         </select>
       </Field>
-      <Field label="First day"><input type="date" value={v.start} onChange={e => set('start', e.target.value)} /></Field>
-      <Field label="Last day"><input type="date" value={v.end} onChange={e => set('end', e.target.value)} /></Field>
-      <Field label="Expected visitors"><input type="number" min={0} value={v.visitors} onChange={e => set('visitors', e.target.value)} /></Field>
-      <p className="fld full small muted">The event type sets the words used everywhere, e.g. a conference shows “Speakers” and “Rooms”.</p>
+      <Field label={tr('First day')}><input type="date" value={v.start} onChange={e => set('start', e.target.value)} /></Field>
+      <Field label={tr('Last day')}><input type="date" value={v.end} onChange={e => set('end', e.target.value)} /></Field>
+      <Field label={tr('Expected visitors')}><input type="number" min={0} value={v.visitors} onChange={e => set('visitors', e.target.value)} /></Field>
+      <p className="fld full small muted">{tr('The event type sets the words used everywhere, e.g. a conference shows “Speakers” and “Rooms”.')}</p>
     </FormDialog>
   )
 }
@@ -54,19 +57,19 @@ export function DeptForm({ dept, onClose }: { dept: Dept | null; onClose: () => 
   const [tape, setTape] = useState<TapeColor>(dept?.tape ?? 'grey')
   return (
     <FormDialog
-      title={dept ? 'Edit department' : 'Add department'}
+      title={dept ? tr('Edit department') : tr('Add department')}
       onClose={onClose}
       onDelete={dept ? () => store.setConfig('event', { ...c, depts: c.depts.filter(x => x.id !== dept.id) }) : undefined}
       onSave={async () => {
-        if (!name.trim()) return 'Enter a name.'
+        if (!name.trim()) return tr('Enter a name.')
         const o: Dept = { id: dept?.id ?? rid(), name: name.trim(), tape }
         const depts = dept ? c.depts.map(x => (x.id === dept.id ? o : x)) : [...c.depts, o]
         await store.setConfig('event', { ...c, depts })
       }}
     >
-      <Field label="Name" full><input value={name} onChange={e => setName(e.target.value)} /></Field>
-      <Field label="Spike tape colour">
-        <select value={tape} onChange={e => setTape(e.target.value as TapeColor)}>{Object.keys(TAPE).map(t => <option key={t} value={t}>{t}</option>)}</select>
+      <Field label={tr('Name')} full><input value={name} onChange={e => setName(e.target.value)} /></Field>
+      <Field label={tr('Spike tape colour')}>
+        <select value={tape} onChange={e => setTape(e.target.value as TapeColor)}>{Object.keys(TAPE).map(t => <option key={t} value={t}>{tr(t)}</option>)}</select>
       </Field>
     </FormDialog>
   )
@@ -119,19 +122,19 @@ export function AccessForm({ uid: uid0, isNew, preset, onClose }: { uid: Id; isN
 
   return (
     <FormDialog
-      title={isNew ? 'Give someone access' : `Access · ${personName(uid, members, people)}`}
+      title={isNew ? tr('Give someone access') : tr('Access · {name}', { name: personName(uid, members, people) })}
       onClose={onClose}
       onDelete={!isNew && members[uid] && uid !== a.me ? async () => {
         for (const s of stages) if (stageteam[s.id]?.crew?.[uid]) await setCrew(s.id, false)
         await store.delete('members', uid)
       } : undefined}
       onSave={async () => {
-        if (askEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(uid)) return 'Enter the email address they sign in with.'
+        if (askEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(uid)) return tr('Enter the email address they sign in with.')
         const p = v.person ? people[v.person] : undefined
         const name = v.name.trim() || p?.name || m.name
-        if (store.mode === 'local' && !name) return 'Enter a name or link a personnel entry.'
-        if (!uid) return 'Enter the email address they sign in with.'
-        if (uid === a.me && m.role === 'admin' && v.role !== 'admin') return 'You can’t remove your own admin role. Ask another admin.'
+        if (store.mode === 'local' && !name) return tr('Enter a name or link a personnel entry.')
+        if (!uid) return tr('Enter the email address they sign in with.')
+        if (uid === a.me && m.role === 'admin' && v.role !== 'admin') return tr('You can’t remove your own admin role. Ask another admin.')
         await store.set('members', uid, {
           role: v.role, person: v.person || null, depts: v.depts,
           stages: Object.fromEntries(v.mgr.map(s => [s, 'manager' as const])),
@@ -147,22 +150,22 @@ export function AccessForm({ uid: uid0, isNew, preset, onClose }: { uid: Id; isN
         if (preset && people[preset.person] && people[preset.person].email?.trim().toLowerCase() !== uid) await store.update('people', preset.person, { email: uid })
       }}
     >
-      {askEmail && <Field label="Email (the one they sign in with)" full><input type="email" value={email} autoComplete="off" onChange={e => setEmail(e.target.value)} /></Field>}
-      <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Festival role">
+      {askEmail && <Field label={tr('Email (the one they sign in with)')} full><input type="email" value={email} autoComplete="off" onChange={e => setEmail(e.target.value)} /></Field>}
+      <Field label={tr('Name')} full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Festival role')}>
         <select value={v.role} onChange={e => set('role', e.target.value)}>
-          {Object.entries(a.roles).map(([k, r]) => <option key={k} value={k}>{r.label}</option>)}
+          {Object.entries(a.roles).map(([k, r]) => <option key={k} value={k}>{roleLabel(r)}</option>)}
         </select>
       </Field>
-      <Field label="Personnel entry">
+      <Field label={tr('Personnel entry')}>
         <select value={v.person} onChange={e => set('person', e.target.value)}>
-          <option value="">— Not linked —</option>
+          <option value="">{tr('— Not linked —')}</option>
           {Object.values(people).sort((x, y) => x.name.localeCompare(y.name)).map(p => <option key={p.id} value={p.id}>{p.name}{p.title ? ` · ${p.title}` : ''}</option>)}
         </select>
       </Field>
-      <Checks label="Stage manager for" options={stages.map(s => [s.id, s.name])} value={v.mgr} onToggle={(id, on) => toggle('mgr', id, on)} />
-      <Checks label="Stage crew on" options={stages.map(s => [s.id, s.name])} value={v.crew} onToggle={(id, on) => toggle('crew', id, on)} />
-      <Checks label="Departments (for department messages)" options={(cfg?.depts ?? []).map(d => [d.id, d.name])} value={v.depts} onToggle={(id, on) => toggle('depts', id, on)} />
+      <Checks label={tr('Stage manager for')} options={stages.map(s => [s.id, s.name])} value={v.mgr} onToggle={(id, on) => toggle('mgr', id, on)} />
+      <Checks label={tr('Stage crew on')} options={stages.map(s => [s.id, s.name])} value={v.crew} onToggle={(id, on) => toggle('crew', id, on)} />
+      <Checks label={tr('Departments (for department messages)')} options={(cfg?.depts ?? []).map(d => [d.id, d.name])} value={v.depts} onToggle={(id, on) => toggle('depts', id, on)} />
     </FormDialog>
   )
 }
@@ -175,7 +178,7 @@ function Checks({ label, options, value, onToggle }: { label: string; options: [
         {options.map(([id, l]) => (
           <label key={id}><input type="checkbox" checked={value.includes(id)} onChange={e => onToggle(id, e.target.checked)} />{l}</label>
         ))}
-        {!options.length && <span className="muted small">None defined</span>}
+        {!options.length && <span className="muted small">{tr('None defined')}</span>}
       </div>
     </fieldset>
   )
@@ -189,18 +192,18 @@ export function RoleAddForm({ onClose }: { onClose: () => void }) {
   const [copy, setCopy] = useState('site')
   return (
     <FormDialog
-      title="Add role"
+      title={tr('Add role')}
       onClose={onClose}
       onSave={async () => {
-        if (!label.trim()) return 'Enter a name.'
+        if (!label.trim()) return tr('Enter a name.')
         const src = a.roles[copy] ?? a.roles.none
         await store.setConfig('roles', { roles: { ...a.roles, ['r' + rid()]: { label: label.trim(), perms: { ...src.perms }, contacts: !!src.contacts } } })
       }}
     >
-      <Field label="Role name" full><input value={label} placeholder="e.g. Medical coordinator" onChange={e => setLabel(e.target.value)} /></Field>
-      <Field label="Start from">
+      <Field label={tr('Role name')} full><input value={label} placeholder={tr('e.g. Medical coordinator')} onChange={e => setLabel(e.target.value)} /></Field>
+      <Field label={tr('Start from')}>
         <select value={copy} onChange={e => setCopy(e.target.value)}>
-          {Object.entries(a.roles).map(([k, r]) => <option key={k} value={k}>{r.label}</option>)}
+          {Object.entries(a.roles).map(([k, r]) => <option key={k} value={k}>{roleLabel(r)}</option>)}
         </select>
       </Field>
     </FormDialog>
@@ -219,24 +222,24 @@ export function ManagerForm({ sid, onClose }: { sid: Id; onClose: () => void }) 
   const [name, setName] = useState('')
   return (
     <FormDialog
-      title={`Appoint stage manager · ${stages[sid]?.name}`}
+      title={tr('Appoint stage manager · {stage}', { stage: stages[sid]?.name ?? '' })}
       onClose={onClose}
       onSave={async () => {
         if (uid === '__new') {
-          if (!name.trim()) return 'Enter a name.'
+          if (!name.trim()) return tr('Enter a name.')
           await store.set('members', 'demo-' + rid(), { name: name.trim(), role: 'none', person: null, depts: [], stages: { [sid]: 'manager' } })
         } else if (uid) {
           await store.update('members', uid, { stages: { [sid]: 'manager' } })
-        } else return 'Choose someone.'
+        } else return tr('Choose someone.')
       }}
     >
-      <Field label="Person" full>
+      <Field label={tr('Person')} full>
         <select value={uid} onChange={e => setUid(e.target.value)}>
           {others.map(u => <option key={u} value={u}>{personName(u, members, people)}</option>)}
-          {store.mode === 'local' && <option value="__new">New person…</option>}
+          {store.mode === 'local' && <option value="__new">{tr('New person…')}</option>}
         </select>
       </Field>
-      <Field label="Name" full hidden={uid !== '__new'}><input value={name} onChange={e => setName(e.target.value)} /></Field>
+      <Field label={tr('Name')} full hidden={uid !== '__new'}><input value={name} onChange={e => setName(e.target.value)} /></Field>
     </FormDialog>
   )
 }

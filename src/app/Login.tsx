@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { startLogin, verifyLogin } from './backend'
+import { LANGS, tr, type Lang } from '../i18n'
+import { setLang, useLang } from './lang'
 
-const errText = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong. Try again.')
+const errText = (e: unknown) => (e instanceof Error ? e.message : tr('Something went wrong. Try again.'))
 
 /** Sign-in: your email, then the 6-digit code showctrl emails you. No passwords. */
 export function Login() {
+  const lang = useLang()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [code, setCode] = useState('')
@@ -21,7 +24,7 @@ export function Login() {
     try {
       const r = await startLogin(email.trim())
       setDevCode(r.devCode)
-      if (sent) setNote('A new code is on its way, if the last one was more than a minute ago.')
+      if (sent) setNote(tr('A new code is on its way, if the last one was more than a minute ago.'))
       setSent(true)
     } catch (e) {
       setErr(errText(e))
@@ -45,34 +48,39 @@ export function Login() {
 
   return (
     <div className="setup login">
-      <img className="setup-logo" src="/logo.png" alt="showctrl" />
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
+          {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
+        </div>
+      </div>
       <div className="panel">
-        <h1>Sign in</h1>
+        <h1>{tr('Sign in')}</h1>
         {!sent ? (
           <form className="stack" style={{ marginTop: '1rem', gap: '.75rem' }} onSubmit={e => void send(e)}>
-            <p className="muted">We’ll email you a code. No password needed.</p>
-            <label className="fld"><span>Email</span>
-              <input type="email" autoComplete="email" autoFocus required value={email} placeholder="name@company.no" onChange={e => setEmail(e.target.value)} />
+            <p className="muted">{tr('We’ll email you a code. No password needed.')}</p>
+            <label className="fld"><span>{tr('Email')}</span>
+              <input type="email" autoComplete="email" autoFocus required value={email} placeholder={tr('name@company.no')} onChange={e => setEmail(e.target.value)} />
             </label>
             {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
-            <div className="row"><button type="submit" className="btn primary" disabled={busy || !email.trim()}>{busy ? 'Sending…' : 'Send code'}</button></div>
+            <div className="row"><button type="submit" className="btn primary" disabled={busy || !email.trim()}>{busy ? tr('Sending…') : tr('Send code')}</button></div>
           </form>
         ) : (
           <form className="stack" style={{ marginTop: '1rem', gap: '.75rem' }} onSubmit={e => void verify(e)}>
-            <p className="muted">If <b>{email.trim()}</b> has access to showctrl, a 6-digit code is on its way. It works for 10 minutes.</p>
-            <label className="fld"><span>Code</span>
+            <p className="muted">{tr('If')} <b>{email.trim()}</b> {tr('has access to showctrl, a 6-digit code is on its way. It works for 10 minutes.')}</p>
+            <label className="fld"><span>{tr('Code')}</span>
               <input className="login-code num" inputMode="numeric" autoComplete="one-time-code" autoFocus maxLength={7} required value={code}
                 placeholder="123456" onChange={e => setCode(e.target.value.replace(/[^\d ]/g, ''))} />
             </label>
-            {devCode && <p className="small muted">Local development: the code is <b className="num">{devCode}</b>.</p>}
+            {devCode && <p className="small muted">{tr('Local development: the code is')} <b className="num">{devCode}</b>.</p>}
             {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
             {note && <p className="small muted" role="status">{note}</p>}
             <div className="row" style={{ flexWrap: 'wrap' }}>
-              <button type="submit" className="btn primary" disabled={busy || code.replace(/\D/g, '').length !== 6}>{busy ? 'Checking…' : 'Sign in'}</button>
-              <button type="button" className="btn" disabled={busy} onClick={() => void send()}>Send a new code</button>
-              <button type="button" className="linkish small" style={{ marginLeft: 'auto' }} onClick={() => { setSent(false); setCode(''); setErr(''); setNote('') }}>Use another email</button>
+              <button type="submit" className="btn primary" disabled={busy || code.replace(/\D/g, '').length !== 6}>{busy ? tr('Checking…') : tr('Sign in')}</button>
+              <button type="button" className="btn" disabled={busy} onClick={() => void send()}>{tr('Send a new code')}</button>
+              <button type="button" className="linkish small" style={{ marginLeft: 'auto' }} onClick={() => { setSent(false); setCode(''); setErr(''); setNote('') }}>{tr('Use another email')}</button>
             </div>
-            <p className="small muted">No email? Check spam. If it still doesn’t come, ask your organisation’s showctrl admin to add this address.</p>
+            <p className="small muted">{tr('No email? Check spam. If it still doesn’t come, ask your organisation’s showctrl admin to add this address.')}</p>
           </form>
         )}
       </div>

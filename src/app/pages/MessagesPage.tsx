@@ -8,6 +8,7 @@ import type { Id } from '../../types/model'
 import { useLastRead, useMarkRead, useMessageActions, useMyUrgent } from '../messages/hooks'
 import { useTargetLabel } from '../messages/labels'
 import { useAccess, useNow, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** Channels on the left; compose and the message list on the right. Opening the page marks everything read. */
 export function MessagesPage({ sid }: { sid: Id | null }) {
@@ -58,12 +59,12 @@ export function MessagesPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>Messages</h1>
-          <p>Send to everyone, a stage team, a department or one person. Urgent messages flash on the screens of everyone they’re for until each person acknowledges.</p>
+          <h1>{tr('Messages')}</h1>
+          <p>{tr('Send to everyone, a stage team, a department or one person. Urgent messages flash on the screens of everyone they’re for until each person acknowledges.')}</p>
         </div>
       </div>
       <div className="msgs">
-        <nav className="panel chan" aria-label="Channels">
+        <nav className="panel chan" aria-label={tr('Channels')}>
           {chans.map(c => (
             <button key={c.id} type="button" aria-pressed={c.id === ch} onClick={() => setChan(c.id)}>
               {c.tape && <span className="tape" style={{ ['--c' as string]: TAPE[c.tape] }} />}
@@ -76,28 +77,28 @@ export function MessagesPage({ sid }: { sid: Id | null }) {
           {canSend && (
             <form className="compose" onSubmit={e => { e.preventDefault(); void submit() }}>
               <label className="fld">
-                <span>Message</span>
-                <textarea value={text} placeholder="Type a message…" maxLength={1200} onChange={e => setText(e.target.value)}
+                <span>{tr('Message')}</span>
+                <textarea value={text} placeholder={tr('Type a message…')} maxLength={1200} onChange={e => setText(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void submit() } }} />
               </label>
               <div className="row">
                 <label className="row small">
-                  <span className="muted">To</span>
-                  <select value={target} onChange={e => setTo(e.target.value)} aria-label="To">
-                    {a.canSendTo({ t: 'all' }) && <option value="all">Everyone</option>}
+                  <span className="muted">{tr('To')}</span>
+                  <select value={target} onChange={e => setTo(e.target.value)} aria-label={tr('To')}>
+                    {a.canSendTo({ t: 'all' }) && <option value="all">{tr('Everyone')}</option>}
                     {sendStages.length > 0 && (
-                      <optgroup label="Stage teams">{sendStages.map(s => <option key={s.id} value={`stage:${s.id}`}>{s.name}</option>)}</optgroup>
+                      <optgroup label={tr('Stage teams')}>{sendStages.map(s => <option key={s.id} value={`stage:${s.id}`}>{s.name}</option>)}</optgroup>
                     )}
                     {a.canSendMsgs() && (
-                      <optgroup label="Departments">{cfg?.depts.map(d => <option key={d.id} value={`dept:${d.id}`}>{d.name}</option>)}</optgroup>
+                      <optgroup label={tr('Departments')}>{cfg?.depts.map(d => <option key={d.id} value={`dept:${d.id}`}>{d.name}</option>)}</optgroup>
                     )}
                     {a.canSendMsgs() && others.length > 0 && (
-                      <optgroup label="People">{others.map(u => <option key={u} value={`user:${u}`}>{name(u)}</option>)}</optgroup>
+                      <optgroup label={tr('People')}>{others.map(u => <option key={u} value={`user:${u}`}>{name(u)}</option>)}</optgroup>
                     )}
                   </select>
                 </label>
-                <label className="row small"><input type="checkbox" checked={urg} onChange={e => setUrg(e.target.checked)} /> Urgent</label>
-                <button className="btn primary" style={{ marginLeft: 'auto' }} type="submit" disabled={!text.trim()}>Send</button>
+                <label className="row small"><input type="checkbox" checked={urg} onChange={e => setUrg(e.target.checked)} /> {tr('Urgent')}</label>
+                <button className="btn primary" style={{ marginLeft: 'auto' }} type="submit" disabled={!text.trim()}>{tr('Send')}</button>
               </div>
             </form>
           )}
@@ -109,21 +110,21 @@ export function MessagesPage({ sid }: { sid: Id | null }) {
                 <span className="av" style={{ ['--c' as string]: personColor(m.from) }}>{initials(name(m.from))}</span>
                 <div className="meta">
                   <b>{name(m.from)}</b><span>→ {label(m.to)}</span><span>{fmtTime(m.at, tz)} · {relTime(m.at, now)}</span>
-                  {m.pri === 'urgent' && <span className="chip st">Urgent</span>}
+                  {m.pri === 'urgent' && <span className="chip st">{tr('Urgent')}</span>}
                 </div>
                 <div className="txt">{m.text}</div>
                 <div className="ack">
                   {acks.length
-                    ? `Seen by ${acks.slice(0, 4).map(name).join(', ')}${acks.length > 4 ? ` +${acks.length - 4}` : ''}`
-                    : m.pri === 'urgent' ? 'Not acknowledged yet' : ''}
-                  {forMe && <button type="button" className="btn sm" onClick={() => void ack(m.id)}>{m.pri === 'urgent' ? 'Acknowledge' : 'Mark seen'}</button>}
+                    ? `${tr('Seen by {names}', { names: acks.slice(0, 4).map(name).join(', ') })}${acks.length > 4 ? ` +${acks.length - 4}` : ''}`
+                    : m.pri === 'urgent' ? tr('Not acknowledged yet') : ''}
+                  {forMe && <button type="button" className="btn sm" onClick={() => void ack(m.id)}>{m.pri === 'urgent' ? tr('Acknowledge') : tr('Mark seen')}</button>}
                   {(m.from === a.me || a.canW('admin')) && (
-                    <button type="button" className="btn sm danger" onClick={() => { if (confirm('Delete this message for everyone?')) void remove(m.id) }}>Delete</button>
+                    <button type="button" className="btn sm danger" onClick={() => { if (confirm(tr('Delete this message for everyone?'))) void remove(m.id) }}>{tr('Delete')}</button>
                   )}
                 </div>
               </article>
             )
-          }) : <p className="empty">No messages here yet.</p>}
+          }) : <p className="empty">{tr('No messages here yet.')}</p>}
         </section>
       </div>
     </>

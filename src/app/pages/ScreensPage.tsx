@@ -8,6 +8,7 @@ import { ScreenView } from '../screens/ScreenView'
 import { useAccess, useTerms } from '../session'
 import { useWall } from '../ui/wall'
 import { NoAccess } from './NoAccess'
+import { tr } from '../../i18n'
 
 /** The list of screens for HQ (all of them) or one stage (its own and HQ's). */
 export function ScreensPage({ sid }: { sid: Id | null }) {
@@ -25,10 +26,10 @@ export function ScreensPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>Screens</h1>
-          <p>One layout per monitor: the production office, an FOH desk, the dock gate. Open a screen on the computer driving that monitor and press full screen.</p>
+          <h1>{tr('Screens')}</h1>
+          <p>{tr('One layout per monitor: the production office, an FOH desk, the dock gate. Open a screen on the computer driving that monitor and press full screen.')}</p>
         </div>
-        {canAdd && <div className="actions"><button type="button" className="btn primary" onClick={() => setEditing('new')}>+ Add screen</button></div>}
+        {canAdd && <div className="actions"><button type="button" className="btn primary" onClick={() => setEditing('new')}>{tr('+ Add screen')}</button></div>}
       </div>
       <div className="grid g3">
         {list.map(s => {
@@ -41,18 +42,18 @@ export function ScreensPage({ sid }: { sid: Id | null }) {
               </div>
               <div className="pb stack small">
                 <span className="row">
-                  {follows ? follows.map(st => <span key={st.id} className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>) : <span>Every {t.stage.toLowerCase()}</span>}
+                  {follows ? follows.map(st => <span key={st.id} className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span>) : <span>{tr('Every {stage}', { stage: t.stage.toLowerCase() })}</span>}
                 </span>
-                <span className="muted">{s.blocks.map(b => SCREEN_BLOCKS[b]).join(' · ')}</span>
+                <span className="muted">{s.blocks.map(b => tr(SCREEN_BLOCKS[b])).join(' · ')}</span>
               </div>
               <div className="pb row" style={{ paddingTop: 0 }}>
-                <Link className="btn primary sm" to={`${base}/screens/${s.id}`}>Open</Link>
-                {a.canW('clocks', s.scope ?? null) && <button type="button" className="btn sm" onClick={() => setEditing(s)}>Edit</button>}
+                <Link className="btn primary sm" to={`${base}/screens/${s.id}`}>{tr('Open')}</Link>
+                {a.canW('clocks', s.scope ?? null) && <button type="button" className="btn sm" onClick={() => setEditing(s)}>{tr('Edit')}</button>}
               </div>
             </section>
           )
         })}
-        {!list.length && <div className="panel"><p className="empty">No screens yet.{canAdd && ' Add one for each monitor you want to drive.'}</p></div>}
+        {!list.length && <div className="panel"><p className="empty">{tr('No screens yet.')}{canAdd && ` ${tr('Add one for each monitor you want to drive.')}`}</p></div>}
       </div>
       {editing && <ScreenForm screen={editing === 'new' ? null : editing} sid={sid} onClose={() => setEditing(null)} />}
     </>
@@ -65,12 +66,12 @@ export function ScreenPage() {
   const screens = useCollection('screens')
   const wall = useWall()
   const screen = screenId ? screens[screenId] : undefined
-  if (!screen) return <NoAccess message="This screen no longer exists." />
+  if (!screen) return <NoAccess message={tr('This screen no longer exists.')} />
   return (
     <>
       <div className="head">
-        <div><h1>{screen.name}</h1><p>Updates live. Full screen hides everything else; press Esc to come back.</p></div>
-        <div className="actions"><button type="button" className="btn primary" onClick={wall.enter}>Full screen</button></div>
+        <div><h1>{screen.name}</h1><p>{tr('Updates live. Full screen hides everything else; press Esc to come back.')}</p></div>
+        <div className="actions"><button type="button" className="btn primary" onClick={wall.enter}>{tr('Full screen')}</button></div>
       </div>
       <ScreenView screen={screen} />
     </>

@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { fromLocal, toLocal } from '../../lib/time'
 import { useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** Return a string from onSave to show it as an error and keep the dialog open. */
 export type SaveResult = void | string | false
 
 export function FormDialog({
-  title, onClose, onSave, onDelete, saveLabel = 'Save', children,
+  title, onClose, onSave, onDelete, saveLabel = tr('Save'), children,
 }: {
   title: string
   onClose: () => void
@@ -35,7 +36,7 @@ export function FormDialog({
       if (typeof out === 'string') setErr(out)
       else if (out !== false) onClose()
     } catch (x) {
-      setErr(x instanceof Error ? x.message : 'Could not save that change.')
+      setErr(x instanceof Error ? x.message : tr('Could not save that change.'))
     } finally {
       setBusy(false)
     }
@@ -44,7 +45,7 @@ export function FormDialog({
   return (
     <dialog ref={ref} className="dlg" onCancel={e => { e.preventDefault(); onClose() }}>
       <form onSubmit={submit}>
-        <div className="dh"><h2>{title}</h2><button type="button" onClick={onClose} aria-label="Close">×</button></div>
+        <div className="dh"><h2>{title}</h2><button type="button" onClick={onClose} aria-label={tr('Close')}>×</button></div>
         <div className="db">
           {children}
           {err && <p className="fld full small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
@@ -52,13 +53,13 @@ export function FormDialog({
         <div className="df">
           {onDelete && (
             <button type="button" className="btn danger" onClick={async () => {
-              if (!confirm('Delete this? It is removed for everyone.')) return
+              if (!confirm(tr('Delete this? It is removed for everyone.'))) return
               await onDelete()
               onClose()
-            }}>Delete</button>
+            }}>{tr('Delete')}</button>
           )}
           <div className="r">
-            <button type="button" className="btn" onClick={onClose}>Cancel</button>
+            <button type="button" className="btn" onClick={onClose}>{tr('Cancel')}</button>
             <button className="btn primary" type="submit" disabled={busy}>{saveLabel}</button>
           </div>
         </div>

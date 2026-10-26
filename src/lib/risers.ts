@@ -6,6 +6,7 @@
 
 import { LEGACY_RISER_SIZES, RISER_SYSTEMS } from '../types/constants'
 import type { Plot, PlotItem, RiserSize, RiserStock, RiserSystem, RiserSystemStock } from '../types/model'
+import { tr } from '../i18n'
 
 export type DeckCount = Record<RiserSize, number>
 export const SYSTEMS = Object.keys(RISER_SYSTEMS) as RiserSystem[]
@@ -30,7 +31,7 @@ export function sizeLabel(size: RiserSize): string {
 
 /** "40 cm", or "telescopic, 70 cm". */
 export function legLabel(i: Pick<PlotItem, 'height' | 'telescopic'>): string {
-  return `${i.telescopic ? 'telescopic, ' : ''}${i.height ?? 0} cm`
+  return i.telescopic ? tr('telescopic, {h} cm', { h: i.height ?? 0 }) : `${i.height ?? 0} cm`
 }
 
 /** One system's stock on a stage. Stock saved before systems counts as Prolyte. */
@@ -117,7 +118,7 @@ export function planRisers<T>(acts: { act: T; plot: Plot | undefined }[], stock:
 
 /** "3 of 2×1 m, 1 of 1×1 m"; signed: "+2 of 2×1 m, -1 of 1×1 m". */
 export function deckText(c: DeckCount, sys: RiserSystem, signed = false): string {
-  return keys(sys, c).filter(s => c[s]).map(s => `${signed && c[s] > 0 ? '+' : ''}${c[s]} of ${sizeLabel(s)}`).join(', ')
+  return keys(sys, c).filter(s => c[s]).map(s => tr('{n} of {size}', { n: `${signed && c[s] > 0 ? '+' : ''}${c[s]}`, size: sizeLabel(s) })).join(', ')
 }
 
 /** The most decks of each size in use at once over the day. */

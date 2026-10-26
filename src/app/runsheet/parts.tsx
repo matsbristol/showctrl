@@ -8,6 +8,7 @@ import { useNow, useTz } from '../session'
 import { kindClass, kindIcon, kindLabel } from './helpers'
 import { Icon } from '../Icon'
 import { ArtistRisk } from '../risk/RiskChip'
+import { tr } from '../../i18n'
 
 /** A kind's colour, icon and name. The same colours are used on the timeline and run sheet rows. */
 export function KindTag({ kind }: { kind: string }) {
@@ -19,7 +20,7 @@ export function KindLegend({ kinds }: { kinds: string[] }) {
   const order = Object.keys(KINDS)
   const present = [...new Set(kinds.map(k => (k === 'set' ? 'show' : k === 'break' ? 'other' : k)))].sort((a, b) => order.indexOf(a) - order.indexOf(b))
   if (!present.length) return null
-  return <div className="kind-legend" aria-label="Key">{present.map(k => <KindTag key={k} kind={k} />)}</div>
+  return <div className="kind-legend" aria-label={tr('Key')}>{present.map(k => <KindTag key={k} kind={k} />)}</div>
 }
 
 /** A live countdown to `target`, coloured as it nears and passes. */
@@ -35,7 +36,7 @@ export function Tel({ phone }: { phone?: string }) {
 
 export function StatusChip({ status }: { status?: ArtistStatus }) {
   const cls: Partial<Record<ArtistStatus, string>> = { 'on stage': 'go', ready: 'go', backstage: 'ac', arrived: 'ac', travelling: 'sb', cancelled: 'st' }
-  return <span className={`chip ${status ? cls[status] ?? '' : ''}`}>{status ?? '—'}</span>
+  return <span className={`chip ${status ? cls[status] ?? '' : ''}`}>{status ? tr(status) : '—'}</span>
 }
 
 /** "On time", "10 min behind" or "5 min ahead" for a stage. */
@@ -44,9 +45,9 @@ export function DelayChip({ sid }: { sid: Id }) {
   const tz = useTz()
   const now = useNow(10_000)
   const d = stageDelay(ros, sid, now, tz)
-  if (d > 0) return <span className="chip st">{Math.round(d / MIN)} min behind</span>
-  if (d < 0) return <span className="chip ac">{Math.round(-d / MIN)} min ahead</span>
-  return <span className="chip go">On time</span>
+  if (d > 0) return <span className="chip st">{tr('{n} min behind', { n: Math.round(d / MIN) })}</span>
+  if (d < 0) return <span className="chip ac">{tr('{n} min ahead', { n: Math.round(-d / MIN) })}</span>
+  return <span className="chip go">{tr('On time')}</span>
 }
 
 /** One "Now" or "Next" row of a stage card. */
@@ -54,18 +55,18 @@ export function Slot({ label, item, isNow }: { label: string; item?: RosItem; is
   const tz = useTz()
   const artists = useCollection('artists')
   if (!item) {
-    return <div className="slot"><span className="lbl">{label}</span><span className="ttl muted">{isNow ? 'Nothing on stage' : 'No more shows'}</span><span /></div>
+    return <div className="slot"><span className="lbl">{tr(label)}</span><span className="ttl muted">{isNow ? tr('Nothing on stage') : tr('No more shows')}</span><span /></div>
   }
   const e = eff(item)
   const a = item.artist ? artists[item.artist] : undefined
   return (
     <div className={`slot${isNow ? ' now' : ''}`}>
-      <span className="lbl">{label}</span>
+      <span className="lbl">{tr(label)}</span>
       <span className="ttl">{item.title}{item.kind === 'show' && <> <ArtistRisk artistId={item.artist} dot /></>}</span>
       <Countdown target={isNow ? e.e : e.s} />
       <span className="sub">
-        {isNow ? `${kindLabel(item.kind)} ends ${fmtTime(e.e, tz)}` : `On stage ${fmtTime(e.s, tz)}`}
-        {a ? ` · ${a.status}` : ''}
+        {isNow ? tr('{kind} ends {time}', { kind: kindLabel(item.kind), time: fmtTime(e.e, tz) }) : tr('On stage {time}', { time: fmtTime(e.s, tz) })}
+        {a ? ` · ${tr(a.status)}` : ''}
       </span>
     </div>
   )
@@ -92,10 +93,10 @@ export function SheetRow({ item, showArtist, onClick }: { item: RosItem; showArt
         {fmtTime(e.s, tz)}{e.e - e.s >= 5 * MIN ? `–${fmtTime(e.e, tz)}` : ''}
       </span>
       <span className="what"><KindTag kind={item.kind} />{label}{item.notes ? <small>{item.notes}</small> : null}</span>
-      {item.status === 'done' ? <span className="chip">Done</span>
-        : running ? <span className="chip go">Now</span>
-        : past ? <span className="chip">Passed</span>
-        : <Countdown target={live ? e.e : e.s} title={live ? 'Ends in' : 'Starts in'} />}
+      {item.status === 'done' ? <span className="chip">{tr('Done')}</span>
+        : running ? <span className="chip go">{tr('Now')}</span>
+        : past ? <span className="chip">{tr('Passed')}</span>
+        : <Countdown target={live ? e.e : e.s} title={live ? tr('Ends in') : tr('Starts in')} />}
     </li>
   )
 }

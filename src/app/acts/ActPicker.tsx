@@ -8,6 +8,7 @@ import { TAPE } from '../../types/constants'
 import type { Artist, Id } from '../../types/model'
 import { useTerms, useTz } from '../session'
 import type { ActRow } from './acts'
+import { tr } from '../../i18n'
 
 export function ActPicker({ acts, selected, onSelect, badge }: {
   acts: ActRow[]
@@ -31,8 +32,8 @@ export function ActPicker({ acts, selected, onSelect, badge }: {
   return (
     <nav className="panel actpicker" aria-label={t.performers}>
       {today.map(item)}
-      {other.length > 0 && <><div className="ap-sep">Other days</div>{other.map(item)}</>}
-      {!acts.length && <p className="empty">No {t.performers.toLowerCase()} yet.</p>}
+      {other.length > 0 && <><div className="ap-sep">{tr('Other days')}</div>{other.map(item)}</>}
+      {!acts.length && <p className="empty">{tr('No {performers} yet.', { performers: t.performers.toLowerCase() })}</p>}
     </nav>
   )
 }

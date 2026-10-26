@@ -8,6 +8,7 @@ import type { Booking, BookingStatus, Hotel, Id } from '../../types/model'
 import { useTerms, useTz } from '../session'
 import { useServerTime } from '../time'
 import { Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 export function HotelForm({ hotel, onClose }: { hotel: Hotel | null; onClose: () => void }) {
   const store = useStore()
@@ -18,20 +19,20 @@ export function HotelForm({ hotel, onClose }: { hotel: Hotel | null; onClose: ()
   const set = <K extends keyof typeof v>(k: K, x: string) => setV(o => ({ ...o, [k]: x }))
   return (
     <FormDialog
-      title={h ? 'Edit hotel' : 'Add hotel'}
+      title={h ? tr('Edit hotel') : tr('Add hotel')}
       onClose={onClose}
       onDelete={h ? () => store.delete('hotels', h.id) : undefined}
       onSave={async () => {
-        if (!v.name.trim()) return 'Enter a name.'
+        if (!v.name.trim()) return tr('Enter a name.')
         await store.set('hotels', h?.id ?? rid(), { ...v, name: v.name.trim(), block: Number(v.block) || 0 })
       }}
     >
-      <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Address" full><input value={v.address} onChange={e => set('address', e.target.value)} /></Field>
-      <Field label="Contact person"><input value={v.contact} onChange={e => set('contact', e.target.value)} /></Field>
-      <Field label="Phone"><input value={v.phone} onChange={e => set('phone', e.target.value)} /></Field>
-      <Field label="Rooms held per night"><input type="number" min={0} value={v.block} onChange={e => set('block', e.target.value)} /></Field>
-      <Field label="Notes" full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Name')} full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Address')} full><input value={v.address} onChange={e => set('address', e.target.value)} /></Field>
+      <Field label={tr('Contact person')}><input value={v.contact} onChange={e => set('contact', e.target.value)} /></Field>
+      <Field label={tr('Phone')}><input value={v.phone} onChange={e => set('phone', e.target.value)} /></Field>
+      <Field label={tr('Rooms held per night')}><input type="number" min={0} value={v.block} onChange={e => set('block', e.target.value)} /></Field>
+      <Field label={tr('Notes')} full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }
@@ -60,13 +61,13 @@ export function BookingForm({ booking, artistId, onClose }: { booking: Booking |
 
   return (
     <FormDialog
-      title={b ? 'Edit booking' : 'Add booking'}
+      title={b ? tr('Edit booking') : tr('Add booking')}
       onClose={onClose}
       onDelete={b ? () => store.delete('bookings', b.id) : undefined}
       onSave={async () => {
-        if (!hotelList.length) return 'Add a hotel first.'
-        if (!v.artist && !v.guest.trim()) return 'Choose who the booking is for.'
-        if (!v.checkIn || !v.checkOut || v.checkOut <= v.checkIn) return 'Check-out must be after check-in.'
+        if (!hotelList.length) return tr('Add a hotel first.')
+        if (!v.artist && !v.guest.trim()) return tr('Choose who the booking is for.')
+        if (!v.checkIn || !v.checkOut || v.checkOut <= v.checkIn) return tr('Check-out must be after check-in.')
         await store.set('bookings', b?.id ?? rid(), {
           artist: v.artist || null, ...(v.artist ? {} : { guest: v.guest.trim(), guestRole: v.guestRole }),
           hotel: v.hotel, status: v.status, checkIn: v.checkIn, checkOut: v.checkOut, rooms: Number(v.rooms) || 1,
@@ -76,28 +77,28 @@ export function BookingForm({ booking, artistId, onClose }: { booking: Booking |
     >
       <Field label={t.performer}>
         <select value={v.artist} onChange={e => set('artist', e.target.value)}>
-          <option value="">Not {aOrAn(t.performer.toLowerCase())}</option>
+          <option value="">{tr('Not {aPerformer}', { aPerformer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })}</option>
           {Object.values(artists).sort((x, y) => x.name.localeCompare(y.name)).map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
       </Field>
-      <Field label="Hotel">
+      <Field label={tr('Hotel')}>
         <select value={v.hotel} onChange={e => set('hotel', e.target.value)}>
           {hotelList.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
         </select>
       </Field>
-      <Field label="Guest name" hidden={!!v.artist}><input value={v.guest} onChange={e => set('guest', e.target.value)} /></Field>
-      <Field label="Guest is" hidden={!!v.artist}><input value={v.guestRole} placeholder="e.g. Crew, Press, VIP" onChange={e => set('guestRole', e.target.value)} /></Field>
-      <Field label="Status">
+      <Field label={tr('Guest name')} hidden={!!v.artist}><input value={v.guest} onChange={e => set('guest', e.target.value)} /></Field>
+      <Field label={tr('Guest is')} hidden={!!v.artist}><input value={v.guestRole} placeholder={tr('e.g. Crew, Press, VIP')} onChange={e => set('guestRole', e.target.value)} /></Field>
+      <Field label={tr('Status')}>
         <select value={v.status} onChange={e => set('status', e.target.value as BookingStatus)}>
-          {BOOKING_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+          {BOOKING_STATUS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
         </select>
       </Field>
-      <Field label="Rooms"><input type="number" min={1} value={v.rooms} onChange={e => set('rooms', e.target.value)} /></Field>
-      <Field label="Check-in"><input type="date" value={v.checkIn} onChange={e => set('checkIn', e.target.value)} /></Field>
-      <Field label="Check-out"><input type="date" value={v.checkOut} onChange={e => set('checkOut', e.target.value)} /></Field>
-      <Field label="Room type"><input value={v.roomType} placeholder="Single, double, suite" onChange={e => set('roomType', e.target.value)} /></Field>
-      <Field label="Confirmation number"><input value={v.conf} onChange={e => set('conf', e.target.value)} /></Field>
-      <Field label="Notes" full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Rooms')}><input type="number" min={1} value={v.rooms} onChange={e => set('rooms', e.target.value)} /></Field>
+      <Field label={tr('Check-in')}><input type="date" value={v.checkIn} onChange={e => set('checkIn', e.target.value)} /></Field>
+      <Field label={tr('Check-out')}><input type="date" value={v.checkOut} onChange={e => set('checkOut', e.target.value)} /></Field>
+      <Field label={tr('Room type')}><input value={v.roomType} placeholder={tr('Single, double, suite')} onChange={e => set('roomType', e.target.value)} /></Field>
+      <Field label={tr('Confirmation number')}><input value={v.conf} onChange={e => set('conf', e.target.value)} /></Field>
+      <Field label={tr('Notes')} full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }

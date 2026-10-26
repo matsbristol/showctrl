@@ -11,8 +11,9 @@ import { personName } from '../../shared/people'
 import { HOUR, MIN, TAPE } from '../../types/constants'
 import type { Screen, Stage } from '../../types/model'
 import { Icon } from '../Icon'
-import { kindClass, kindIcon, kindLabel } from '../runsheet/helpers'
+import { kindClass, kindIcon, kindLabel, kindLabelEn } from '../runsheet/helpers'
 import { useAccess, useNow, useTz } from '../session'
+import { tr } from '../../i18n'
 
 function NowNextCard({ st }: { st: Stage }) {
   const ros = useCollection('ros')
@@ -21,10 +22,10 @@ function NowNextCard({ st }: { st: Stage }) {
   const { cur, next } = nowNext(ros, st.id, t, tz)
   const line = (label: string, it: typeof cur, target: number | undefined) => (
     <div className="sv-slot">
-      <span className="sv-lbl">{label}</span>
+      <span className="sv-lbl">{tr(label)}</span>
       {it ? (
         <>
-          <span className="sv-ttl">{it.kind === 'show' || it.title.startsWith(kindLabel(it.kind)) ? it.title : `${kindLabel(it.kind)} · ${it.title}`}</span>
+          <span className="sv-ttl">{it.kind === 'show' || it.title.startsWith(kindLabelEn(it.kind)) || it.title.startsWith(kindLabel(it.kind)) ? it.title : `${kindLabel(it.kind)} · ${it.title}`}</span>
           {target != null && <span className={`sv-cd ${countdownState(target - t, it.kind === 'show' ? 10 : 5)}`}>{fmtCountdown(target - t)}</span>}
         </>
       ) : <span className="sv-ttl muted">—</span>}
@@ -32,7 +33,7 @@ function NowNextCard({ st }: { st: Stage }) {
   )
   return (
     <section className="sv-card" style={{ ['--c' as string]: TAPE[st.tape] }}>
-      <h3>{st.name}{(next?.delay || cur?.delay) ? <span className="sv-late">{Math.round(((next?.delay || cur?.delay) ?? 0) / MIN)} min late</span> : null}</h3>
+      <h3>{st.name}{(next?.delay || cur?.delay) ? <span className="sv-late">{tr('{n} min late', { n: Math.round(((next?.delay || cur?.delay) ?? 0) / MIN) })}</span> : null}</h3>
       {line('Now', cur, cur ? eff(cur).e : undefined)}
       {line('Next', next, next ? eff(next).s : undefined)}
     </section>
@@ -58,7 +59,7 @@ function Schedule({ stages }: { stages: Stage[] }) {
 
   return (
     <section className="sv-schedule">
-      <h3>Running order</h3>
+      <h3>{tr('Running order')}</h3>
       <ol ref={box}>
         {items.map((i, k) => {
           const e = eff(i)
@@ -72,7 +73,7 @@ function Schedule({ stages }: { stages: Stage[] }) {
             </li>
           )
         })}
-        {!items.length && <li className="muted">Nothing scheduled today.</li>}
+        {!items.length && <li className="muted">{tr('Nothing scheduled today.')}</li>}
       </ol>
     </section>
   )
@@ -87,13 +88,13 @@ function Messages() {
   const list = visibleMsgs(a, msgs).slice(0, 4)
   return (
     <section className="sv-msgs">
-      <h3>Messages</h3>
+      <h3>{tr('Messages')}</h3>
       {list.map(m => (
         <p key={m.id} className={m.pri === 'urgent' ? 'urg' : ''}>
           <b className="num">{fmtTime(m.at, tz)}</b> <b>{personName(m.from, members, people)}</b> {m.text}
         </p>
       ))}
-      {!list.length && <p className="muted">No messages.</p>}
+      {!list.length && <p className="muted">{tr('No messages.')}</p>}
     </section>
   )
 }
@@ -108,13 +109,13 @@ function Trucks({ stages }: { stages: Stage[] }) {
   const due = truckMoves(ros, { from: t - 15 * MIN, to: t + 3 * HOUR }).filter(i => ids.has(i.stage) && i.status !== 'done').slice(0, 6)
   return (
     <section className="sv-trucks">
-      <h3>Trucks due</h3>
+      <h3>{tr('Trucks due')}</h3>
       {due.map(i => (
         <p key={i.id} className={kindClass(i.kind)}>
           <b className="num">{fmtTime(eff(i).s, tz)}</b> <Icon name={kindIcon(i.kind)} /> {(i.artist && artists[i.artist]?.name) || i.title} · {i.trucks} → {i.dest ? locations[i.dest]?.name : '?'}
         </p>
       ))}
-      {!due.length && <p className="muted">No trucks in the next three hours.</p>}
+      {!due.length && <p className="muted">{tr('No trucks in the next three hours.')}</p>}
     </section>
   )
 }

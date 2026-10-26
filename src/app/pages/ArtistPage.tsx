@@ -15,6 +15,7 @@ import { DaySheetForm, ItemForm } from '../runsheet/forms'
 import { SheetRow, StatusChip, Tel } from '../runsheet/parts'
 import { useAccess, useNow, useTerms, useTz } from '../session'
 import { Hidden } from './ArtistsPage'
+import { tr } from '../../i18n'
 
 type Dialog =
   | { type: 'edit' } | { type: 'daysheet' } | { type: 'item'; item: Partial<RosItem> }
@@ -42,7 +43,7 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
   const items = Object.values(ros).filter(i => i.artist === artist.id).sort((x, y) => x.start - y.start)
   const days = [...new Set(items.map(i => festDay(i.start, tz)))]
   const bks = Object.values(bookings).filter(b => b.artist === artist.id)
-  const homeNow = artist.home ? `${fmtTime(now, artist.home)} at home in ${tzCity(artist.home)}` : ''
+  const homeNow = artist.home ? tr('{time} at home in {city}', { time: fmtTime(now, artist.home), city: tzCity(artist.home) }) : ''
   const firstShow = items.find(i => i.kind === 'show')
 
   return (
@@ -58,18 +59,18 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
         </div>
         <div className="actions">
           <StatusChip status={artist.status} />
-          {w && <button type="button" className="btn" onClick={() => setDialog({ type: 'edit' })}>Edit</button>}
+          {w && <button type="button" className="btn" onClick={() => setDialog({ type: 'edit' })}>{tr('Edit')}</button>}
         </div>
       </div>
 
       <div className="grid g2">
         <section className="panel">
           <div className="ph">
-            <h3>Day sheet</h3>
+            <h3>{tr('Day sheet')}</h3>
             {ws && (
               <div className="actions">
-                <button type="button" className="btn sm" onClick={() => setDialog({ type: 'item', item: { artist: artist.id, stage: artist.stage, kind: 'other', start: firstShow?.start } })}>+ Item</button>
-                <button type="button" className="btn sm primary" onClick={() => setDialog({ type: 'daysheet' })}>{items.length ? 'Regenerate' : 'Create day sheet'}</button>
+                <button type="button" className="btn sm" onClick={() => setDialog({ type: 'item', item: { artist: artist.id, stage: artist.stage, kind: 'other', start: firstShow?.start } })}>{tr('+ Item')}</button>
+                <button type="button" className="btn sm primary" onClick={() => setDialog({ type: 'daysheet' })}>{items.length ? tr('Regenerate') : tr('Create day sheet')}</button>
               </div>
             )}
           </div>
@@ -83,7 +84,7 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
               </ul>
             </div>
           )) : (
-            <p className="empty">No day sheet yet.{ws && ' Create one from the stage template: arrival, get in, load in, stage access, changeover, show, load out and departure.'}</p>
+            <p className="empty">{tr('No day sheet yet.')}{ws && ` ${tr('Create one from the stage template: arrival, get in, load in, stage access, changeover, show, load out and departure.')}`}</p>
           )}
         </section>
 
@@ -92,8 +93,8 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
           <ProductionLinks artist={artist} />
           <section className="panel">
             <div className="ph">
-              <h3>Contacts</h3>
-              {w && sens && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'contact', contact: null })}>+ Add</button></div>}
+              <h3>{tr('Contacts')}</h3>
+              {w && sens && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'contact', contact: null })}>{tr('+ Add')}</button></div>}
             </div>
             {!sens ? <p className="empty"><Hidden /></p>
               : artist.contacts?.length ? artist.contacts.map(c => (
@@ -102,21 +103,21 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
                   className={`contact${w ? ' click' : ''}`}
                   {...(w ? { role: 'button', tabIndex: 0, onClick: () => setDialog({ type: 'contact', contact: c }), onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter') setDialog({ type: 'contact', contact: c }) } } : {})}
                 >
-                  <div><b>{c.name}</b> <span className="r">{c.role}</span></div>
+                  <div><b>{c.name}</b> <span className="r">{tr(c.role)}</span></div>
                   <span />
                   <span className="c" onClick={e => e.stopPropagation()}><Tel phone={c.phone} />{c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}</span>
                   {c.note && <span className="r" style={{ gridColumn: '1 / -1' }}>{c.note}</span>}
                 </div>
-              )) : <p className="empty">No contacts yet.</p>}
+              )) : <p className="empty">{tr('No contacts yet.')}</p>}
           </section>
 
           <section className="panel">
-            <div className="ph"><h3>Production</h3></div>
+            <div className="ph"><h3>{tr('Production')}</h3></div>
             <div className="pb">
               <dl className="kv">
-                <dt>Travelling party</dt><dd>{artist.party || '—'}</dd>
-                <dt>Vehicles</dt><dd>{artist.vehicles || '—'}</dd>
-                {artist.notes && <><dt>Notes</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{artist.notes}</dd></>}
+                <dt>{tr('Travelling party')}</dt><dd>{artist.party || '—'}</dd>
+                <dt>{tr('Vehicles')}</dt><dd>{artist.vehicles || '—'}</dd>
+                {artist.notes && <><dt>{tr('Notes')}</dt><dd style={{ whiteSpace: 'pre-wrap' }}>{artist.notes}</dd></>}
               </dl>
             </div>
           </section>
@@ -124,24 +125,24 @@ export function ArtistDetail({ artist, sid }: { artist: Artist; sid: Id | null }
           {moduleOn(cfg, 'accommodation') && a.lv('accommodation', artist.stage) >= 1 && (
             <section className="panel">
               <div className="ph">
-                <h3>Accommodation</h3>
-                {a.canW('accommodation') && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'book' })}>+ Book</button></div>}
+                <h3>{tr('Accommodation')}</h3>
+                {a.canW('accommodation') && <div className="actions"><button type="button" className="btn sm" onClick={() => setDialog({ type: 'book' })}>{tr('+ Book')}</button></div>}
               </div>
               {bks.length ? (
                 <ul className="list">
                   {bks.map(b => (
                     <li key={b.id}>
                       <div className="stack">
-                        <b>{hotels[b.hotel]?.name ?? 'Hotel'}</b>
+                        <b>{hotels[b.hotel]?.name ?? tr('Hotel')}</b>
                         <span className="small muted">
-                          {dayLabel(b.checkIn)} → {dayLabel(b.checkOut)} · {b.rooms || 1} × {b.roomType || 'room'}{sens && b.conf ? ` · Ref ${b.conf}` : ''}
+                          {dayLabel(b.checkIn)} → {dayLabel(b.checkOut)} · {b.rooms || 1} × {b.roomType || tr('room')}{sens && b.conf ? ` · ${tr('Ref {ref}', { ref: b.conf })}` : ''}
                         </span>
                       </div>
-                      <span className={`chip ${b.status === 'confirmed' || b.status === 'checked in' ? 'go' : 'sb'}`} style={{ marginLeft: 'auto' }}>{b.status}</span>
+                      <span className={`chip ${b.status === 'confirmed' || b.status === 'checked in' ? 'go' : 'sb'}`} style={{ marginLeft: 'auto' }}>{tr(b.status)}</span>
                     </li>
                   ))}
                 </ul>
-              ) : <p className="empty">No rooms booked.</p>}
+              ) : <p className="empty">{tr('No rooms booked.')}</p>}
             </section>
           )}
         </div>

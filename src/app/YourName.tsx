@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useLive } from './live'
+import { tr } from '../i18n'
 
 function NameForm({ initial, onDone, autoFocus }: { initial: string; onDone?: () => void; autoFocus?: boolean }) {
   const live = useLive()
@@ -11,12 +12,12 @@ function NameForm({ initial, onDone, autoFocus }: { initial: string; onDone?: ()
     if (!live) return
     setBusy(true)
     setErr('')
-    try { await live.setName(name); onDone?.() } catch (x) { setErr(x instanceof Error ? x.message : 'Could not save your name.') } finally { setBusy(false) }
+    try { await live.setName(name); onDone?.() } catch (x) { setErr(x instanceof Error ? x.message : tr('Could not save your name.')) } finally { setBusy(false) }
   }
   return (
     <form className="yourname-form" onSubmit={e => void save(e)}>
-      <input aria-label="Your name" value={name} maxLength={60} autoFocus={autoFocus} placeholder="First and last name" onChange={e => setName(e.target.value)} />
-      <button type="submit" className="btn sm primary" disabled={busy || !name.trim()}>{busy ? 'Saving…' : 'Save'}</button>
+      <input aria-label={tr('Your name')} value={name} maxLength={60} autoFocus={autoFocus} placeholder={tr('First and last name')} onChange={e => setName(e.target.value)} />
+      <button type="submit" className="btn sm primary" disabled={busy || !name.trim()}>{busy ? tr('Saving…') : tr('Save')}</button>
       {err && <span className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</span>}
     </form>
   )
@@ -27,8 +28,8 @@ export function NamePrompt() {
   const live = useLive()
   if (!live || live.name) return null
   return (
-    <div className="yourname-prompt no-print" role="region" aria-label="Your name">
-      <span><b>What’s your name?</b> People see it on your messages and in lists instead of your email.</span>
+    <div className="yourname-prompt no-print" role="region" aria-label={tr('Your name')}>
+      <span><b>{tr('What’s your name?')}</b> {tr('People see it on your messages and in lists instead of your email.')}</span>
       <NameForm initial="" />
     </div>
   )
@@ -50,10 +51,10 @@ export function YourNameButton({ label, title }: { label: React.ReactNode; title
   if (!live) return <span className="who-name" title={title}>{label}</span>
   return (
     <div className="yourname" ref={box}>
-      <button type="button" className="who-name" title={`${title} · change your name`} aria-expanded={open} onClick={() => setOpen(o => !o)}>{label}</button>
+      <button type="button" className="who-name" title={`${title} · ${tr('change your name')}`} aria-expanded={open} onClick={() => setOpen(o => !o)}>{label}</button>
       {open && (
-        <div className="yourname-pop" role="dialog" aria-label="Change your name">
-          <span className="small muted">The name people see on your messages, in every event.</span>
+        <div className="yourname-pop" role="dialog" aria-label={tr('Change your name')}>
+          <span className="small muted">{tr('The name people see on your messages, in every event.')}</span>
           <NameForm initial={live.name ?? ''} autoFocus onDone={() => setOpen(false)} />
         </div>
       )}

@@ -12,6 +12,7 @@ import { PLOT_KINDS, RISER_LEGS, RISER_SYSTEMS } from '../../types/constants'
 import type { Artist, Id, PlotItem, PlotKind, RiserSize, RiserSystem } from '../../types/model'
 import { useAccess } from '../session'
 import { useServerTime } from '../time'
+import { tr } from '../../i18n'
 
 const DEFAULT_W = 14
 const DEFAULT_D = 9
@@ -119,7 +120,7 @@ export function PlotEditor({ artist }: { artist: Artist }) {
     const system = kind === 'riser' ? stageSystem() : undefined
     const dim = system ? deckSize(system, '2x1') : undefined
     const item: PlotItem = {
-      id, kind, label: k.label, x: round(W / 2), y: round(D / 2),
+      id, kind, label: tr(k.label), x: round(W / 2), y: round(D / 2),
       w: dim?.w ?? k.w, d: dim?.d ?? k.d,
       ...(system ? { system, size: '2x1', height: 40, rolling: false } : {}),
     }
@@ -160,21 +161,21 @@ export function PlotEditor({ artist }: { artist: Artist }) {
   return (
     <div className="stack" style={{ gap: '1rem', minWidth: 0 }}>
       {w && (
-        <div className="plot-palette no-print" role="toolbar" aria-label="Add to plot">
+        <div className="plot-palette no-print" role="toolbar" aria-label={tr('Add to plot')}>
           {(Object.keys(PLOT_KINDS) as PlotKind[]).map(k => (
-            <button key={k} type="button" className={`btn sm pk-${k}`} onClick={() => void add(k)}>+ {PLOT_KINDS[k].label}</button>
+            <button key={k} type="button" className={`btn sm pk-${k}`} onClick={() => void add(k)}>+ {tr(PLOT_KINDS[k].label)}</button>
           ))}
         </div>
       )}
       <div className="plot-wrap" ref={wrap}>
         <svg ref={svg} className="plot" viewBox={`-0.5 -0.5 ${W + 1} ${D + 1.6}`} onPointerMove={move} onPointerUp={up} onPointerLeave={up}
-          role="img" aria-label={`Stage plot for ${artist.name}, ${W} by ${D} metres`}>
+          role="img" aria-label={tr('Stage plot for {name}, {w} by {d} metres', { name: artist.name, w: W, d: D })}>
           <rect x={0} y={0} width={W} height={D} className="plot-stage" onPointerDown={() => select(null)} />
           {Array.from({ length: W - 1 }, (_, i) => <line key={`v${i}`} x1={i + 1} y1={0} x2={i + 1} y2={D} className="plot-grid" />)}
           {Array.from({ length: D - 1 }, (_, i) => <line key={`h${i}`} x1={0} y1={i + 1} x2={W} y2={i + 1} className="plot-grid" />)}
-          <text x={W / 2} y={D + 0.75} className="plot-front">FRONT OF STAGE · AUDIENCE</text>
-          <text x={0.15} y={D + 0.75} className="plot-side">L</text>
-          <text x={W - 0.15} y={D + 0.75} className="plot-side" textAnchor="end">R</text>
+          <text x={W / 2} y={D + 0.75} className="plot-front">{tr('FRONT OF STAGE · AUDIENCE')}</text>
+          <text x={0.15} y={D + 0.75} className="plot-side">{tr('L')}</text>
+          <text x={W - 0.15} y={D + 0.75} className="plot-side" textAnchor="end">{tr('R')}</text>
           {ordered.map(it => {
             const { x, y } = posOf(it)
             const round = it.kind === 'vocal' || it.kind === 'mic' || it.kind === 'person'
@@ -210,66 +211,66 @@ export function PlotEditor({ artist }: { artist: Artist }) {
             return (
               <g key={`lbl-${front.id}`} transform={`translate(${x} ${D - y})`} className="plot-riser-label">
                 <text y={halfExtent(front).hd + 0.26} className="plot-label">{front.label}</text>
-                <text y={halfExtent(front).hd + 0.5} className="plot-sub">{decks.length > 1 ? `${decks.length} × ` : ''}{RISER_SYSTEMS[systemOf(front)].label} {front.size ? sizeLabel(front.size) : ''} · {legLabel(front)}{front.rolling ? ' · rolling' : ''}</text>
+                <text y={halfExtent(front).hd + 0.5} className="plot-sub">{decks.length > 1 ? `${decks.length} × ` : ''}{RISER_SYSTEMS[systemOf(front)].label} {front.size ? sizeLabel(front.size) : ''} · {legLabel(front)}{front.rolling ? ` · ${tr('rolling')}` : ''}</text>
               </g>
             )
           })}
         </svg>
         {selected && !drag && !editing && (
-          <button ref={pill} type="button" className="plot-edit-pill no-print" title="Edit (or double-click the item, or press Enter)" onClick={() => setEditing(true)}>
-            Edit {selected.label}
+          <button ref={pill} type="button" className="plot-edit-pill no-print" title={tr('Edit (or double-click the item, or press Enter)')} onClick={() => setEditing(true)}>
+            {tr('Edit {label}', { label: selected.label })}
           </button>
         )}
         {selected && !drag && editing && (
-          <div ref={pop} className="plot-pop no-print" role="dialog" aria-label={`Edit ${selected.label}`}>
+          <div ref={pop} className="plot-pop no-print" role="dialog" aria-label={tr('Edit {label}', { label: selected.label })}>
             <div className="pp-head">
               <b>{selected.label}</b>
-              <button type="button" className="pp-close" aria-label="Close" onClick={() => setEditing(false)}>×</button>
+              <button type="button" className="pp-close" aria-label={tr('Close')} onClick={() => setEditing(false)}>×</button>
             </div>
-            <p className="small muted">{PLOT_KINDS[selected.kind].label} · {posOf(selected).x} m from left, {posOf(selected).y} m from the front{selected.rot ? ` · turned ${selected.rot}°` : ''}</p>
+            <p className="small muted">{tr(PLOT_KINDS[selected.kind].label)} · {tr('{x} m from left, {y} m from the front', { x: posOf(selected).x, y: posOf(selected).y })}{selected.rot ? ` · ${tr('turned {deg}°', { deg: selected.rot })}` : ''}</p>
             {w && (
               <>
                 <div className="pp-grid">
-                  <label className="fld pp-full"><span>Label</span><input defaultValue={selected.label} key={`l${selected.id}`} onBlur={e => void patch(selected.id, { label: e.target.value || PLOT_KINDS[selected.kind].label })} /></label>
+                  <label className="fld pp-full"><span>{tr('Label')}</span><input defaultValue={selected.label} key={`l${selected.id}`} onBlur={e => void patch(selected.id, { label: e.target.value || tr(PLOT_KINDS[selected.kind].label) })} /></label>
                   {selected.kind === 'riser' ? (
                     <>
-                      <label className="fld"><span>System</span>
+                      <label className="fld"><span>{tr('System')}</span>
                         <select value={systemOf(selected)} onChange={e => { const sys = e.target.value as RiserSystem; setDeck(selected, sys, sizesOf(sys).includes(selected.size ?? '') ? selected.size! : '2x1') }}>
                           {SYSTEMS.map(sys => <option key={sys} value={sys}>{RISER_SYSTEMS[sys].label}</option>)}
                         </select>
                       </label>
-                      <label className="fld"><span>Deck</span>
+                      <label className="fld"><span>{tr('Deck')}</span>
                         <select value={selected.size} onChange={e => setDeck(selected, systemOf(selected), e.target.value)}>
                           {sizesOf(systemOf(selected)).map(sz => <option key={sz} value={sz}>{sizeLabel(sz)}</option>)}
                           {selected.size && !sizesOf(systemOf(selected)).includes(selected.size) && <option value={selected.size}>{sizeLabel(selected.size)}</option>}
                         </select>
                       </label>
-                      <label className="fld"><span>Legs</span>
+                      <label className="fld"><span>{tr('Legs')}</span>
                         <select value={selected.telescopic ? 'telescopic' : String(selected.height ?? '')}
                           onChange={e => void patch(selected.id, e.target.value === 'telescopic' ? { telescopic: true } : { telescopic: false, height: Number(e.target.value) })}>
                           {[...new Set([...RISER_LEGS, ...(selected.height && !selected.telescopic ? [selected.height] : [])])].sort((x, y) => x - y).map(h => <option key={h} value={h}>{h} cm</option>)}
-                          <option value="telescopic">Telescopic</option>
+                          <option value="telescopic">{tr('Telescopic')}</option>
                         </select>
                       </label>
-                      {selected.telescopic && <label className="fld"><span>Height (cm)</span><input type="number" min={0} step={5} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>}
-                      <label className="row small pp-full"><input type="checkbox" checked={!!selected.rolling} onChange={e => void patch(selected.id, { rolling: e.target.checked })} /> Rolling</label>
+                      {selected.telescopic && <label className="fld"><span>{tr('Height (cm)')}</span><input type="number" min={0} step={5} defaultValue={selected.height} key={`h${selected.id}`} onBlur={e => void patch(selected.id, { height: Number(e.target.value) || 0 })} /></label>}
+                      <label className="row small pp-full"><input type="checkbox" checked={!!selected.rolling} onChange={e => void patch(selected.id, { rolling: e.target.checked })} /> {tr('Rolling')}</label>
                     </>
                   ) : (
                     <>
-                      <label className="fld"><span>Width (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.w} key={`w${selected.id}`} onBlur={e => void patch(selected.id, { w: Number(e.target.value) || selected.w })} /></label>
-                      <label className="fld"><span>Depth (m)</span><input type="number" min={0.1} step={0.1} defaultValue={selected.d} key={`d${selected.id}`} onBlur={e => void patch(selected.id, { d: Number(e.target.value) || selected.d })} /></label>
+                      <label className="fld"><span>{tr('Width (m)')}</span><input type="number" min={0.1} step={0.1} defaultValue={selected.w} key={`w${selected.id}`} onBlur={e => void patch(selected.id, { w: Number(e.target.value) || selected.w })} /></label>
+                      <label className="fld"><span>{tr('Depth (m)')}</span><input type="number" min={0.1} step={0.1} defaultValue={selected.d} key={`d${selected.id}`} onBlur={e => void patch(selected.id, { d: Number(e.target.value) || selected.d })} /></label>
                     </>
                   )}
-                  <label className="fld"><span>Rotation</span>
+                  <label className="fld"><span>{tr('Rotation')}</span>
                     <select value={selected.rot ?? 0} onChange={e => void patch(selected.id, { rot: Number(e.target.value) })}>
                       {ANGLES.map(a => <option key={a} value={a}>{a}°</option>)}
                       {!ANGLES.includes(selected.rot ?? 0) && <option value={selected.rot}>{selected.rot}°</option>}
                     </select>
                   </label>
-                  <button type="button" className="btn" style={{ alignSelf: 'flex-end' }} title="Shortcut: R (Shift+R turns the other way)" onClick={() => void rotate(selected, 90)}>Rotate 90°</button>
+                  <button type="button" className="btn" style={{ alignSelf: 'flex-end' }} title={tr('Shortcut: R (Shift+R turns the other way)')} onClick={() => void rotate(selected, 90)}>{tr('Rotate 90°')}</button>
                 </div>
                 <div className="pp-actions">
-                  <button type="button" className="btn sm danger" onClick={() => { void store.update('plots', artist.id, { items: { [selected.id]: undefined } }); select(null) }}>Remove</button>
+                  <button type="button" className="btn sm danger" onClick={() => { void store.update('plots', artist.id, { items: { [selected.id]: undefined } }); select(null) }}>{tr('Remove')}</button>
                 </div>
               </>
             )}
@@ -280,11 +281,11 @@ export function PlotEditor({ artist }: { artist: Artist }) {
         <div className="pb row small">
           {w ? (
             <>
-              <label className="row">Stage width (m) <input className="inline-sel" type="number" min={4} max={40} defaultValue={W} key={`W${W}`} style={{ width: '4.5rem' }} onBlur={async e => { await ensure(); void store.update('plots', artist.id, { width: Math.max(4, Number(e.target.value) || W) }) }} /></label>
-              <label className="row">Depth (m) <input className="inline-sel" type="number" min={3} max={30} defaultValue={D} key={`D${D}`} style={{ width: '4.5rem' }} onBlur={async e => { await ensure(); void store.update('plots', artist.id, { depth: Math.max(3, Number(e.target.value) || D) }) }} /></label>
+              <label className="row">{tr('Stage width (m)')} <input className="inline-sel" type="number" min={4} max={40} defaultValue={W} key={`W${W}`} style={{ width: '4.5rem' }} onBlur={async e => { await ensure(); void store.update('plots', artist.id, { width: Math.max(4, Number(e.target.value) || W) }) }} /></label>
+              <label className="row">{tr('Depth (m)')} <input className="inline-sel" type="number" min={3} max={30} defaultValue={D} key={`D${D}`} style={{ width: '4.5rem' }} onBlur={async e => { await ensure(); void store.update('plots', artist.id, { depth: Math.max(3, Number(e.target.value) || D) }) }} /></label>
             </>
           ) : <span>{W} × {D} m</span>}
-          <span className="muted" style={{ marginLeft: 'auto' }}>{items.length} items{riserText(plot) ? ` · risers: ${riserText(plot)}` : ''}</span>
+          <span className="muted" style={{ marginLeft: 'auto' }}>{tr('{n} items', { n: items.length })}{riserText(plot) ? ` · ${tr('risers: {list}', { list: riserText(plot) })}` : ''}</span>
         </div>
       </section>
     </div>

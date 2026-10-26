@@ -9,6 +9,7 @@ import type { Id, Plot, RiserStock, RiserSystem, RosItem } from '../../types/mod
 import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** Riser stock per stage against what each act's plot needs, in running order. */
 export function RisersPage({ sid }: { sid: Id | null }) {
@@ -34,8 +35,8 @@ export function RisersPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>Risers{st ? ` · ${st.name}` : ''}</h1>
-          <p>What each {t.performer.toLowerCase()}’s stage plot needs against this {t.stage.toLowerCase()}’s stock, for each riser system. Rolling risers count twice while the act before them plays, because they’re built off stage.</p>
+          <h1>{tr('Risers')}{st ? ` · ${st.name}` : ''}</h1>
+          <p>{tr('What each {performer}’s stage plot needs against this {stage}’s stock, for each riser system. Rolling risers count twice while the act before them plays, because they’re built off stage.', { performer: t.performer.toLowerCase(), stage: t.stage.toLowerCase() })}</p>
         </div>
         <div className="actions">
           {!sid && (
@@ -86,42 +87,42 @@ function SystemSection({ sys, stageId, stock, acts, w }: {
       <h2>{name}</h2>
       <div className="grid g2" style={{ marginBottom: '1rem' }}>
         <section className="panel">
-          <div className="ph"><h3>Stock</h3>{hasStock ? null : <span className="small muted">None on this {t.stage.toLowerCase()}</span>}</div>
+          <div className="ph"><h3>{tr('Stock')}</h3>{hasStock ? null : <span className="small muted">{tr('None on this {stage}', { stage: t.stage.toLowerCase() })}</span>}</div>
           <div className="pb row riser-stock">
             {sizesOf(sys).map(s => (
               <label key={s} className="fld">
                 <span>{sizeLabel(s)}</span>
                 {w
-                  ? <input type="number" min={0} aria-label={`${name} ${sizeLabel(s)} decks`} defaultValue={have.decks[s] ?? 0} key={`${s}-${have.decks[s] ?? 0}`} onBlur={e => void setStock({ decks: { [s]: Math.max(0, Number(e.target.value) || 0) } })} />
+                  ? <input type="number" min={0} aria-label={tr('{system} {size} decks', { system: name, size: sizeLabel(s) })} defaultValue={have.decks[s] ?? 0} key={`${s}-${have.decks[s] ?? 0}`} onBlur={e => void setStock({ decks: { [s]: Math.max(0, Number(e.target.value) || 0) } })} />
                   : <b className="num">{have.decks[s] ?? 0}</b>}
               </label>
             ))}
             <fieldset className="riser-legs">
-              <legend>Legs</legend>
+              <legend>{tr('Legs')}</legend>
               {legs.map(h => (
                 <label key={h} className="row small">
-                  <input type="checkbox" aria-label={`${name} ${h} cm legs`} disabled={!w} checked={have.heights.includes(h)}
+                  <input type="checkbox" aria-label={tr('{system} {h} cm legs', { system: name, h })} disabled={!w} checked={have.heights.includes(h)}
                     onChange={e => void setStock({ heights: (e.target.checked ? [...have.heights, h] : have.heights.filter(x => x !== h)).sort((x, y) => x - y) })} /> {h} cm
                 </label>
               ))}
               <label className="row small">
-                <input type="checkbox" aria-label={`${name} telescopic legs`} disabled={!w} checked={!!have.telescopic} onChange={e => void setStock({ telescopic: e.target.checked })} /> Telescopic
+                <input type="checkbox" aria-label={tr('{system} telescopic legs', { system: name })} disabled={!w} checked={!!have.telescopic} onChange={e => void setStock({ telescopic: e.target.checked })} /> {tr('Telescopic')}
               </label>
             </fieldset>
           </div>
         </section>
         <section className="panel">
-          <div className="ph"><h3>This day</h3></div>
+          <div className="ph"><h3>{tr('This day')}</h3></div>
           <div className="pb stack small">
-            <span>Most in use at once: <b>{deckText(top, sys) || 'none'}</b></span>
-            <span className={short ? 'over' : 'muted'}>{short ? `${short} ${short === 1 ? 'show is' : 'shows are'} short of ${name} decks or legs` : `Enough ${name} decks and legs for every show.`}</span>
+            <span>{tr('Most in use at once:')} <b>{deckText(top, sys) || tr('none')}</b></span>
+            <span className={short ? 'over' : 'muted'}>{short ? tr(short === 1 ? '{n} show is short of {system} decks or legs' : '{n} shows are short of {system} decks or legs', { n: short, system: name }) : tr('Enough {system} decks and legs for every show.', { system: name })}</span>
           </div>
         </section>
       </div>
 
       <section className="panel tbl-wrap" style={{ marginBottom: '1.5rem' }}>
         <table>
-          <thead><tr><th>On stage</th><th>{t.performer}</th><th>Needs</th><th>Rolling</th><th>Changeover in</th><th>Stock check</th></tr></thead>
+          <thead><tr><th>{tr('On stage')}</th><th>{t.performer}</th><th>{tr('Needs')}</th><th>{tr('Rolling')}</th><th>{tr('Changeover in')}</th><th>{tr('Stock check')}</th></tr></thead>
           <tbody>
             {used.map(r => {
               const art = artists[r.act.artist!]
@@ -130,18 +131,18 @@ function SystemSection({ sys, stageId, stock, acts, w }: {
                 <tr key={r.act.id} className={bad ? 'clash' : undefined}>
                   <td className="num"><b>{fmtTime(eff(r.act).s, tz)}</b></td>
                   <td><Link to={`/s/${stageId}/plots?act=${art.id}`} style={{ color: 'inherit' }}><b>{art.name}</b></Link></td>
-                  <td>{deckText(r.need, sys) || <span className="muted">None</span>}{(r.heights.length > 0 || r.telescopic) && <div className="small muted">{[r.heights.length ? `${r.heights.join(' / ')} cm` : '', r.telescopic ? 'telescopic' : ''].filter(Boolean).join(' + ')}</div>}</td>
+                  <td>{deckText(r.need, sys) || <span className="muted">{tr('None')}</span>}{(r.heights.length > 0 || r.telescopic) && <div className="small muted">{[r.heights.length ? `${r.heights.join(' / ')} cm` : '', r.telescopic ? tr('telescopic') : ''].filter(Boolean).join(' + ')}</div>}</td>
                   <td>{deckText(r.rolling, sys) || '—'}</td>
                   <td className="num">{deckText(r.change, sys, true).replace(/-/g, '−') || '—'}</td>
                   <td>
                     {bad
-                      ? <span className="chip st">{[deckText(r.short, sys) && `short ${deckText(r.short, sys)}`, r.missingHeights.length && `no ${r.missingHeights.join('/')} cm legs`, r.missingTelescopic && 'no telescopic legs'].filter(Boolean).join('; ')}</span>
-                      : <span className="chip go">OK</span>}
+                      ? <span className="chip st">{[deckText(r.short, sys) && tr('short {decks}', { decks: deckText(r.short, sys) }), r.missingHeights.length && tr('no {heights} cm legs', { heights: r.missingHeights.join('/') }), r.missingTelescopic && tr('no telescopic legs')].filter(Boolean).join('; ')}</span>
+                      : <span className="chip go">{tr('OK')}</span>}
                   </td>
                 </tr>
               )
             })}
-            {!used.length && <tr><td colSpan={6} className="empty">No act uses {name} risers on this {t.stage.toLowerCase()} this day.</td></tr>}
+            {!used.length && <tr><td colSpan={6} className="empty">{tr('No act uses {system} risers on this {stage} this day.', { system: name, stage: t.stage.toLowerCase() })}</td></tr>}
           </tbody>
         </table>
       </section>

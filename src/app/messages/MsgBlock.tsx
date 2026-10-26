@@ -6,6 +6,7 @@ import { initials, personColor, personName } from '../../shared/people'
 import type { Id } from '../../types/model'
 import { useAccess, useNow } from '../session'
 import { useTargetLabel } from './labels'
+import { tr } from '../../i18n'
 
 /** The latest five messages for HQ or a stage. The full Messages page arrives in step 7. */
 export function MsgBlock({ sid }: { sid: Id | null }) {
@@ -25,8 +26,8 @@ export function MsgBlock({ sid }: { sid: Id | null }) {
   return (
     <section className="panel">
       <div className="ph">
-        <h3>{sid ? 'Messages for this stage' : 'Latest messages'}</h3>
-        <div className="actions"><Link className="btn sm" to={sid ? `/s/${sid}/messages` : '/hq/messages'}>Open</Link></div>
+        <h3>{sid ? tr('Messages for this stage') : tr('Latest messages')}</h3>
+        <div className="actions"><Link className="btn sm" to={sid ? `/s/${sid}/messages` : '/hq/messages'}>{tr('Open')}</Link></div>
       </div>
       {list.length ? (
         <ul className="list">
@@ -38,7 +39,7 @@ export function MsgBlock({ sid }: { sid: Id | null }) {
                 <div className="stack" style={{ minWidth: 0 }}>
                   <span className="small muted">
                     <b style={{ color: 'var(--ink)' }}>{name}</b> → {label(m.to)} · {relTime(m.at, now)}
-                    {m.pri === 'urgent' && <> <span className="chip st">Urgent</span></>}
+                    {m.pri === 'urgent' && <> <span className="chip st">{tr('Urgent')}</span></>}
                   </span>
                   <span style={{ overflowWrap: 'anywhere' }}>{m.text}</span>
                 </div>
@@ -46,7 +47,7 @@ export function MsgBlock({ sid }: { sid: Id | null }) {
             )
           })}
         </ul>
-      ) : <p className="empty">No messages yet.</p>}
+      ) : <p className="empty">{tr('No messages yet.')}</p>}
     </section>
   )
 }

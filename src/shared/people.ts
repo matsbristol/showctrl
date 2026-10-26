@@ -3,6 +3,7 @@
 import { STAGE_ROLES } from '../types/constants'
 import type { Id, Member, Person, RoleDef, Stage, StageTeam } from '../types/model'
 import { sortStages, stageRoleOf } from './access'
+import { tr } from '../i18n'
 
 export interface Profile { name?: string }
 
@@ -19,13 +20,13 @@ export function personName(
   profiles: Readonly<Record<Id, Profile>> = {},
   me?: Id | null,
 ): string {
-  if (!id) return 'Someone'
+  if (!id) return tr('Someone')
   const m = members[id]
   if (m?.person && people[m.person]) return people[m.person].name
   if (m?.name && m.name !== id) return m.name
   if (profiles[id]?.name) return profiles[id].name!
   if (id.includes('@')) return nameFromEmail(id) // until they give a name: mats.bristol@… → Mats Bristol
-  return id === me ? 'You' : 'Someone'
+  return id === me ? tr('You') : tr('Someone')
 }
 
 /** "Production manager", or "Stage manager, Main Stage", or "No access". */
@@ -37,12 +38,12 @@ export function personTag(
   roles: Readonly<Record<string, RoleDef>>,
 ): string {
   const m = members[uid]
-  if (m?.role && m.role !== 'none') return roles[m.role]?.label ?? m.role
+  if (m?.role && m.role !== 'none') return tr(roles[m.role]?.label ?? m.role)
   for (const s of sortStages(stages)) {
     const sr = stageRoleOf(members, stageteam, uid, s.id)
-    if (sr) return `${STAGE_ROLES[sr]}, ${s.name}`
+    if (sr) return `${tr(STAGE_ROLES[sr])}, ${s.name}`
   }
-  return 'No access'
+  return tr('No access')
 }
 
 /** People listed on a stage (or everyone when sid is null), key contacts first. */

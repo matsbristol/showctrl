@@ -12,6 +12,7 @@ import { Icon } from '../Icon'
 import { kindLabel } from '../runsheet/helpers'
 import { KindTag, StatusChip, Tel } from '../runsheet/parts'
 import { useAccess, useNow, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** Performers for HQ (every visible stage) or one stage. */
 export function ArtistsPage({ sid }: { sid: Id | null }) {
@@ -41,17 +42,17 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
       <div className="head">
         <div>
           <h1>{sid ? `${t.performers} · ${stages[sid]?.name}` : t.performers}</h1>
-          <p>Status, show times, contacts and the full day sheet for each act. Contact details show only for roles allowed to see them.</p>
+          <p>{tr('Status, show times, contacts and the full day sheet for each act. Contact details show only for roles allowed to see them.')}</p>
         </div>
         <div className="actions">
-          <input className="inline-sel" style={{ padding: '.45rem .6rem' }} type="search" placeholder="Search" aria-label="Search" value={q} onChange={e => setQ(e.target.value)} />
-          {canAdd && <button type="button" className="btn primary" onClick={() => setAdding(true)}>+ Add {t.performer.toLowerCase()}</button>}
+          <input className="inline-sel" style={{ padding: '.45rem .6rem' }} type="search" placeholder={tr('Search')} aria-label={tr('Search')} value={q} onChange={e => setQ(e.target.value)} />
+          {canAdd && <button type="button" className="btn primary" onClick={() => setAdding(true)}>{tr('+ Add {performer}', { performer: t.performer.toLowerCase() })}</button>}
         </div>
       </div>
       <div className="panel tbl-wrap">
         <table>
           <thead>
-            <tr><th>{t.performer}</th>{!sid && <th>{t.stage}</th>}{showRisk && <th>Risk</th>}<th>On stage</th><th>Next activity</th><th>Status</th><th>Party</th><th>Main contact</th></tr>
+            <tr><th>{t.performer}</th>{!sid && <th>{t.stage}</th>}{showRisk && <th>{tr('Risk')}</th>}<th>{tr('On stage')}</th><th>{tr('Next activity')}</th><th>{tr('Status')}</th><th>{tr('Party')}</th><th>{tr('Main contact')}</th></tr>
           </thead>
           <tbody>
             {list.map(x => {
@@ -66,7 +67,7 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
                   {!sid && <td>{st ? <span className="row"><span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />{st.name}</span> : '—'}</td>}
                   {showRisk && <td><ArtistRisk artistId={x.id} /></td>}
                   <td className="num small">
-                    {shows.length ? shows.map(s => <div key={s.id}>{dayLabel(festDay(s.start, tz))} <b>{fmtTime(eff(s).s, tz)}</b></div>) : <span className="muted">Not scheduled</span>}
+                    {shows.length ? shows.map(s => <div key={s.id}>{dayLabel(festDay(s.start, tz))} <b>{fmtTime(eff(s).s, tz)}</b></div>) : <span className="muted">{tr('Not scheduled')}</span>}
                   </td>
                   <td className="small">
                     {nx ? <><KindTag kind={nx.kind} />{fmtTime(eff(nx).s, tz)} <span className="muted" title={kindLabel(nx.kind)}>{relTime(eff(nx).s, now)}</span></> : <span className="muted">—</span>}
@@ -74,8 +75,8 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
                   <td onClick={e => e.stopPropagation()}>
                     {a.canW('artists', x.stage)
                       ? (
-                        <select className="inline-sel" aria-label={`Status of ${x.name}`} value={x.status} onChange={e => void store.update('artists', x.id, { status: e.target.value as ArtistStatus })}>
-                          {ARTIST_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                        <select className="inline-sel" aria-label={tr('Status of {name}', { name: x.name })} value={x.status} onChange={e => void store.update('artists', x.id, { status: e.target.value as ArtistStatus })}>
+                          {ARTIST_STATUS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
                         </select>
                       )
                       : <StatusChip status={x.status} />}
@@ -87,7 +88,7 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
                 </tr>
               )
             })}
-            {!list.length && <tr><td colSpan={8} className="empty">No {t.performers.toLowerCase()} yet.</td></tr>}
+            {!list.length && <tr><td colSpan={8} className="empty">{tr('No {performers} yet.', { performers: t.performers.toLowerCase() })}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -97,5 +98,5 @@ export function ArtistsPage({ sid }: { sid: Id | null }) {
 }
 
 export function Hidden() {
-  return <span className="lock"><Icon name="lock" />Hidden for your role</span>
+  return <span className="lock"><Icon name="lock" />{tr('Hidden for your role')}</span>
 }

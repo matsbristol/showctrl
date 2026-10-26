@@ -11,6 +11,7 @@ import { useDay } from '../day'
 import { RiskBadge } from '../risk/RiskChip'
 import { KindTag, Tel } from '../runsheet/parts'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 /** Every act for a day on one page, with CSV and print. */
 export function SummaryPage({ sid }: { sid: Id | null }) {
@@ -46,36 +47,36 @@ export function SummaryPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>Technical summary{sid ? ` · ${data.stages[sid]?.name}` : ''}</h1>
-          <p>{dayLabel(day, true)}: every {t.performer.toLowerCase()} with key times, party, loads, contact{tech ? ', inputs and risers' : ''}.</p>
+          <h1>{tr('Technical summary')}{sid ? ` · ${data.stages[sid]?.name}` : ''}</h1>
+          <p>{dayLabel(day, true)}: {tr(tech ? 'every {performer} with key times, party, loads, contact, inputs and risers.' : 'every {performer} with key times, party, loads, contact.', { performer: t.performer.toLowerCase() })}</p>
         </div>
         <div className="actions no-print">
           <DaySelector />
-          <button type="button" className="btn" onClick={download} disabled={!rows.length}>Export CSV</button>
-          <button type="button" className="btn" onClick={() => window.print()}>Print</button>
+          <button type="button" className="btn" onClick={download} disabled={!rows.length}>{tr('Export CSV')}</button>
+          <button type="button" className="btn" onClick={() => window.print()}>{tr('Print')}</button>
         </div>
       </div>
       <div className="filters no-print">
-        <input type="search" placeholder={`Search ${t.performers.toLowerCase()}`} aria-label="Search" value={q} onChange={e => setQ(e.target.value)} />
+        <input type="search" placeholder={tr('Search {performers}', { performers: t.performers.toLowerCase() })} aria-label={tr('Search')} value={q} onChange={e => setQ(e.target.value)} />
         {!sid && (
           <select aria-label={t.stage} value={fs} onChange={e => setFs(e.target.value)}>
-            <option value="">All {t.stages.toLowerCase()}</option>
+            <option value="">{tr('All {stages}', { stages: t.stages.toLowerCase() })}</option>
             {a.stagesSorted().map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
         )}
-        <span className="small muted">{rows.length} {rows.length === 1 ? 'show' : 'shows'}</span>
+        <span className="small muted">{tr(rows.length === 1 ? '{n} show' : '{n} shows', { n: rows.length })}</span>
       </div>
       <section className="panel tbl-wrap summary">
         <table>
           <thead>
             <tr>
               <th>{t.performer}</th>
-              <th>Schedule</th>
-              <th>Party &amp; vehicles</th>
-              <th>Load in / out</th>
-              <th>Main contact</th>
-              {tech && <th>Inputs &amp; risers</th>}
-              {risk && <th>Risk</th>}
+              <th>{tr('Schedule')}</th>
+              <th>{tr('Party & vehicles')}</th>
+              <th>{tr('Load in / out')}</th>
+              <th>{tr('Main contact')}</th>
+              {tech && <th>{tr('Inputs & risers')}</th>}
+              {risk && <th>{tr('Risk')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -84,7 +85,7 @@ export function SummaryPage({ sid }: { sid: Id | null }) {
                 <td className="sum-act">
                   <Link to={`${base}/artists/${r.artist.id}`}><b>{r.artist.name}</b></Link>
                   {r.stage && <span className="row small"><span className="tape" style={{ ['--c' as string]: TAPE[r.stage.tape] }} />{r.stage.name}</span>}
-                  <span className="small muted">Show {fmtTime(r.times.find(x => x.kind === 'show')?.start ?? r.show.start, tz)}</span>
+                  <span className="small muted">{tr('Show {time}', { time: fmtTime(r.times.find(x => x.kind === 'show')?.start ?? r.show.start, tz) })}</span>
                 </td>
                 <td>
                   <dl className="sum-times">
@@ -96,21 +97,21 @@ export function SummaryPage({ sid }: { sid: Id | null }) {
                     ))}
                   </dl>
                 </td>
-                <td className="small">{r.party ? `${r.party} people` : '—'}{r.vehicles && <div className="muted">{r.vehicles}</div>}</td>
+                <td className="small">{r.party ? tr('{n} people', { n: r.party }) : '—'}{r.vehicles && <div className="muted">{r.vehicles}</div>}</td>
                 <td className="small">
-                  {r.loadIn ? <div>In: <b>{r.loadIn.trucks}</b> → {r.loadIn.dest || 'not set'}</div> : null}
-                  {r.loadOut ? <div>Out: <b>{r.loadOut.trucks}</b> → {r.loadOut.dest || 'not set'}</div> : null}
+                  {r.loadIn ? <div>{tr('In:')} <b>{r.loadIn.trucks}</b> → {r.loadIn.dest || tr('not set')}</div> : null}
+                  {r.loadOut ? <div>{tr('Out:')} <b>{r.loadOut.trucks}</b> → {r.loadOut.dest || tr('not set')}</div> : null}
                   {!r.loadIn && !r.loadOut && '—'}
                 </td>
-                <td className="small">{r.contact ? <><b>{r.contact.name}</b><div className="muted">{r.contact.role}</div><Tel phone={r.contact.phone} /></> : '—'}</td>
-                {tech && <td className="small">{r.inputs ? `${r.inputs} in / ${r.outputs} out` : <span className="muted">No input list</span>}{r.risers && <div className="muted">{r.risers}</div>}</td>}
+                <td className="small">{r.contact ? <><b>{r.contact.name}</b><div className="muted">{tr(r.contact.role)}</div><Tel phone={r.contact.phone} /></> : '—'}</td>
+                {tech && <td className="small">{r.inputs ? tr('{inputs} in / {outputs} out', { inputs: r.inputs, outputs: r.outputs }) : <span className="muted">{tr('No input list')}</span>}{r.risers && <div className="muted">{r.risers}</div>}</td>}
                 {risk && <td><RiskBadge level={r.risk} /></td>}
               </tr>
             ))}
-            {!rows.length && <tr><td colSpan={7} className="empty">No shows this day.</td></tr>}
+            {!rows.length && <tr><td colSpan={7} className="empty">{tr('No shows this day.')}</td></tr>}
           </tbody>
         </table>
-        <p className="small muted" style={{ padding: '.5rem 1rem' }}>* Running late: times include the delay.</p>
+        <p className="small muted" style={{ padding: '.5rem 1rem' }}>{tr('* Running late: times include the delay.')}</p>
       </section>
     </>
   )

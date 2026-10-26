@@ -2,6 +2,7 @@
 
 import type { Clock, Id, Ms, RosItem, Stage, TimeZone } from '../types/model'
 import { MIN } from '../types/constants'
+import { tr } from '../i18n'
 import { eff, nowNext } from './runsheet'
 import { countdownState, dayKey, dayLabel, fmtCountdown, fmtTime, tzCity, type CountdownState } from './time'
 
@@ -28,12 +29,12 @@ export function clockValue(c: Clock, t: Ms, env: ClockEnv): ClockValue {
       return {
         text: fmtCountdown(ms),
         state: countdownState(ms, c.warn ?? 5),
-        sub: ms < 0 ? `Passed ${fmtTime(c.target, env.tz)}` : `At ${fmtTime(c.target, env.tz)} · ${dayLabel(dayKey(c.target, env.tz))}`,
+        sub: ms < 0 ? tr('Passed {time}', { time: fmtTime(c.target, env.tz) }) : tr('At {time} · {day}', { time: fmtTime(c.target, env.tz), day: dayLabel(dayKey(c.target, env.tz)) }),
       }
     }
     case 'timer': {
       const el = (c.accum || 0) + (c.runningSince ? t - c.runningSince : 0)
-      const status = c.runningSince ? 'Running' : el ? 'Paused' : 'Ready'
+      const status = c.runningSince ? tr('Running') : el ? tr('Paused') : tr('Ready')
       if (c.duration) {
         const ms = c.duration - el
         return { text: fmtCountdown(ms), state: c.runningSince ? countdownState(ms, c.warn ?? 2) : '', sub: `${status} · ${Math.round(c.duration / MIN)} min` }
@@ -41,17 +42,17 @@ export function clockValue(c: Clock, t: Ms, env: ClockEnv): ClockValue {
       return { text: fmtCountdown(el).replace('+', ''), sub: status }
     }
     case 'stage': {
-      if (!env.stages[c.stage]) return { text: '--:--', sub: 'Stage removed' }
+      if (!env.stages[c.stage]) return { text: '--:--', sub: tr('Stage removed') }
       const { cur, next } = nowNext(env.ros, c.stage, t, env.tz)
       if (cur) {
         const ms = eff(cur).e - t
-        return { text: fmtCountdown(ms), state: countdownState(ms, c.warn ?? 5), sub: `${cur.title} ends ${fmtTime(eff(cur).e, env.tz)}` }
+        return { text: fmtCountdown(ms), state: countdownState(ms, c.warn ?? 5), sub: tr('{title} ends {time}', { title: cur.title, time: fmtTime(eff(cur).e, env.tz) }) }
       }
       if (next) {
         const ms = eff(next).s - t
-        return { text: fmtCountdown(ms), state: countdownState(ms, c.warn ?? 5), sub: `${next.title} at ${fmtTime(eff(next).s, env.tz)}` }
+        return { text: fmtCountdown(ms), state: countdownState(ms, c.warn ?? 5), sub: tr('{title} at {time}', { title: next.title, time: fmtTime(eff(next).s, env.tz) }) }
       }
-      return { text: '--:--', sub: 'Nothing scheduled' }
+      return { text: '--:--', sub: tr('Nothing scheduled') }
     }
   }
 }

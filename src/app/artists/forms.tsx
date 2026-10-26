@@ -7,6 +7,7 @@ import { ARTIST_STATUS, CONTACT_ROLES, MIN, TZS } from '../../types/constants'
 import type { Artist, ArtistContact, ArtistStatus, Id } from '../../types/model'
 import { useAccess, useTerms } from '../session'
 import { DateTimeInput, Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 /** Add or edit a performer. A new one can get a tour manager contact and a day sheet straight away. */
 export function ArtistForm({ artist, sid, onClose, onCreated, onDeleted }: {
@@ -38,7 +39,7 @@ export function ArtistForm({ artist, sid, onClose, onCreated, onDeleted }: {
 
   return (
     <FormDialog
-      title={isNew ? `Add ${t.performer.toLowerCase()}` : `Edit ${artist.name}`}
+      title={isNew ? tr('Add {performer}', { performer: t.performer.toLowerCase() }) : tr('Edit {name}', { name: artist.name })}
       onClose={onClose}
       onDelete={artist ? async () => {
         const items = Object.values(store.peek('ros') ?? {}).filter(i => i.artist === artist.id)
@@ -47,8 +48,8 @@ export function ArtistForm({ artist, sid, onClose, onCreated, onDeleted }: {
         onDeleted?.()
       } : undefined}
       onSave={async () => {
-        if (!v.name.trim()) return 'Enter a name.'
-        if (!v.stage) return `Choose ${aOrAn(t.stage.toLowerCase())}.`
+        if (!v.name.trim()) return tr('Enter a name.')
+        if (!v.stage) return tr('Choose {a_stage}.', { a_stage: aOrAn(t.stage.toLowerCase()), stage: t.stage.toLowerCase() })
         const id = artist?.id ?? rid()
         const contacts: ArtistContact[] = artist?.contacts
           ?? (v.cname || v.cphone || v.cemail ? [{ id: rid(), role: 'Tour manager', name: v.cname || 'Tour manager', phone: v.cphone, email: v.cemail }] : [])
@@ -62,35 +63,35 @@ export function ArtistForm({ artist, sid, onClose, onCreated, onDeleted }: {
         if (isNew) onCreated?.(id)
       }}
     >
-      <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Name')} full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
       <Field label={t.stage}>
         <select value={v.stage} onChange={e => set('stage', e.target.value)}>
           {stageOpts.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>
-      <Field label="Status">
+      <Field label={tr('Status')}>
         <select value={v.status} onChange={e => set('status', e.target.value as ArtistStatus)}>
-          {ARTIST_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+          {ARTIST_STATUS.map(s => <option key={s} value={s}>{tr(s)}</option>)}
         </select>
       </Field>
-      <Field label="Genre / description"><input value={v.genre} onChange={e => set('genre', e.target.value)} /></Field>
-      <Field label="Travelling party (people)"><input type="number" value={v.party} onChange={e => set('party', e.target.value)} /></Field>
-      <Field label="Home time zone">
+      <Field label={tr('Genre / description')}><input value={v.genre} onChange={e => set('genre', e.target.value)} /></Field>
+      <Field label={tr('Travelling party (people)')}><input type="number" value={v.party} onChange={e => set('party', e.target.value)} /></Field>
+      <Field label={tr('Home time zone')}>
         <select value={v.home} onChange={e => set('home', e.target.value)}>
           <option value="">—</option>
           {TZS.map(z => <option key={z} value={z}>{z}</option>)}
         </select>
       </Field>
-      <Field label="Vehicles at dock"><input value={v.vehicles} placeholder="e.g. 1 truck, 1 sleeper bus" onChange={e => set('vehicles', e.target.value)} /></Field>
+      <Field label={tr('Vehicles at dock')}><input value={v.vehicles} placeholder={tr('e.g. 1 truck, 1 sleeper bus')} onChange={e => set('vehicles', e.target.value)} /></Field>
       {isNew && <>
-        <Field label="Tour manager name"><input value={v.cname} onChange={e => set('cname', e.target.value)} /></Field>
-        <Field label="Tour manager phone"><input value={v.cphone} onChange={e => set('cphone', e.target.value)} /></Field>
-        <Field label="Tour manager email" full><input value={v.cemail} onChange={e => set('cemail', e.target.value)} /></Field>
-        <Field label="On stage (creates a day sheet)"><DateTimeInput value={v.start} onChange={x => set('start', x)} /></Field>
-        <Field label="Show length (minutes)"><input type="number" value={v.len} onChange={e => set('len', e.target.value)} /></Field>
-        <Field label="Soundcheck (optional)"><DateTimeInput value={v.sc} onChange={x => set('sc', x)} /></Field>
+        <Field label={tr('Tour manager name')}><input value={v.cname} onChange={e => set('cname', e.target.value)} /></Field>
+        <Field label={tr('Tour manager phone')}><input value={v.cphone} onChange={e => set('cphone', e.target.value)} /></Field>
+        <Field label={tr('Tour manager email')} full><input value={v.cemail} onChange={e => set('cemail', e.target.value)} /></Field>
+        <Field label={tr('On stage (creates a day sheet)')}><DateTimeInput value={v.start} onChange={x => set('start', x)} /></Field>
+        <Field label={tr('Show length (minutes)')}><input type="number" value={v.len} onChange={e => set('len', e.target.value)} /></Field>
+        <Field label={tr('Soundcheck (optional)')}><DateTimeInput value={v.sc} onChange={x => set('sc', x)} /></Field>
       </>}
-      <Field label="Production notes" full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Production notes')} full><textarea value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }
@@ -105,23 +106,23 @@ export function ContactForm({ artist, contact, onClose }: { artist: Artist; cont
   const roles: string[] = CONTACT_ROLES.includes(v.role as (typeof CONTACT_ROLES)[number]) ? [...CONTACT_ROLES] : [v.role, ...CONTACT_ROLES]
   return (
     <FormDialog
-      title={contact ? 'Edit contact' : `Add contact · ${artist.name}`}
+      title={contact ? tr('Edit contact') : tr('Add contact · {name}', { name: artist.name })}
       onClose={onClose}
       onDelete={contact ? () => store.update('artists', artist.id, { contacts: artist.contacts.filter(c => c.id !== contact.id) }) : undefined}
       onSave={async () => {
-        if (!v.name.trim() && !v.phone.trim()) return 'Enter at least a name or phone number.'
+        if (!v.name.trim() && !v.phone.trim()) return tr('Enter at least a name or phone number.')
         const o: ArtistContact = { id: contact?.id ?? rid(), ...v, name: v.name.trim() }
         const list = contact ? artist.contacts.map(c => (c.id === contact.id ? o : c)) : [...artist.contacts, o]
         await store.update('artists', artist.id, { contacts: list })
       }}
     >
-      <Field label="Role">
-        <select value={v.role} onChange={e => set('role', e.target.value)}>{roles.map(r => <option key={r} value={r}>{r}</option>)}</select>
+      <Field label={tr('Role')}>
+        <select value={v.role} onChange={e => set('role', e.target.value)}>{roles.map(r => <option key={r} value={r}>{tr(r)}</option>)}</select>
       </Field>
-      <Field label="Name"><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Phone"><input value={v.phone} onChange={e => set('phone', e.target.value)} /></Field>
-      <Field label="Email"><input value={v.email} onChange={e => set('email', e.target.value)} /></Field>
-      <Field label="Note" full><input value={v.note} onChange={e => set('note', e.target.value)} /></Field>
+      <Field label={tr('Name')}><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Phone')}><input value={v.phone} onChange={e => set('phone', e.target.value)} /></Field>
+      <Field label={tr('Email')}><input value={v.email} onChange={e => set('email', e.target.value)} /></Field>
+      <Field label={tr('Note')} full><input value={v.note} onChange={e => set('note', e.target.value)} /></Field>
     </FormDialog>
   )
 }

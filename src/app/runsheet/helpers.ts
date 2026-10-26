@@ -2,12 +2,17 @@ import { useCollection } from '../../data/hooks'
 import { nowNext } from '../../lib/runsheet'
 import { KINDS, LEGACY_KINDS } from '../../types/constants'
 import type { Id } from '../../types/model'
+import { tr } from '../../i18n'
 import type { IconName } from '../Icon'
 import { useNow, useTz } from '../session'
 
 const ALL_KINDS: Record<string, { label: string }> = { ...KINDS, ...LEGACY_KINDS }
 
-export const kindLabel = (k: string) => ALL_KINDS[k]?.label ?? k
+/** A kind's name in the interface language. */
+export const kindLabel = (k: string) => (ALL_KINDS[k] ? tr(ALL_KINDS[k].label) : k)
+
+/** A kind's English name, as used in stored titles (e.g. "Changeover → Act"). */
+export const kindLabelEn = (k: string) => ALL_KINDS[k]?.label ?? k
 
 const KIND_ICONS: Record<string, IconName> = {
   arrival: 'arrival', getin: 'getin', loadin: 'loadin', access: 'access', soundcheck: 'soundcheck', linecheck: 'linecheck',

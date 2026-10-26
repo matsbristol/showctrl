@@ -16,6 +16,7 @@ import { AddPerformerForm, DelayForm, ItemForm } from '../runsheet/forms'
 import { KindLegend, KindTag, Lanes } from '../runsheet/parts'
 import { kindClass } from '../runsheet/helpers'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 type Dialog = { type: 'item'; item: Partial<RosItem> } | { type: 'delay'; item: RosItem } | { type: 'performer' } | null
 
@@ -38,8 +39,8 @@ export function RunSheetPage({ sid }: { sid: Id }) {
 
   const its = itemsFor(ros, sid, tz, day)
   const lanes = [
-    { label: TRACKS.stage, color: TAPE[st.tape], short: true, items: itemsFor(ros, sid, tz, day, 'stage') },
-    { label: TRACKS.dock, color: 'var(--ink3)', items: itemsFor(ros, sid, tz, day, 'dock') },
+    { label: tr(TRACKS.stage), color: TAPE[st.tape], short: true, items: itemsFor(ros, sid, tz, day, 'stage') },
+    { label: tr(TRACKS.dock), color: 'var(--ink3)', items: itemsFor(ros, sid, tz, day, 'dock') },
   ]
   const list = its.filter(i => (!hideDone || i.status !== 'done') && (
     filter === 'all' || (filter === 'stage' ? track(i) === 'stage' : filter === 'dock' ? track(i) === 'dock' : i.artist === filter)))
@@ -51,13 +52,13 @@ export function RunSheetPage({ sid }: { sid: Id }) {
     <>
       <div className="head">
         <div>
-          <h1>Run sheet · {st.name}</h1>
-          <p>Everything from get in to load out. A delay pushes everything after it and updates every clock and display.</p>
+          <h1>{tr('Run sheet · {stage}', { stage: st.name })}</h1>
+          <p>{tr('Everything from get in to load out. A delay pushes everything after it and updates every clock and display.')}</p>
         </div>
         <div className="actions">
           <DaySelector />
-          {w && <button type="button" className="btn" onClick={() => setDialog({ type: 'item', item: {} })}>+ Add item</button>}
-          {w && <button type="button" className="btn primary" onClick={() => setDialog({ type: 'performer' })}>+ Add {t.performer.toLowerCase()} with day sheet</button>}
+          {w && <button type="button" className="btn" onClick={() => setDialog({ type: 'item', item: {} })}>{tr('+ Add item')}</button>}
+          {w && <button type="button" className="btn primary" onClick={() => setDialog({ type: 'performer' })}>{tr('+ Add {performer} with day sheet', { performer: t.performer.toLowerCase() })}</button>}
         </div>
       </div>
 
@@ -67,15 +68,15 @@ export function RunSheetPage({ sid }: { sid: Id }) {
       <div className="filters">
         <label className="small muted" htmlFor="rsf">Show</label>
         <select id="rsf" value={filter} onChange={e => setFilter(e.target.value)}>
-          <option value="all">Everything</option>
-          <option value="stage">On stage only</option>
-          <option value="dock">Dock &amp; backstage only</option>
+          <option value="all">{tr('Everything')}</option>
+          <option value="stage">{tr('On stage only')}</option>
+          <option value="dock">{tr('Dock & backstage only')}</option>
           {arts.map(id => <option key={id} value={id}>{artists[id]?.name ?? id}</option>)}
         </select>
-        <label className="row small"><input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} /> Hide finished</label>
+        <label className="row small"><input type="checkbox" checked={hideDone} onChange={e => setHideDone(e.target.checked)} /> {tr('Hide finished')}</label>
         {w && its.some(i => i.delay) && (
-          <button type="button" className="btn sm" onClick={() => { if (confirm('Put this day back on the planned times?')) void actions.resetDelays(sid, day) }}>
-            Back on planned times
+          <button type="button" className="btn sm" onClick={() => { if (confirm(tr('Put this day back on the planned times?'))) void actions.resetDelays(sid, day) }}>
+            {tr('Back on planned times')}
           </button>
         )}
       </div>
@@ -84,7 +85,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
         {list.length ? (
           <div className="tbl-wrap">
             <table className="ro">
-              <thead><tr><th>Time</th><th>Activity</th><th /><th /></tr></thead>
+              <thead><tr><th>{tr('Time')}</th><th>{tr('Activity')}</th><th /><th /></tr></thead>
               <tbody>
                 {list.map(i => {
                   const e = eff(i)
@@ -99,19 +100,19 @@ export function RunSheetPage({ sid }: { sid: Id }) {
                         <b>{i.artist ? <Link to={`/s/${sid}/artists/${i.artist}`} style={{ color: 'inherit' }}>{i.title}</Link> : i.title}</b>
                         {i.kind === 'show' && <> <ArtistRisk artistId={i.artist} /></>}
                         <div className="small muted">
-                          {TRACKS[track(i)]}{i.notes ? ` · ${i.notes}` : ''}{i.delayNote ? ` · Delay: ${i.delayNote}` : ''}
+                          {tr(TRACKS[track(i)])}{i.notes ? ` · ${i.notes}` : ''}{i.delayNote ? ` · ${tr('Delay: {note}', { note: i.delayNote })}` : ''}
                         </div>
                         <TruckLine item={i} clash={clashIds.has(i.id)} />
                       </td>
-                      <td>{i.status === 'live' ? <span className="chip go">Live</span> : i.status === 'done' ? <span className="chip">Done</span> : null}</td>
+                      <td>{i.status === 'live' ? <span className="chip go">{tr('Live')}</span> : i.status === 'done' ? <span className="chip">{tr('Done')}</span> : null}</td>
                       <td>
                         {w && (
                           <div className="acts">
                             {i.status === 'live'
-                              ? <button type="button" className="btn sm" onClick={() => void actions.markDone(i)}>Done</button>
-                              : i.status !== 'done' && <button type="button" className="btn sm go" onClick={() => void actions.goLive(i)}>{i.kind === 'show' ? 'On stage' : 'Start'}</button>}
-                            {i.status !== 'done' && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'delay', item: i })}>Delay</button>}
-                            <button type="button" className="btn sm" onClick={() => setDialog({ type: 'item', item: i })} aria-label={`Edit ${i.title}`}>Edit</button>
+                              ? <button type="button" className="btn sm" onClick={() => void actions.markDone(i)}>{tr('Done')}</button>
+                              : i.status !== 'done' && <button type="button" className="btn sm go" onClick={() => void actions.goLive(i)}>{i.kind === 'show' ? tr('On stage') : tr('Start')}</button>}
+                            {i.status !== 'done' && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'delay', item: i })}>{tr('Delay')}</button>}
+                            <button type="button" className="btn sm" onClick={() => setDialog({ type: 'item', item: i })} aria-label={tr('Edit {name}', { name: i.title })}>{tr('Edit')}</button>
                           </div>
                         )}
                       </td>
@@ -122,7 +123,7 @@ export function RunSheetPage({ sid }: { sid: Id }) {
             </table>
           </div>
         ) : (
-          <p className="empty">Nothing scheduled this day.{w && ` Add ${aOrAn(t.performer.toLowerCase())} to generate their day sheet.`}</p>
+          <p className="empty">{tr('Nothing scheduled this day.')}{w && ` ${tr('Add {aPerformer} to generate their day sheet.', { aPerformer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })}`}</p>
         )}
       </section>
 

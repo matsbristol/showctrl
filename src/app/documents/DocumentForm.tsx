@@ -7,6 +7,7 @@ import { uploadFile } from '../backend'
 import { useAccess, useTerms } from '../session'
 import { useServerTime } from '../time'
 import { Field, FormDialog } from '../ui/Dialog'
+import { tr } from '../../i18n'
 
 /** Demo mode keeps files in the browser, so they have to stay small. */
 const DEMO_MAX = 1_000_000
@@ -15,7 +16,7 @@ function readAsDataUrl(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const r = new FileReader()
     r.onload = () => resolve(String(r.result))
-    r.onerror = () => reject(new Error('Could not read the file.'))
+    r.onerror = () => reject(new Error(tr('Could not read the file.')))
     r.readAsDataURL(file)
   })
 }
@@ -29,7 +30,7 @@ export function DocumentForm({ doc, sid, onClose }: { doc: FileDoc | null; sid: 
   const artists = useCollection('artists')
   const d = doc
   const scopes: [string, string][] = [
-    ...(a.canW('documents') ? [['event', 'Whole event'] as [string, string]] : []),
+    ...(a.canW('documents') ? [['event', tr('Whole event')] as [string, string]] : []),
     ...a.stagesSorted().filter(s => a.canW('documents', s.id)).map(s => [`stage:${s.id}`, s.name] as [string, string]),
     ...Object.values(artists).filter(x => a.canW('documents', x.stage) && (!sid || x.stage === sid)).sort((p, q) => p.name.localeCompare(q.name)).map(x => [`artist:${x.id}`, x.name] as [string, string]),
   ]
@@ -43,24 +44,24 @@ export function DocumentForm({ doc, sid, onClose }: { doc: FileDoc | null; sid: 
 
   return (
     <FormDialog
-      title={d ? `Edit ${d.name}` : 'Add document'}
-      saveLabel={d ? 'Save' : mode === 'upload' ? 'Upload' : 'Add link'}
+      title={d ? tr('Edit {name}', { name: d.name }) : tr('Add document')}
+      saveLabel={d ? tr('Save') : mode === 'upload' ? tr('Upload') : tr('Add link')}
       onClose={onClose}
       onDelete={d ? () => store.delete('files', d.id) : undefined}
       onSave={async () => {
         const name = v.name.trim() || file?.name || ''
-        if (!name) return 'Give it a name.'
+        if (!name) return tr('Give it a name.')
         let blob = d?.blob
         let url = mode === 'link' ? v.url.trim() : undefined
         if (!d && mode === 'upload') {
-          if (!file) return 'Choose a file.'
+          if (!file) return tr('Choose a file.')
           if (store.mode === 'live') blob = await uploadFile(file, scope)
           else {
-            if (file.size > DEMO_MAX) return 'In demo mode files can be up to 1 MB. Use a link, or the live version.'
+            if (file.size > DEMO_MAX) return tr('In demo mode files can be up to 1 MB. Use a link, or the live version.')
             blob = { key: await readAsDataUrl(file), size: file.size, type: file.type || 'application/octet-stream' }
           }
         }
-        if (mode === 'link' && !/^https?:\/\//i.test(url ?? '')) return 'Links must start with https:// or http://.'
+        if (mode === 'link' && !/^https?:\/\//i.test(url ?? '')) return tr('Links must start with https:// or http://.')
         if (mode === 'upload') url = undefined
         await store.set('files', d?.id ?? rid(), {
           name, category: v.category, ...scope, ...(url ? { url } : {}), ...(blob ? { blob } : {}),
@@ -70,26 +71,26 @@ export function DocumentForm({ doc, sid, onClose }: { doc: FileDoc | null; sid: 
     >
       {!d && (
         <div className="fld full">
-          <div className="seg" role="group" aria-label="Kind">
-            <button type="button" aria-pressed={mode === 'upload'} onClick={() => setMode('upload')}>Upload a file</button>
-            <button type="button" aria-pressed={mode === 'link'} onClick={() => setMode('link')}>Add a link</button>
+          <div className="seg" role="group" aria-label={tr('Kind')}>
+            <button type="button" aria-pressed={mode === 'upload'} onClick={() => setMode('upload')}>{tr('Upload a file')}</button>
+            <button type="button" aria-pressed={mode === 'link'} onClick={() => setMode('link')}>{tr('Add a link')}</button>
           </div>
         </div>
       )}
-      {!d && mode === 'upload' && <Field label="File" full><input type="file" onChange={e => { const f = e.target.files?.[0] ?? null; setFile(f); if (f && !v.name) set('name', f.name.replace(/\.[^.]+$/, '')) }} /></Field>}
-      {mode === 'link' && <Field label="Link" full><input type="url" value={v.url} placeholder="https://" onChange={e => set('url', e.target.value)} /></Field>}
-      <Field label="Name" full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
-      <Field label="Category">
+      {!d && mode === 'upload' && <Field label={tr('File')} full><input type="file" onChange={e => { const f = e.target.files?.[0] ?? null; setFile(f); if (f && !v.name) set('name', f.name.replace(/\.[^.]+$/, '')) }} /></Field>}
+      {mode === 'link' && <Field label={tr('Link')} full><input type="url" value={v.url} placeholder="https://" onChange={e => set('url', e.target.value)} /></Field>}
+      <Field label={tr('Name')} full><input value={v.name} onChange={e => set('name', e.target.value)} /></Field>
+      <Field label={tr('Category')}>
         <select value={v.category} onChange={e => set('category', e.target.value)}>
-          {FILE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+          {FILE_CATEGORIES.map(c => <option key={c} value={c}>{tr(c)}</option>)}
         </select>
       </Field>
-      <Field label={`For (event, ${t.stage.toLowerCase()} or ${t.performer.toLowerCase()})`}>
+      <Field label={tr('For (event, {stage} or {performer})', { stage: t.stage.toLowerCase(), performer: t.performer.toLowerCase() })}>
         <select value={v.scope} onChange={e => set('scope', e.target.value)} disabled={!!d?.blob}>
           {scopes.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
         </select>
       </Field>
-      <Field label="Notes" full><input value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
+      <Field label={tr('Notes')} full><input value={v.notes} onChange={e => set('notes', e.target.value)} /></Field>
     </FormDialog>
   )
 }

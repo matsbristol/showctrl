@@ -9,6 +9,7 @@ import { DaySelector } from '../DaySelector'
 import { useDay } from '../day'
 import { AllocationForm, FacilityForm } from '../facilities/forms'
 import { useAccess, useTerms, useTz } from '../session'
+import { tr } from '../../i18n'
 
 type Dialog = { type: 'facility'; facility: Facility | null } | { type: 'alloc'; alloc: Allocation | null; draft?: Partial<Allocation> } | null
 
@@ -36,16 +37,16 @@ export function FacilitiesPage({ sid }: { sid: Id | null }) {
   const roomed = new Set(Object.values(allocations).filter(x => facilities[x.facility]?.kind === 'dressing' && x.artist && festDay(x.from, tz) === day).map(x => x.artist))
   const playing = Object.values(ros).filter(i => i.kind === 'show' && i.artist && festDay(i.start, tz) === day && (sid ? i.stage === sid : a.canSeeStage(i.stage)))
   const needs = playing.filter(i => !roomed.has(i.artist!)).sort((x, y) => eff(x).s - eff(y).s)
-  const who = (x: Allocation) => (x.artist ? artists[x.artist]?.name ?? 'Removed' : x.label || '—')
+  const who = (x: Allocation) => (x.artist ? artists[x.artist]?.name ?? tr('Removed') : x.label || '—')
 
   return (
     <>
       <div className="head">
-        <div><h1>Facilities</h1><p>Dressing rooms, offices and other spaces, and who has them when. Double bookings are flagged.</p></div>
+        <div><h1>{tr('Facilities')}</h1><p>{tr('Dressing rooms, offices and other spaces, and who has them when. Double bookings are flagged.')}</p></div>
         <div className="actions">
           <DaySelector />
-          {canAdd && <button type="button" className="btn" onClick={() => setDialog({ type: 'facility', facility: null })}>+ Add facility</button>}
-          {canAdd && facs.length > 0 && <button type="button" className="btn primary" onClick={() => setDialog({ type: 'alloc', alloc: null })}>+ Book</button>}
+          {canAdd && <button type="button" className="btn" onClick={() => setDialog({ type: 'facility', facility: null })}>{tr('+ Add facility')}</button>}
+          {canAdd && facs.length > 0 && <button type="button" className="btn primary" onClick={() => setDialog({ type: 'alloc', alloc: null })}>{tr('+ Book')}</button>}
         </div>
       </div>
       <div className="grid g2" style={{ marginBottom: '1rem' }}>
@@ -58,8 +59,8 @@ export function FacilitiesPage({ sid }: { sid: Id | null }) {
               <div className="ph">
                 {st && <span className="tape" style={{ ['--c' as string]: TAPE[st.tape] }} />}
                 <h3>{f.name}</h3>
-                <span className="chip">{FACILITY_KINDS[f.kind]}</span>
-                {w && <div className="actions"><button type="button" className="btn sm" aria-label={`Edit ${f.name}`} onClick={() => setDialog({ type: 'facility', facility: f })}>Edit</button></div>}
+                <span className="chip">{tr(FACILITY_KINDS[f.kind])}</span>
+                {w && <div className="actions"><button type="button" className="btn sm" aria-label={tr('Edit {name}', { name: f.name })} onClick={() => setDialog({ type: 'facility', facility: f })}>{tr('Edit')}</button></div>}
               </div>
               {mine.length ? (
                 <ul className="list">
@@ -67,33 +68,33 @@ export function FacilitiesPage({ sid }: { sid: Id | null }) {
                     <li key={x.id} className={clash.has(x.id) ? 'clash' : undefined}>
                       <span className="num" style={{ minWidth: '6.5rem' }}><b>{fmtTime(x.from, tz)}–{fmtTime(x.to, tz)}</b></span>
                       <span>{who(x)}{x.notes && <span className="small muted"> · {x.notes}</span>}</span>
-                      {clash.has(x.id) && <span className="chip st">Double booked</span>}
-                      {w && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setDialog({ type: 'alloc', alloc: x })}>Edit</button>}
+                      {clash.has(x.id) && <span className="chip st">{tr('Double booked')}</span>}
+                      {w && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setDialog({ type: 'alloc', alloc: x })}>{tr('Edit')}</button>}
                     </li>
                   ))}
                 </ul>
-              ) : <p className="empty">Free all day.</p>}
+              ) : <p className="empty">{tr('Free all day.')}</p>}
               {f.notes && <p className="small muted" style={{ padding: '0 1rem .75rem' }}>{f.notes}</p>}
             </section>
           )
         })}
-        {!facs.length && <div className="panel"><p className="empty">No facilities yet.</p></div>}
+        {!facs.length && <div className="panel"><p className="empty">{tr('No facilities yet.')}</p></div>}
       </div>
       {needs.length > 0 && (
         <section className="panel">
-          <div className="ph"><h3>No dressing room yet</h3><span className="small muted">{needs.length} {needs.length === 1 ? t.performer.toLowerCase() : t.performers.toLowerCase()}</span></div>
+          <div className="ph"><h3>{tr('No dressing room yet')}</h3><span className="small muted">{needs.length} {needs.length === 1 ? t.performer.toLowerCase() : t.performers.toLowerCase()}</span></div>
           <ul className="list">
             {needs.map(i => {
               const win = dressingWindow(Object.values(ros).filter(r => r.artist === i.artist && festDay(r.start, tz) === day).sort((x, y) => eff(x).s - eff(y).s))
               return (
                 <li key={i.id}>
                   <span className="num" style={{ minWidth: '3.2rem' }}><b>{fmtTime(eff(i).s, tz)}</b></span>
-                  <span>{artists[i.artist!]?.name} <span className="small muted">· {stages[i.stage]?.name}{win ? ` · needs it ${fmtTime(win.from, tz)}–${fmtTime(win.to, tz)}` : ''}</span></span>
+                  <span>{artists[i.artist!]?.name} <span className="small muted">· {stages[i.stage]?.name}{win ? ` · ${tr('needs it {from}–{to}', { from: fmtTime(win.from, tz), to: fmtTime(win.to, tz) })}` : ''}</span></span>
                   {canAdd && (
                     <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} onClick={() => setDialog({
                       type: 'alloc', alloc: null,
                       draft: { artist: i.artist, from: win?.from, to: win?.to, facility: facs.find(f => f.kind === 'dressing' && (!f.stage || f.stage === i.stage))?.id },
-                    })}>Book room</button>
+                    })}>{tr('Book room')}</button>
                   )}
                 </li>
               )

@@ -9,6 +9,7 @@ import type { DayKey, Id, RosItem } from '../../types/model'
 import { useTz } from '../session'
 import { useServerTime } from '../time'
 import { useToast } from '../ui/toast'
+import { tr } from '../../i18n'
 
 const mins = (ms: number) => Math.round(Math.abs(ms) / MIN)
 
@@ -38,8 +39,8 @@ export function useRunSheetActions() {
     const diff = t - eff(it).s
     if (it.kind === 'show' && Math.abs(diff) >= 2 * MIN) {
       const late = diff > 0
-      toast(`${it.title} went on ${mins(diff)} min ${late ? 'late' : 'early'}.`, {
-        label: `Shift the rest ${late ? '+' : '−'}${mins(diff)} min`,
+      toast(late ? tr('{title} went on {n} min late.', { title: it.title, n: mins(diff) }) : tr('{title} went on {n} min early.', { title: it.title, n: mins(diff) }), {
+        label: late ? tr('Shift the rest +{n} min', { n: mins(diff) }) : tr('Shift the rest −{n} min', { n: mins(diff) }),
         run: () => { const cur = ros()[it.id]; if (cur) void shiftFrom(cur, Math.round(diff / MIN) * MIN, late ? 'Started late' : 'Started early') },
       })
     }
@@ -52,8 +53,8 @@ export function useRunSheetActions() {
     if (it.kind === 'show' && it.artist) await store.update('artists', it.artist, { status: 'done' })
     const diff = t - eff(it).e
     if (it.kind === 'show' && diff >= 2 * MIN) {
-      toast(`${it.title} overran by ${mins(diff)} min.`, {
-        label: `Shift the rest +${mins(diff)} min`,
+      toast(tr('{title} overran by {n} min.', { title: it.title, n: mins(diff) }), {
+        label: tr('Shift the rest +{n} min', { n: mins(diff) }),
         run: () => {
           const nx = itemsFor(ros(), it.stage, tz, festDay(it.start, tz)).find(x => x.start > it.start && x.status !== 'done')
           if (nx) void shiftFrom(nx, Math.round(diff / MIN) * MIN, `${it.title} overran`)
@@ -64,7 +65,7 @@ export function useRunSheetActions() {
 
   const delay = useCallback(async (it: RosItem, minutes: number, note: string, dockToo: boolean) => {
     await shiftFrom(it, minutes * MIN, note, dockToo)
-    toast(`Everything on ${stageName(it.stage)} from ${fmtTime(eff(it).s, tz)} moved ${minutes > 0 ? '+' : ''}${minutes} min.`)
+    toast(tr('Everything on {stage} from {time} moved {n} min.', { stage: stageName(it.stage), time: fmtTime(eff(it).s, tz), n: `${minutes > 0 ? '+' : ''}${minutes}` }))
   }, [shiftFrom, toast, stageName, tz])
 
   /** Puts a stage's day back on the planned times. */

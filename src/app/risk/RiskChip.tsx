@@ -2,13 +2,14 @@ import { useConfig, useDoc } from '../../data/hooks'
 import { moduleOn } from '../../shared/modules'
 import { RISK_LEVELS } from '../../types/constants'
 import type { Id, RiskLevel } from '../../types/model'
+import { tr } from '../../i18n'
 
 /** The rating as a coloured chip. `dot` shows only the colour (with a tooltip), for tight spots. */
 export function RiskBadge({ level, dot }: { level: RiskLevel | null; dot?: boolean }) {
-  if (!level) return dot ? null : <span className="chip risk-none">Not assessed</span>
+  if (!level) return dot ? null : <span className="chip risk-none">{tr('Not assessed')}</span>
   const l = RISK_LEVELS[level]
-  if (dot) return <span className={`riskdot risk-${level}`} title={`Risk: ${l.label} — ${l.hint}`} aria-label={`Risk ${l.label}`} />
-  return <span className={`chip risk-${level}`} title={l.hint}>{l.label}</span>
+  if (dot) return <span className={`riskdot risk-${level}`} title={tr('Risk: {level} — {hint}', { level: tr(l.label), hint: tr(l.hint) })} aria-label={tr('Risk {level}', { level: tr(l.label) })} />
+  return <span className={`chip risk-${level}`} title={tr(l.hint)}>{tr(l.label)}</span>
 }
 
 /**

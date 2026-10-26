@@ -19,6 +19,7 @@ import { SessionProvider } from './SessionProvider'
 import { TimeProvider } from './TimeProvider'
 import { ToastProvider } from './ui/ToastProvider'
 import { WallContext } from './ui/wall'
+import { tr } from '../i18n'
 import './showctrl.css'
 
 /**
@@ -59,10 +60,10 @@ function Boot() {
       setBackend(b)
     })
   }, [])
-  if (!backend) return <Frame><div className="loading">Connecting…</div></Frame>
+  if (!backend) return <Frame><div className="loading">{tr('Connecting…')}</div></Frame>
   if (backend.mode === 'demo') return <App store={demoStore()} />
   if (backend.mode === 'login') return <Frame><Login /></Frame>
-  if (backend.mode === 'error') return <Frame><div className="setup"><div className="panel"><h2>Can’t open showctrl</h2><p className="muted">{backend.message}</p></div></div></Frame>
+  if (backend.mode === 'error') return <Frame><div className="setup"><div className="panel"><h2>{tr('Can’t open showctrl')}</h2><p className="muted">{backend.message}</p></div></div></Frame>
   return <LiveApp me={backend.me} />
 }
 
@@ -142,7 +143,7 @@ function Frame({ children }: { children: ReactNode }) {
       <div className={`sc${on ? ' wallmode' : ''}`} style={fontVars(FONTS[font])} lang={lang === 'nb' ? 'nb' : 'en'}>
         {/* Changing language redraws everything in the new language (the data stays loaded). */}
         <Fragment key={lang}>{children}</Fragment>
-        {on && <button type="button" className="btn exitwall" onClick={exit}>Exit wall mode</button>}
+        {on && <button type="button" className="btn exitwall" onClick={exit}>{tr('Exit wall mode')}</button>}
       </div>
     </WallContext.Provider>
   )
@@ -150,7 +151,7 @@ function Frame({ children }: { children: ReactNode }) {
 
 function EventGate() {
   const cfg = useConfig('event')
-  if (cfg === undefined) return <div className="loading">Connecting…</div>
+  if (cfg === undefined) return <div className="loading">{tr('Connecting…')}</div>
   if (!cfg || cfg.schema !== 2) return <NoEvent />
   return <Layout />
 }
@@ -159,16 +160,16 @@ function EventGate() {
 function NoEvent() {
   const store = useStore()
   if (!(store instanceof LocalStore)) {
-    return <div className="setup"><div className="panel"><h2>This event isn’t set up yet</h2><p className="muted">The festival admin needs to create it first. Check back shortly.</p></div></div>
+    return <div className="setup"><div className="panel"><h2>{tr('This event isn’t set up yet')}</h2><p className="muted">{tr('The festival admin needs to create it first. Check back shortly.')}</p></div></div>
   }
   return (
     <div className="setup">
       <div className="panel">
-        <h1>Create your event</h1>
-        <p className="muted" style={{ margin: '.5rem 0 1.25rem' }}>Load a sample five-stage festival to try everything, or start blank: name the event, add stages and appoint a stage manager for each.</p>
+        <h1>{tr('Create your event')}</h1>
+        <p className="muted" style={{ margin: '.5rem 0 1.25rem' }}>{tr('Load a sample five-stage festival to try everything, or start blank: name the event, add stages and appoint a stage manager for each.')}</p>
         <div className="row">
-          <button type="button" className="btn primary" onClick={() => store.reset(buildSample())}>Load sample festival</button>
-          <button type="button" className="btn" onClick={() => store.reset(blankEvent())}>Start blank</button>
+          <button type="button" className="btn primary" onClick={() => store.reset(buildSample())}>{tr('Load sample festival')}</button>
+          <button type="button" className="btn" onClick={() => store.reset(blankEvent())}>{tr('Start blank')}</button>
         </div>
       </div>
     </div>

@@ -11,6 +11,7 @@ import { useAccess, useTerms, useTz } from '../session'
 import { DateTimeInput, Field, FormDialog } from '../ui/Dialog'
 import { useToast } from '../ui/toast'
 import { useRunSheetActions } from './actions'
+import { tr } from '../../i18n'
 
 /** Add or edit one run sheet item. */
 export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; sid: Id | null; day: DayKey; onClose: () => void }) {
@@ -41,13 +42,13 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
 
   return (
     <FormDialog
-      title={item.id ? 'Edit run sheet item' : 'Add to run sheet'}
+      title={item.id ? tr('Edit run sheet item') : tr('Add to run sheet')}
       onClose={onClose}
       onDelete={item.id ? () => store.delete('ros', item.id!) : undefined}
       onSave={async () => {
-        if (!v.start || !v.end) return 'Set a start and an end.'
-        if (v.end < v.start) return 'The end must be after the start.'
-        if (!v.stage) return `Choose ${aOrAn(t.stage.toLowerCase())}.`
+        if (!v.start || !v.end) return tr('Set a start and an end.')
+        if (v.end < v.start) return tr('The end must be after the start.')
+        if (!v.stage) return tr('Choose {aStage}.', { aStage: aOrAn(t.stage.toLowerCase()), stage: t.stage.toLowerCase() })
         const title = v.title.trim() || (v.artist ? artists[v.artist]?.name : '') || KINDS[v.kind].label
         await store.set('ros', item.id ?? rid(), {
           title, kind: v.kind, stage: v.stage, start: v.start, end: v.end, artist: v.artist || null, notes: v.notes,
@@ -57,40 +58,42 @@ export function ItemForm({ item, sid, day, onClose }: { item: Partial<RosItem>; 
         })
       }}
     >
-      <Field label="Activity">
+      <Field label={tr('Activity')}>
         <select value={v.kind} onChange={e => set('kind', e.target.value as RosKind)}>
-          {Object.entries(KINDS).map(([k, x]) => <option key={k} value={k}>{x.label} ({TRACKS[x.track].toLowerCase()})</option>)}
+          {Object.entries(KINDS).map(([k, x]) => <option key={k} value={k}>{tr(x.label)} ({tr(TRACKS[x.track]).toLowerCase()})</option>)}
         </select>
       </Field>
       <Field label={t.performer}>
         <select value={v.artist} onChange={e => set('artist', e.target.value)}>
-          <option value="">None</option>
+          <option value="">{tr('None')}</option>
           {stageArtists.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
         </select>
       </Field>
-      <Field label={`Title (empty uses the ${t.performer.toLowerCase()} name)`} full>
+      <Field label={tr('Title (empty uses the {performer} name)', { performer: t.performer.toLowerCase() })} full>
         <input value={v.title} onChange={e => set('title', e.target.value)} />
       </Field>
-      <Field label="Planned start"><DateTimeInput value={v.start} onChange={x => set('start', x)} /></Field>
-      <Field label="Planned end"><DateTimeInput value={v.end} onChange={x => set('end', x)} /></Field>
+      <Field label={tr('Planned start')}><DateTimeInput value={v.start} onChange={x => set('start', x)} /></Field>
+      <Field label={tr('Planned end')}><DateTimeInput value={v.end} onChange={x => set('end', x)} /></Field>
       <Field label={t.stage}>
         <select value={v.stage} onChange={e => set('stage', e.target.value)}>
           {stages.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
         </select>
       </Field>
-      <Field label="Trucks" hidden={!showTrucks}>
+      <Field label={tr('Trucks')} hidden={!showTrucks}>
         <input type="number" min={0} value={v.trucks} onChange={e => set('trucks', e.target.value)} />
       </Field>
-      <Field label="Send trucks to" hidden={!showTrucks}>
+      <Field label={tr('Send trucks to')} hidden={!showTrucks}>
         <select value={v.dest} onChange={e => set('dest', e.target.value)}>
-          <option value="">Not set</option>
+          <option value="">{tr('Not set')}</option>
           {destOpts.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
         </select>
       </Field>
-      <Field label="Notes" full>
-        <textarea value={v.notes} placeholder="e.g. Forklift needed, ramp on the left" onChange={e => set('notes', e.target.value)} />
+      <Field label={tr('Notes')} full>
+        <textarea value={v.notes} placeholder={tr('e.g. Forklift needed, ramp on the left')} onChange={e => set('notes', e.target.value)} />
       </Field>
-      {item.delay ? <p className="fld full small muted">This item runs {Math.round(item.delay / MIN)} min {item.delay > 0 ? 'late' : 'early'}. Times above are planned times.</p> : null}
+      {item.delay ? <p className="fld full small muted">{item.delay > 0
+        ? tr('This item runs {n} min late. Times above are planned times.', { n: Math.round(item.delay / MIN) })
+        : tr('This item runs {n} min early. Times above are planned times.', { n: Math.round(item.delay / MIN) })}</p> : null}
     </FormDialog>
   )
 }
@@ -103,19 +106,19 @@ export function DelayForm({ item, onClose }: { item: RosItem; onClose: () => voi
   const [dock, setDock] = useState(true)
   return (
     <FormDialog
-      title={`Delay from ${KINDS[item.kind as RosKind]?.label.toLowerCase() ?? 'item'}: ${item.title}`}
-      saveLabel="Apply delay"
+      title={tr('Delay from {kind}: {title}', { kind: KINDS[item.kind as RosKind] ? tr(KINDS[item.kind as RosKind].label).toLowerCase() : tr('item'), title: item.title })}
+      saveLabel={tr('Apply delay')}
       onClose={onClose}
       onSave={async () => {
         const m = Math.round(Number(min))
-        if (!m) return 'Enter a number of minutes.'
+        if (!m) return tr('Enter a number of minutes.')
         await delay(item, m, note, dock)
       }}
     >
-      <Field label="Minutes (negative pulls earlier)"><input type="number" value={min} onChange={e => setMin(e.target.value)} /></Field>
-      <Field label="Reason"><input value={note} placeholder="e.g. Late arrival, power issue, weather" onChange={e => setNote(e.target.value)} /></Field>
-      <Field label="Also move" full>
-        <div className="checks"><label><input type="checkbox" checked={dock} onChange={e => setDock(e.target.checked)} />Dock and backstage items (load in, load out, departures)</label></div>
+      <Field label={tr('Minutes (negative pulls earlier)')}><input type="number" value={min} onChange={e => setMin(e.target.value)} /></Field>
+      <Field label={tr('Reason')}><input value={note} placeholder={tr('e.g. Late arrival, power issue, weather')} onChange={e => setNote(e.target.value)} /></Field>
+      <Field label={tr('Also move')} full>
+        <div className="checks"><label><input type="checkbox" checked={dock} onChange={e => setDock(e.target.checked)} />{tr('Dock and backstage items (load in, load out, departures)')}</label></div>
       </Field>
     </FormDialog>
   )
@@ -138,27 +141,27 @@ export function DaySheetForm({ artist, day, onClose }: { artist: Artist; day: Da
   if (!st) return null
   return (
     <FormDialog
-      title={`Day sheet · ${artist.name}`}
-      saveLabel="Create day sheet"
+      title={tr('Day sheet · {name}', { name: artist.name })}
+      saveLabel={tr('Create day sheet')}
       onClose={onClose}
       onSave={async () => {
-        if (!start || !Number(len)) return 'Set the on-stage time and show length.'
+        if (!start || !Number(len)) return tr('Set the on-stage time and show length.')
         const items = buildDaySheet(st, artist, start, start + Number(len) * MIN, sc)
         if (replace) {
           const d = festDay(start, tz)
           await Promise.all(Object.values(store.peek('ros') ?? {}).filter(x => x.artist === artist.id && festDay(x.start, tz) === d).map(x => store.delete('ros', x.id)))
         }
         await store.setMany('ros', items)
-        toast(`Day sheet created for ${artist.name}: ${items.length} items.`)
+        toast(tr('Day sheet created for {name}: {n} items.', { name: artist.name, n: items.length }))
       }}
     >
-      <Field label="On stage"><DateTimeInput value={start} onChange={setStart} /></Field>
-      <Field label="Show length (minutes)"><input type="number" value={len} onChange={e => setLen(e.target.value)} /></Field>
-      <Field label="Soundcheck (optional)"><DateTimeInput value={sc} onChange={setSc} /></Field>
-      <Field label="Replace" full>
-        <div className="checks"><label><input type="checkbox" checked={replace} onChange={e => setReplace(e.target.checked)} />Replace this {t.performer.toLowerCase()}’s existing items that day</label></div>
+      <Field label={tr('On stage')}><DateTimeInput value={start} onChange={setStart} /></Field>
+      <Field label={tr('Show length (minutes)')}><input type="number" value={len} onChange={e => setLen(e.target.value)} /></Field>
+      <Field label={tr('Soundcheck (optional)')}><DateTimeInput value={sc} onChange={setSc} /></Field>
+      <Field label={tr('Replace')} full>
+        <div className="checks"><label><input type="checkbox" checked={replace} onChange={e => setReplace(e.target.checked)} />{tr('Replace this {performer}’s existing items that day', { performer: t.performer.toLowerCase() })}</label></div>
       </Field>
-      <p className="fld full small muted">Uses {st.name}’s template: arrival, get in, load in, stage access, changeover, show, load out and departure. You can adjust each item afterwards.</p>
+      <p className="fld full small muted">{tr('Uses {stage}’s template: arrival, get in, load in, stage access, changeover, show, load out and departure. You can adjust each item afterwards.', { stage: st.name })}</p>
     </FormDialog>
   )
 }
@@ -177,27 +180,27 @@ export function AddPerformerForm({ sid, day, onClose }: { sid: Id; day: DayKey; 
   const [tm, setTm] = useState({ name: '', phone: '', email: '' })
   return (
     <FormDialog
-      title={`Add ${aOrAn(t.performer.toLowerCase())} with day sheet`}
-      saveLabel="Add"
+      title={tr('Add {aPerformer} with day sheet', { aPerformer: aOrAn(t.performer.toLowerCase()), performer: t.performer.toLowerCase() })}
+      saveLabel={tr('Add')}
       onClose={onClose}
       onSave={async () => {
-        if (!name.trim()) return 'Enter a name.'
-        if (!start || !Number(len)) return 'Set the on-stage time and show length.'
+        if (!name.trim()) return tr('Enter a name.')
+        if (!start || !Number(len)) return tr('Set the on-stage time and show length.')
         const id = rid()
         const contacts = tm.name || tm.phone || tm.email ? [{ id: rid(), role: 'Tour manager', name: tm.name || 'Tour manager', phone: tm.phone, email: tm.email }] : []
         await store.set('artists', id, { name: name.trim(), stage: sid, status: 'confirmed', contacts, notes: '' })
         const items = buildDaySheet(stages[sid], { id, name: name.trim() }, start, start + Number(len) * MIN, sc)
         await store.setMany('ros', items)
-        toast(`${name.trim()} added with ${items.length} run sheet items.`)
+        toast(tr('{name} added with {n} run sheet items.', { name: name.trim(), n: items.length }))
       }}
     >
-      <Field label="Name" full><input value={name} onChange={e => setName(e.target.value)} /></Field>
-      <Field label="On stage"><DateTimeInput value={start} onChange={setStart} /></Field>
-      <Field label="Show length (minutes)"><input type="number" value={len} onChange={e => setLen(e.target.value)} /></Field>
-      <Field label="Soundcheck (optional)"><DateTimeInput value={sc} onChange={setSc} /></Field>
-      <Field label="Tour manager name"><input value={tm.name} onChange={e => setTm({ ...tm, name: e.target.value })} /></Field>
-      <Field label="Tour manager phone"><input value={tm.phone} onChange={e => setTm({ ...tm, phone: e.target.value })} /></Field>
-      <Field label="Tour manager email" full><input value={tm.email} onChange={e => setTm({ ...tm, email: e.target.value })} /></Field>
+      <Field label={tr('Name')} full><input value={name} onChange={e => setName(e.target.value)} /></Field>
+      <Field label={tr('On stage')}><DateTimeInput value={start} onChange={setStart} /></Field>
+      <Field label={tr('Show length (minutes)')}><input type="number" value={len} onChange={e => setLen(e.target.value)} /></Field>
+      <Field label={tr('Soundcheck (optional)')}><DateTimeInput value={sc} onChange={setSc} /></Field>
+      <Field label={tr('Tour manager name')}><input value={tm.name} onChange={e => setTm({ ...tm, name: e.target.value })} /></Field>
+      <Field label={tr('Tour manager phone')}><input value={tm.phone} onChange={e => setTm({ ...tm, phone: e.target.value })} /></Field>
+      <Field label={tr('Tour manager email')} full><input value={tm.email} onChange={e => setTm({ ...tm, email: e.target.value })} /></Field>
     </FormDialog>
   )
 }

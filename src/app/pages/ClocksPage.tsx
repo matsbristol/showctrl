@@ -8,6 +8,7 @@ import { ClockForm } from '../clocks/ClockForm'
 import { useAccess, useNow, useTz } from '../session'
 import { useServerTime } from '../time'
 import { useWall } from '../ui/wall'
+import { tr } from '../../i18n'
 
 function ClockTile({ c, canEdit, onEdit }: { c: Clock; canEdit: boolean; onEdit: () => void }) {
   const store = useStore()
@@ -18,7 +19,7 @@ function ClockTile({ c, canEdit, onEdit }: { c: Clock; canEdit: boolean; onEdit:
   const t = useNow()
   const serverNow = useServerTime()
   const v = clockValue(c, t, { tz, ros, stages })
-  const label = c.label || CLOCK_KINDS[c.kind]
+  const label = c.label || tr(CLOCK_KINDS[c.kind])
   const color = c.kind === 'stage' ? TAPE[stages[c.stage]?.tape ?? 'grey']
     : c.scope ? TAPE[stages[c.scope]?.tape ?? 'grey']
     : c.dept ? TAPE[cfg?.depts.find(d => d.id === c.dept)?.tape ?? 'grey'] : '#3E63FF'
@@ -34,19 +35,19 @@ function ClockTile({ c, canEdit, onEdit }: { c: Clock; canEdit: boolean; onEdit:
 
   return (
     <article className="tile" style={{ ['--c' as string]: color }}>
-      <div className="lab">{label}<span>{c.scope ? stages[c.scope]?.name : 'Festival'}</span></div>
+      <div className="lab">{label}<span>{c.scope ? stages[c.scope]?.name : tr('Festival')}</span></div>
       <div className={`val ${v.state ?? ''}`}>{v.text}</div>
       <div className="sub">{v.sub}</div>
       {canEdit && c.kind === 'timer' && (
         <div className="ctl">
           {c.runningSince
-            ? <button type="button" onClick={() => void timer('pause')}>Pause</button>
-            : <button type="button" onClick={() => void timer('start')}>{c.accum ? 'Resume' : 'Start'}</button>}
-          <button type="button" onClick={() => void timer('reset')}>Reset</button>
+            ? <button type="button" onClick={() => void timer('pause')}>{tr('Pause')}</button>
+            : <button type="button" onClick={() => void timer('start')}>{c.accum ? tr('Resume') : tr('Start')}</button>}
+          <button type="button" onClick={() => void timer('reset')}>{tr('Reset')}</button>
           {c.duration ? <button type="button" onClick={() => void timer('plus')}>+1 min</button> : null}
         </div>
       )}
-      {canEdit && <button type="button" className="edit" onClick={onEdit} aria-label={`Edit ${label}`}>Edit</button>}
+      {canEdit && <button type="button" className="edit" onClick={onEdit} aria-label={tr('Edit {name}', { name: label })}>{tr('Edit')}</button>}
     </article>
   )
 }
@@ -68,14 +69,14 @@ export function ClocksPage({ sid }: { sid: Id | null }) {
     <>
       <div className="head">
         <div>
-          <h1>Clocks</h1>
+          <h1>{tr('Clocks')}</h1>
           <p>{sid
-            ? `Festival-wide clocks plus ${stages[sid]?.name}'s own. Everyone sees the same time, corrected to the server.`
-            : 'Shared by every department, corrected to server time. Stage clocks live in each stage.'}</p>
+            ? tr("Festival-wide clocks plus {stage}'s own. Everyone sees the same time, corrected to the server.", { stage: stages[sid]?.name ?? '' })
+            : tr('Shared by every department, corrected to server time. Stage clocks live in each stage.')}</p>
         </div>
         <div className="actions">
-          {w && <button type="button" className="btn" onClick={() => setEditing('new')}>+ Add clock</button>}
-          <button type="button" className="btn primary" onClick={wall.enter}>Wall mode</button>
+          {w && <button type="button" className="btn" onClick={() => setEditing('new')}>{tr('+ Add clock')}</button>}
+          <button type="button" className="btn primary" onClick={wall.enter}>{tr('Wall mode')}</button>
         </div>
       </div>
       <div className="wallclock">
@@ -88,7 +89,7 @@ export function ClocksPage({ sid }: { sid: Id | null }) {
             <ClockTile key={c.id} c={c} canEdit={a.canW('clocks', c.scope ?? null)} onEdit={() => setEditing(c)} />
           ))}
         </div>
-      ) : <div className="panel"><p className="empty">No clocks yet.</p></div>}
+      ) : <div className="panel"><p className="empty">{tr('No clocks yet.')}</p></div>}
       {editing && <ClockForm clock={editing === 'new' ? null : editing} sid={sid} onClose={() => setEditing(null)} />}
     </>
   )

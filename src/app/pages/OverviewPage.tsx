@@ -12,6 +12,7 @@ import { DelayChip, KindTag, Slot, Tel } from '../runsheet/parts'
 import { useNowNext } from '../runsheet/helpers'
 import { useAccess, useNow, useTerms, useTz } from '../session'
 import { SetupChecklist } from '../SetupChecklist'
+import { tr } from '../../i18n'
 
 function StageCard({ st }: { st: Stage }) {
   const { cur, next } = useNowNext(st.id)
@@ -26,11 +27,11 @@ function StageCard({ st }: { st: Stage }) {
         <h2><Link to={`/s/${st.id}/today`} style={{ color: 'inherit', textDecoration: 'none' }}>{st.name}</Link></h2>
         <DelayChip sid={st.id} />
       </div>
-      <Slot label="Now" item={cur} isNow />
-      <Slot label="Next" item={next} isNow={false} />
+      <Slot label={tr('Now')} item={cur} isNow />
+      <Slot label={tr('Next')} item={next} isNow={false} />
       <div className="sc-meta">
-        {lead ? <span>SM <b>{lead.name}</b> <Tel phone={lead.phone} /></span> : <span>No stage manager yet</span>}
-        {st.radio && <span>Radio <b>{st.radio}</b></span>}
+        {lead ? <span>SM <b>{lead.name}</b> <Tel phone={lead.phone} /></span> : <span>{tr('No stage manager yet')}</span>}
+        {st.radio && <span>{tr('Radio')} <b>{st.radio}</b></span>}
         <span><b>{crew}</b> crew</span>
       </div>
     </section>
@@ -49,7 +50,7 @@ function ArrivalsBlock() {
     .slice(0, 10)
   return (
     <section className="panel">
-      <div className="ph"><h3>Arrivals &amp; departures, next 4 hours</h3></div>
+      <div className="ph"><h3>{tr('Arrivals & departures, next 4 hours')}</h3></div>
       {soon.length ? (
         <ul className="list">
           {soon.map(i => (
@@ -63,7 +64,7 @@ function ArrivalsBlock() {
             </li>
           ))}
         </ul>
-      ) : <p className="empty">Nobody arriving or leaving in the next four hours.</p>}
+      ) : <p className="empty">{tr('Nobody arriving or leaving in the next four hours.')}</p>}
     </section>
   )
 }
@@ -77,17 +78,17 @@ function CheckInsBlock() {
   const list = Object.values(bookings).filter(b => b.checkIn === today && b.status !== 'cancelled')
   return (
     <section className="panel">
-      <div className="ph"><h3>Hotel check-ins today</h3><div className="actions"><Link className="btn sm" to="/hq/accommodation">Open</Link></div></div>
+      <div className="ph"><h3>{tr('Hotel check-ins today')}</h3><div className="actions"><Link className="btn sm" to="/hq/accommodation">{tr('Open')}</Link></div></div>
       {list.length ? (
         <ul className="list">
           {list.slice(0, 8).map(b => (
             <li key={b.id}>
-              <span>{(b.artist && artists[b.artist]?.name) || b.guest || 'Guest'}</span>
+              <span>{(b.artist && artists[b.artist]?.name) || b.guest || tr('Guest')}</span>
               <span className="muted small" style={{ marginLeft: 'auto' }}>{hotels[b.hotel]?.name ?? ''}</span>
             </li>
           ))}
         </ul>
-      ) : <p className="empty">No check-ins today.</p>}
+      ) : <p className="empty">{tr('No check-ins today.')}</p>}
     </section>
   )
 }
@@ -101,14 +102,14 @@ export function OverviewPage() {
     <>
       <div className="head">
         <div>
-          <h1>Festival overview</h1>
-          <p>Every {t.stage.toLowerCase()} at a glance. Open {aOrAn(t.stage.toLowerCase())} for its own run sheet, crew and display.</p>
+          <h1>{tr('Festival overview')}</h1>
+          <p>{tr('Every {stage} at a glance. Open {aStage} for its own run sheet, crew and display.', { stage: t.stage.toLowerCase(), aStage: aOrAn(t.stage.toLowerCase()), stages: t.stages.toLowerCase() })}</p>
         </div>
       </div>
       <SetupChecklist />
       <div className="grid g3" style={{ marginBottom: '1rem' }}>
         {stages.length ? stages.map(s => <StageCard key={s.id} st={s} />) : (
-          <div className="panel"><p className="empty">No {t.stages.toLowerCase()} yet. {a.perm('admin') >= 2 && <>Add them in <Link to="/hq/admin">Admin</Link>.</>}</p></div>
+          <div className="panel"><p className="empty">{tr('No {stages} yet.', { stages: t.stages.toLowerCase() })} {a.perm('admin') >= 2 && <>{tr('Add them in')} <Link to="/hq/admin">{tr('Admin')}</Link>.</>}</p></div>
         )}
       </div>
       <div className="grid g2">

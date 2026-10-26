@@ -664,3 +664,7 @@
 /* Risers: legs in stock, as checkboxes */
 .sc .riser-legs { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .35rem 1rem; flex-basis: 100% }
 .sc .riser-legs legend { font-size: .8rem; font-weight: 700; color: var(--ink2); padding: 0; margin-bottom: .35rem }
+
+/* Admin → Accreditation */
+.sc .accred-list li { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap }
+.sc .accred-list input { width: 12rem; max-width: 100% }

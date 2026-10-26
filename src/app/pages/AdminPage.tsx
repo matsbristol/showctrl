@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useCollection, useConfig, useStore } from '../../data/hooks'
 import { LocalStore } from '../../data/localStore'
 import { blankEvent, buildSample } from '../../data/sample'
+import { accredLevels } from '../../lib/accred'
 import { dayLabel, eventDays, relTime } from '../../lib/time'
 import { rid } from '../../lib/id'
 import { stageRoleOf } from '../../shared/access'
@@ -15,7 +16,7 @@ import { StageForm } from '../setup/forms'
 import { useAccess, useNow, useSession, useTerms } from '../session'
 import { useToast } from '../ui/toast'
 
-const TABS = ['stages', 'access', 'roles', 'modules', 'event', 'depts'] as const
+const TABS = ['stages', 'access', 'roles', 'modules', 'event', 'depts', 'accred'] as const
 type Tab = (typeof TABS)[number]
 
 type Dialog =
@@ -36,7 +37,7 @@ export function AdminPage() {
   const tab: Tab = want && TABS.includes(want) ? want : 'stages'
   const [dialog, setDialog] = useState<Dialog>(null)
   const w = a.canW('admin')
-  const labels: Record<Tab, string> = { stages: `${t.stages} & managers`, access: 'People with access', roles: 'Roles', modules: 'Modules', event: 'Event', depts: 'Departments' }
+  const labels: Record<Tab, string> = { stages: `${t.stages} & managers`, access: 'People with access', roles: 'Roles', modules: 'Modules', event: 'Event', depts: 'Departments', accred: 'Accreditation' }
   const close = () => setDialog(null)
 
   return (
@@ -55,6 +56,7 @@ export function AdminPage() {
       {tab === 'modules' && <ModulesTab w={w} />}
       {tab === 'event' && <EventTab w={w} open={setDialog} />}
       {tab === 'depts' && <DeptsTab w={w} open={setDialog} />}
+      {tab === 'accred' && <AccredTab w={w} />}
 
       {dialog?.type === 'stage' && <StageForm stage={dialog.stage} onClose={close} />}
       {dialog?.type === 'manager' && <ManagerForm sid={dialog.sid} onClose={close} />}
@@ -360,6 +362,73 @@ function DeptsTab({ w, open }: TabProps) {
         ))}
         {!cfg.depts.length && <li className="muted">No departments yet.</li>}
       </ul>
+    </section>
+  )
+}
+
+/**
+ * The event's accreditation levels, highest first. Renaming one renames it on everyone who has
+ * it; removing one leaves people who have it as they are, so nothing is lost by accident.
+ */
+function AccredTab({ w }: { w: boolean }) {
+  const store = useStore()
+  const cfg = useConfig('event')!
+  const people = useCollection('people')
+  const toast = useToast()
+  const levels = accredLevels(cfg)
+  const [add, setAdd] = useState('')
+  const count = (l: string) => Object.values(people).filter(p => p.accred === l).length
+  const save = (next: string[]) => store.setConfig('event', { ...cfg, accred: next })
+
+  const rename = async (from: string, raw: string) => {
+    const to = raw.trim()
+    if (!to || to === from) return
+    if (levels.includes(to)) { toast(`There is already a level called ${to}.`); return }
+    await save(levels.map(l => (l === from ? to : l)))
+    const holders = Object.values(people).filter(p => p.accred === from)
+    if (holders.length) await store.setMany('people', holders.map(p => ({ ...p, accred: to })))
+  }
+  const move = (i: number, by: number) => {
+    const next = [...levels]
+    const [l] = next.splice(i, 1)
+    next.splice(i + by, 0, l)
+    void save(next)
+  }
+
+  return (
+    <section className="panel" style={{ maxWidth: 640 }}>
+      <div className="ph"><h3>Accreditation levels</h3></div>
+      <p className="pb small muted" style={{ paddingBottom: 0 }}>Highest first. Used for personnel. Renaming a level renames it for everyone who has it.</p>
+      <ul className="list accred-list">
+        {levels.map((l, i) => (
+          <li key={l}>
+            {w
+              ? <input className="inline-sel" aria-label={`Rename ${l}`} defaultValue={l} onBlur={e => void rename(l, e.target.value)} onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }} />
+              : <b>{l}</b>}
+            <span className="small muted">{count(l) === 1 ? '1 person' : `${count(l)} people`}</span>
+            {w && (
+              <span className="row" style={{ marginLeft: 'auto', gap: '.35rem' }}>
+                <button type="button" className="btn sm" aria-label={`Move ${l} up`} disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+                <button type="button" className="btn sm" aria-label={`Move ${l} down`} disabled={i === levels.length - 1} onClick={() => move(i, 1)}>↓</button>
+                <button type="button" className="btn sm danger" disabled={levels.length < 2} title={count(l) ? 'People who have it keep it until you change their entry' : undefined}
+                  onClick={() => void save(levels.filter(x => x !== l))}>Remove</button>
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {w && (
+        <form className="pb row" style={{ gap: '.5rem' }} onSubmit={e => {
+          e.preventDefault()
+          const v = add.trim()
+          if (!v) return
+          if (levels.includes(v)) { toast(`There is already a level called ${v}.`); return }
+          void save([...levels, v]).then(() => setAdd(''))
+        }}>
+          <input className="inline-sel" aria-label="New accreditation level" placeholder="e.g. Crew catering" value={add} onChange={e => setAdd(e.target.value)} style={{ flex: 1 }} />
+          <button type="submit" className="btn sm primary" disabled={!add.trim()}>+ Add level</button>
+        </form>
+      )}
     </section>
   )
 }

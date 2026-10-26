@@ -84,6 +84,7 @@ export const STAGE_LV: Record<keyof typeof STAGE_ROLES, Partial<Record<PermKey |
   crew: { show: 1, schedule: 1, artists: 1, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, facilities: 1, riders_tech: 1, documents: 1 },
 }
 
+/** Accreditation levels an event starts with. Each event can change its list (config/event.accred). */
 export const ACCRED = ['AAA', 'Production', 'Stage', 'Backstage', 'Artist', 'Site', 'Day pass'] as const
 
 const MUSIC_TERMS: Terms = { performer: 'Artist', performers: 'Artists', stage: 'Stage', stages: 'Stages' }

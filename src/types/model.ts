@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ACCRED, ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SYSTEMS, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
+  ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SYSTEMS, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -19,7 +19,8 @@ export type EventType = keyof typeof EVENT_TYPES
 export type PermKey = (typeof PERM_KEYS)[number]['key']
 export type PermLevel = 0 | 1 | 2
 export type StageRole = keyof typeof STAGE_ROLES
-export type Accred = (typeof ACCRED)[number]
+/** An accreditation level: one of the event's list (EventConfig.accred), by name. */
+export type Accred = string
 export type Track = keyof typeof TRACKS
 export type RosKind = keyof typeof KINDS
 export type LegacyRosKind = keyof typeof LEGACY_KINDS
@@ -77,6 +78,8 @@ export interface EventConfig {
   /** Which optional modules are on. A missing entry uses the module's default (see src/shared/modules.ts). */
   modules: Partial<Record<ModuleId, boolean>>
   depts: Dept[]
+  /** Accreditation levels, highest first. Missing: the defaults in ACCRED. */
+  accred?: string[]
 }
 
 export interface RoleDef {

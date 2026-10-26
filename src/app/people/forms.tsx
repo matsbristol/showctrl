@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useConfig, useStore } from '../../data/hooks'
 import { rid } from '../../lib/id'
 import { parseCrewList } from '../../lib/importPeople'
-import { ACCRED } from '../../types/constants'
+import { accredLevels } from '../../lib/accred'
 import type { Accred, Id, Person } from '../../types/model'
 import { useAccess } from '../session'
 import { Field, FormDialog } from '../ui/Dialog'
@@ -53,7 +53,7 @@ export function PersonForm({ person, sid, onClose }: { person: Person | null; si
       <Field label="Accreditation">
         <select value={v.accred} onChange={e => set('accred', e.target.value as Accred | '')}>
           <option value="">None</option>
-          {ACCRED.map(x => <option key={x} value={x}>{x}</option>)}
+          {[...new Set([...accredLevels(cfg), ...(v.accred ? [v.accred] : [])])].map(x => <option key={x} value={x}>{x}</option>)}
         </select>
       </Field>
       <Field label="Key contact">

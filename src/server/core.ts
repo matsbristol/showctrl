@@ -156,6 +156,7 @@ export class EventCore {
     if (which === 'event') {
       const c = doc as unknown as EventConfig
       if (c.schema !== SCHEMA_VERSION || typeof c.name !== 'string' || !Array.isArray(c.depts)) return { ok: false, code: 'invalid', message: 'Bad event settings.' }
+      if (c.accred !== undefined && (!Array.isArray(c.accred) || c.accred.length > 50 || c.accred.some(l => typeof l !== 'string' || !l.trim() || l.length > 40))) return { ok: false, code: 'invalid', message: 'Accreditation levels must be up to 50 short names.' }
       this.cfg = c
     } else {
       const r = doc as unknown as RolesConfig

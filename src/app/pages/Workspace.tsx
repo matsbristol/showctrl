@@ -1,8 +1,10 @@
 // Route guards for Festival HQ and stage workspaces, ported from renderMain().
 
+import { useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useCollection, useConfig } from '../../data/hooks'
 import { HQ_VIEWS, STAGE_VIEWS, canOpenHqView, canOpenStageView, homePath, type HqView, type StageView } from '../../shared/views'
+import { trackView } from '../backend'
 import { useAccess, useTerms } from '../session'
 import { AccommodationPage } from './AccommodationPage'
 import { AdminPage } from './AdminPage'
@@ -34,6 +36,11 @@ import { NoAccess } from './NoAccess'
 const isHqView = (v: string | undefined): v is HqView => (HQ_VIEWS as readonly string[]).includes(v ?? '')
 const isStageView = (v: string | undefined): v is StageView => (STAGE_VIEWS as readonly string[]).includes(v ?? '')
 
+/** Analytics: reports the page once it's open (live mode only; nothing in demo mode). */
+function useTrackView(where: 'hq' | 'stage', view: string | null) {
+  useEffect(() => { if (view) trackView(where, view) }, [where, view])
+}
+
 /** `/hq` → the user's start page. */
 export function HomeRedirect() {
   return <Navigate to={homePath(useAccess())} replace />
@@ -44,7 +51,9 @@ export function HqPage() {
   const { view } = useParams()
   const a = useAccess()
   const cfg = useConfig('event')
-  if (!a.hqVisible() || !isHqView(view) || !canOpenHqView(a, cfg, view)) return <NoAccess />
+  const ok = a.hqVisible() && isHqView(view) && canOpenHqView(a, cfg, view)
+  useTrackView('hq', ok ? view! : null)
+  if (!ok) return <NoAccess />
   switch (view) {
     case 'admin': return <AdminPage />
     case 'overview': return <OverviewPage />
@@ -84,8 +93,10 @@ export function StagePage() {
   const a = useAccess()
   const cfg = useConfig('event')
   const blocked = useStageGuard(stageId)
+  const ok = !blocked && isStageView(view) && canOpenStageView(a, cfg, stageId!, view)
+  useTrackView('stage', ok ? view! : null)
   if (blocked) return blocked
-  if (!isStageView(view) || !canOpenStageView(a, cfg, stageId!, view)) return <NoAccess />
+  if (!ok) return <NoAccess />
   const sid = stageId!
   switch (view) {
     case 'today': return <TodayPage sid={sid} />

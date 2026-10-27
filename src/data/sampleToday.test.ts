@@ -18,7 +18,7 @@ describe('sample festival at real hours', () => {
     // Arrivals that already happened are done; every show is still to come.
     expect(today.some(r => r.kind === 'arrival' && r.status === 'done')).toBe(true)
     expect(shows.every(s => s.status === 'pending')).toBe(true)
-    expect(d.col.clocks.c2.target).toBeGreaterThan(t)
+    expect((d.col.clocks.c2 as { target: number }).target).toBeGreaterThan(t)
   })
 
   it('marks what has happened when reset in the evening', () => {

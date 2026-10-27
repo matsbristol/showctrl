@@ -259,6 +259,13 @@ export class EventObject extends DurableObject<Env> {
     } else console.error(JSON.stringify({ level: 'error', what: 'setEventAdmin', email, error: r.message }))
   }
 
+  /** Analytics: changes per person and collection since `since`, from the change log. */
+  async auditSummary(since: number): Promise<{ actor: string; col: string; n: number; last: number }[]> {
+    return this.sql.exec<{ actor: string; col: string; n: number; last: number }>(
+      'SELECT actor, col, COUNT(*) AS n, MAX(at) AS last FROM audit WHERE at >= ? AND actor IS NOT NULL GROUP BY actor, col', since,
+    ).toArray()
+  }
+
   /** How much the event holds; `exists` is false for an empty object. */
   async counts(): Promise<{ exists: boolean; records: number; history: number }> {
     const n = (sql: string) => this.sql.exec<{ n: number }>(sql).one().n

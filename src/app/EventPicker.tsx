@@ -7,6 +7,7 @@ import { MODULES } from '../shared/modules'
 import { MODULE_IDS } from '../types/constants'
 import type { ModuleId } from '../types/model'
 import { FontPicker } from './FontPicker'
+import { AnalyticsPage } from './Analytics'
 import { SigninLinkDialog } from './SigninLink'
 import { SAMPLE_NAME } from '../data/sample'
 import { tr } from '../i18n'
@@ -35,6 +36,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
   onOrgDeleted: (id: string) => void
 }) {
   const [err, setErr] = useState('')
+  const [analytics, setAnalytics] = useState(false)
   const signedIn = <p className="muted" style={{ margin: '.5rem 0 1rem' }}>{tr('Signed in as')} <b>{me.email}</b>. <button type="button" className="linkish" onClick={() => void logout()}>{tr('Log out')}</button> <FontPicker className="btn sm" /></p>
 
   if (!me.superadmin) {
@@ -61,6 +63,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
     )
   }
 
+  if (analytics) return <AnalyticsPage onBack={() => setAnalytics(false)} />
   const current = org ? orgs.find(o => o.id === org) : undefined
   if (!current) {
     const loose = events.filter(e => !e.org || !orgs.some(o => o.id === e.org))
@@ -70,7 +73,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
         <div className="panel">
           <h1>{tr('Customers')}</h1>
           {signedIn}
-          <p style={{ margin: '-.25rem 0 1rem' }}><a className="btn" href={backupUrl()} download>{tr('Download a full backup')}</a> <span className="small muted">{tr('Every customer and event, as one JSON file.')}</span></p>
+          <p style={{ margin: '-.25rem 0 1rem' }}><button type="button" className="btn" onClick={() => setAnalytics(true)}>{tr('Analytics')}</button> <a className="btn" href={backupUrl()} download>{tr('Download a full backup')}</a> <span className="small muted">{tr('Every customer and event, as one JSON file.')}</span></p>
           {orgs.length ? (
             <ul className="list" style={{ margin: '0 -1.5rem 1rem' }}>
               {orgs.map(o => {

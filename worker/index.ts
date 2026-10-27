@@ -28,6 +28,7 @@ import { isFontId } from '../src/shared/fonts'
 import { isDev, loginRoutes, signinLinkRoute } from './login'
 import { isSuperadmin, json, mayConnect, namesFor, parsePeople, portfolioRoutes } from './orgs'
 
+import { activityRoute, analyticsRoute, purgeAnalytics } from './analytics'
 import { importRoute } from './import'
 
 export { EventObject } from './event'
@@ -86,6 +87,8 @@ export default {
         return json({ ok: true })
       }
       // One-time: copy events made before EU storage into the EU (superadmins). ?purge=1 then removes the old copies.
+      if (url.pathname === '/api/activity' && request.method === 'POST') return await activityRoute(request, env, me)
+      if (url.pathname === '/api/analytics' && request.method === 'GET') return await analyticsRoute(env, me, url)
       if (url.pathname === '/api/admin/signin-link' && (request.method === 'POST' || request.method === 'DELETE')) return await signinLinkRoute(request, env, me)
       if (url.pathname === '/api/admin/move-to-eu' && request.method === 'POST') {
         if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
@@ -124,6 +127,7 @@ export default {
   /** Cron trigger (wrangler.jsonc): the nightly backup. */
   async scheduled(controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(nightlyBackup(env, controller.scheduledTime))
+    ctx.waitUntil(purgeAnalytics(env, controller.scheduledTime))
   },
 } satisfies ExportedHandler<Env>
 

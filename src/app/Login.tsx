@@ -3,6 +3,16 @@ import { signInWithLink, startLogin, verifyLogin } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
 
+/** The logo with the tagline under it. The tagline is the brand's, so it stays in English. */
+function Brand() {
+  return (
+    <div className="brand">
+      <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+      <p className="tagline" lang="en">Know The Show</p>
+    </div>
+  )
+}
+
 const errText = (e: unknown) => (e instanceof Error ? e.message : tr('Something went wrong. Try again.'))
 
 /** Sign-in: your email, then the 6-digit code showctrl emails you. No passwords. */
@@ -49,7 +59,7 @@ export function Login() {
   return (
     <div className="setup login">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <Brand />
         <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
           {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
         </div>
@@ -108,7 +118,7 @@ export function LinkSignIn({ token }: { token: string }) {
   return (
     <div className="setup login">
       <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <Brand />
         <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
           {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
         </div>

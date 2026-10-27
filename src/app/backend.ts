@@ -4,6 +4,7 @@
 import { CloudflareStore, type SocketLike } from '../data/cloudflareStore'
 import type { Id } from '../types/model'
 import type { ImportResult } from '../shared/importSchema'
+import type { Analytics } from '../shared/analytics'
 import { getLang } from '../i18n'
 
 export interface EventSummary { id: Id; name: string; owner: Id; org?: Id | null }
@@ -159,6 +160,18 @@ export async function readImport(text: string): Promise<ImportResult> {
   if (!current) throw new Error('Import works only on showctrl.no, not in demo mode.')
   return (await api<{ result: ImportResult }>(`/api/events/${encodeURIComponent(current.id)}/import`, { body: { text } })).result
 }
+
+/** Analytics: tells the server which page was opened in the open event, at most every 2 minutes per page. */
+const tracked = new Map<string, number>()
+export function trackView(where: 'hq' | 'stage', view: string) {
+  if (!current) return
+  const key = `${current.id}|${where}/${view}`
+  const now = Date.now()
+  if (now - (tracked.get(key) ?? 0) < 120_000) return
+  tracked.set(key, now)
+  void fetch(`/api/activity${devQuery()}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ event: current.id, where, view }) }).catch(() => {})
+}
+export const getAnalytics = (days: number) => api<Analytics>(`/api/analytics?days=${days}`)
 
 export function eventStore(id: Id): CloudflareStore {
   if (current?.id === id) return current.store

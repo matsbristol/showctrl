@@ -17,6 +17,7 @@
 // so it doesn't reveal who has access. Codes and session tokens are stored only as SHA-256 hashes.
 
 import type { Env } from './env'
+import { recordSignin } from './analytics'
 import { isEmail, isSuperadmin, json, normEmail } from './orgs'
 
 const MIN = 60_000
@@ -171,6 +172,7 @@ async function verify(request: Request, env: Env, url: URL): Promise<Response> {
     env.DB.prepare('DELETE FROM login_codes WHERE email = ?').bind(email),
     env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), email, now, now + SESSION_TTL),
   ])
+  await recordSignin(request, env, email, 'code')
   return Response.json({ ok: true }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 
@@ -212,6 +214,7 @@ async function linkSignIn(request: Request, env: Env, url: URL): Promise<Respons
   if (!row) return json({ error: 'This sign-in link has expired or was replaced. Ask for a new one.' }, 400)
   const token = randomToken()
   await env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), row.email, now, now + SESSION_TTL).run()
+  await recordSignin(request, env, row.email, 'link')
   return Response.json({ ok: true, email: row.email }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 

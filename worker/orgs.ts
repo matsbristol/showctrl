@@ -10,6 +10,7 @@
 //   PATCH  /api/orgs/:id                   rename it { name } (superadmins)
 //   DELETE /api/orgs/:id                   delete it, once it has no events (superadmins)
 //   DELETE /api/events/:id                 delete an event and everything in it (superadmins)
+//   POST /api/events/:id/reset-sample      rebuild the sample festival for today, at real hours (superadmins)
 //   GET    /api/events/:id/backup          download one event as JSON (superadmins)
 //   GET    /api/backup                     download everything as JSON (superadmins)
 //   GET    /api/events/:id/admins          an event's admins (superadmins)
@@ -76,10 +77,20 @@ export async function portfolioRoutes(request: Request, env: Env, me: string, ur
   const admins = url.pathname.match(/^\/api\/events\/([\w-]+)\/admins(?:\/([^/]+))?$/)
   const event = request.method === 'DELETE' ? url.pathname.match(/^\/api\/events\/([\w-]+)$/) : null
   const backup = request.method === 'GET' ? url.pathname.match(/^\/api\/(?:events\/([\w-]+)\/)?backup$/) : null
-  if (!orgs && !admins && !event && !backup) return null
+  const reset = request.method === 'POST' ? url.pathname.match(/^\/api\/events\/([\w-]+)\/reset-sample$/) : null
+  if (!orgs && !admins && !event && !backup && !reset) return null
   if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
 
   if (backup) return downloadBackup(env, me, backup[1] ?? null)
+
+  // The sample festival, rebuilt so day 1 is today at real festival hours.
+  if (reset) {
+    if (!(await env.DB.prepare('SELECT 1 FROM events WHERE id = ?').bind(reset[1]).first())) return json({ error: 'No such event.' }, 404)
+    const r = await eventStub(env, reset[1]).resetSample(Date.now())
+    if (r === 'not-sample') return json({ error: 'Only the sample festival can be reset.' }, 400)
+    console.log(JSON.stringify({ level: 'info', what: 'sample reset', id: reset[1], by: me, records: r.records }))
+    return json({ ok: true, ...r })
+  }
 
   if (event) {
     const id = event[1]

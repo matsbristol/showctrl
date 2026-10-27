@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import {
-  addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, runBackupNow, createOrg, deleteEvent, deleteOrg, getEventAdmins, logout, removeEventAdmin, renameOrg,
+  addEventAdmin, backupUrl, createEvent, listNightly, nightlyUrl, runBackupNow, createOrg, deleteEvent, deleteOrg, resetSample, getEventAdmins, logout, removeEventAdmin, renameOrg,
   type EventAdmins, type EventSummary, type Me, type NamedPerson, type NightlyBackups, type OrgSummary,
 } from './backend'
 import { MODULES } from '../shared/modules'
@@ -8,6 +8,7 @@ import { MODULE_IDS } from '../types/constants'
 import type { ModuleId } from '../types/model'
 import { FontPicker } from './FontPicker'
 import { SigninLinkDialog } from './SigninLink'
+import { SAMPLE_NAME } from '../data/sample'
 import { tr } from '../i18n'
 
 /** Ticked when a new event is created: what nearly every event uses on show days. */
@@ -142,6 +143,14 @@ function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSum
     setErr('')
     try { await deleteEvent(e.id); onDeleted?.(e.id) } catch (x) { setErr(errText(x, tr('Could not delete it.'))) } finally { setBusy(null) }
   }
+  const [note, setNote] = useState('')
+  const reset = async (e: EventSummary) => {
+    if (!confirm(tr('Rebuild {name} so the festival starts today, at real festival hours? Everything in it is replaced with fresh sample data. People who sign in keep their access.', { name: e.name }))) return
+    setBusy(e.id)
+    setErr('')
+    setNote('')
+    try { await resetSample(e.id); setNote(tr('{name} starts today. Anyone who has it open gets the new data in a few seconds.', { name: e.name })) } catch (x) { setErr(errText(x, tr('That didn’t work. Try again.'))) } finally { setBusy(null) }
+  }
   return (
     <ul className="list" style={{ margin: '0 -1.5rem 1rem' }}>
       {events.map(e => (
@@ -149,6 +158,7 @@ function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSum
           <div className="stack"><b>{e.name}</b><span className="small muted">{e.owner === me.email ? tr('You created this event') : tr('Created by {owner}', { owner: e.owner })}</span></div>
           <div className="row" style={{ marginLeft: 'auto', gap: '.5rem' }}>
             {manage && <button type="button" className="btn" aria-expanded={open === e.id} onClick={() => setOpen(open === e.id ? null : e.id)}>{tr('Admins')}</button>}
+            {manage && e.name === SAMPLE_NAME && <button type="button" className="btn" disabled={busy === e.id} title={tr('Rebuild the sample so day 1 is today, at real festival hours')} onClick={() => void reset(e)}>{tr('Start today')}</button>}
             {manage && <a className="btn" href={backupUrl(e.id)} download title={tr('Download everything in this event as a JSON file')}>{tr('Backup')}</a>}
             {manage && <button type="button" className="btn danger" disabled={busy === e.id} onClick={() => void remove(e)}>{busy === e.id ? tr('Deleting…') : tr('Delete')}</button>}
             <button type="button" className="btn primary" onClick={() => onOpen(e.id)}>{tr('Open')}</button>
@@ -157,6 +167,7 @@ function EventRows({ events, me, onOpen, onDeleted, manage }: { events: EventSum
         </li>
       ))}
       {err && <li className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</li>}
+      {note && <li className="small" role="status">{note}</li>}
     </ul>
   )
 }

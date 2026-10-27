@@ -27,11 +27,19 @@ export function blankEvent(t: number = Date.now()): LocalData {
 
 const eff = (r: RosItem) => ({ s: r.start + (r.delay || 0), e: r.end + (r.delay || 0) })
 
-export function buildSample(t: number = Date.now()): LocalData {
+/** The sample festival's name. Superadmins can reset events with this name (worker/event.ts). */
+export const SAMPLE_NAME = 'Nordlys Open Air 2026'
+
+/**
+ * A three-day sample festival starting on the festival day of `t`. By default day 1 is laid out
+ * around `t`, so something is on stage whenever the demo opens. `realTimes`: day 1 runs at the
+ * stages' normal hours (first show 15:00, gates 17:00), like a real festival day.
+ */
+export function buildSample(t: number = Date.now(), opts: { realTimes?: boolean } = {}): LocalData {
   const tz = 'Europe/Oslo'
   const d0 = festDay(t, tz)
   const cfg: EventConfig = {
-    schema: SCHEMA_VERSION, name: 'Nordlys Open Air 2026', type: 'festival', tz, start: d0, end: addDays(d0, 2), visitors: 200000,
+    schema: SCHEMA_VERSION, name: SAMPLE_NAME, type: 'festival', tz, start: d0, end: addDays(d0, 2), visitors: 200000,
     terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true, comms: true }, depts: defaultDepts(),
   }
   const col = emptyCollections()
@@ -62,7 +70,7 @@ export function buildSample(t: number = Date.now()): LocalData {
   for (const dn of [0, 1, 2]) {
     const day = addDays(d0, dn)
     for (const s of STG) {
-      let cur = dn === 0 ? round(t - s.off * MIN) : fromLocal(`${day}T${s.base}`, tz)!
+      let cur = dn === 0 && !opts.realTimes ? round(t - s.off * MIN) : fromLocal(`${day}T${s.base}`, tz)!
       if (s.id === 'main') { const id = `dr${dn}`; col.ros[id] = { id, stage: 'main', title: 'Gates open', kind: 'doors', start: cur - 60 * MIN, end: cur - 60 * MIN, status: 'pending', delay: 0 } }
       const n = s.lens.length
       for (let k = 0; k < n; k++) {
@@ -85,7 +93,7 @@ export function buildSample(t: number = Date.now()): LocalData {
   }
 
   // day 1: statuses relative to now, The Tent running late
-  const tentLate = Object.values(col.ros).filter(r => r.stage === 'tent' && festDay(r.start, tz) === d0 && r.start > t - 15 * MIN).sort((a, b) => a.start - b.start)
+  const tentLate = opts.realTimes ? [] : Object.values(col.ros).filter(r => r.stage === 'tent' && festDay(r.start, tz) === d0 && r.start > t - 15 * MIN).sort((a, b) => a.start - b.start)
   tentLate.forEach((r, i) => { r.delay = 10 * MIN; if (i === 0) r.delayNote = 'Late arrival from airport' })
   for (const r of Object.values(col.ros)) {
     if (festDay(r.start, tz) !== d0) continue
@@ -256,7 +264,13 @@ export function buildSample(t: number = Date.now()): LocalData {
   col.clocks.ct = { id: 'ct', label: 'Changeover timer', kind: 'timer', scope: 'main', duration: 45 * MIN, accum: 0, runningSince: null, warn: 5, order: 9 }
 
   // messages
-  col.msgs = {
+  // Messages from the last hours; with real times, the morning before the gates open.
+  col.msgs = opts.realTimes ? {
+    m1: { id: 'm1', from: 'demo-pm', to: { t: 'all' }, text: 'Weather: rain from 21:00. Cover FOH and monitor world on all outdoor stages.', pri: 'normal', at: t - 95 * MIN, acks: { 'demo-sm-main': t - 90 * MIN } },
+    m2: { id: 'm2', from: 'demo-pm', to: { t: 'all' }, text: 'Gates open 17:00. Stage managers: confirm your stage is ready by 16:30.', pri: 'normal', at: t - 50 * MIN, acks: {} },
+    m3: { id: 'm3', from: 'demo-hosp', to: { t: 'dept', id: 'al' }, text: 'Dressing rooms 3 and 4 at Fjord Stage are ready.', pri: 'normal', at: t - 20 * MIN, acks: {} },
+    m4: { id: 'm4', from: 'demo-sm-fjord', to: { t: 'dept', id: 'transport' }, text: 'Need a runner at the Fjord Stage dock for a truck at 20:30.', pri: 'normal', at: t - 5 * MIN, acks: {} },
+  } : {
     m1: { id: 'm1', from: 'demo-pm', to: { t: 'all' }, text: 'Weather: rain from 21:00. Cover FOH and monitor world on all outdoor stages.', pri: 'normal', at: t - 95 * MIN, acks: { 'demo-sm-main': t - 90 * MIN } },
     m2: { id: 'm2', from: 'demo-sm-main', to: { t: 'stage', id: 'main' }, text: 'Line check for the next act in 10. Wedges patched please.', pri: 'normal', at: t - 40 * MIN, acks: {} },
     m3: { id: 'm3', from: 'demo-al', to: { t: 'stage', id: 'tent' }, text: 'Next act on the Tent is stuck in traffic from the airport, ETA +25 min. Running order pushed 10 min, may need more.', pri: 'urgent', at: t - 18 * MIN, acks: { 'demo-pm': t - 15 * MIN } },

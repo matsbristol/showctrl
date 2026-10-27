@@ -77,6 +77,8 @@ export async function createOrg(name: string): Promise<Id> {
 export const renameOrg = (id: Id, name: string) => api<{ ok: true }>(`/api/orgs/${encodeURIComponent(id)}`, { method: 'PATCH', body: { name } })
 
 /** Superadmins: delete an event and everything in it. */
+/** Superadmins: rebuild the sample festival so day 1 is today, at real festival hours. */
+export const resetSample = (id: Id) => api<{ ok: true; records: number }>(`/api/events/${encodeURIComponent(id)}/reset-sample`, { method: 'POST', body: {} })
 export const deleteEvent = (id: Id) => api<{ ok: true }>(`/api/events/${encodeURIComponent(id)}`, { method: 'DELETE' })
 
 /** Superadmins: delete a customer that has no events left. */

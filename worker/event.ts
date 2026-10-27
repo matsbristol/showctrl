@@ -13,6 +13,7 @@ import { personName } from '../src/shared/people'
 import { sendInvite } from './invite'
 import { trIn } from '../src/i18n'
 import { accredLevels } from '../src/lib/accred'
+import { buildSample, SAMPLE_NAME } from '../src/data/sample'
 import type { ImportContext } from '../src/shared/importSchema'
 import type { WriteOp } from '../src/shared/protocol'
 import type { CollectionName, ConfigName, EventConfig, FileDoc, Id, RolesConfig } from '../src/types/model'
@@ -169,6 +170,44 @@ export class EventObject extends DurableObject<Env> {
     }
     this.hub = this.load()
     await this.syncMembers(this.hub.core.memberEmails())
+  }
+
+  /**
+   * Superadmins: rebuilds the sample festival so day 1 is today at real festival hours.
+   * Only for the sample (by name). Keeps real people's access (members and stage crew with an
+   * email), their preferences and requests, uploaded files, the roles and which modules are on.
+   * Everyone connected reconnects and gets the new data.
+   */
+  async resetSample(now: number): Promise<{ records: number } | 'not-sample'> {
+    const core = this.hub.core
+    if (core.cfg?.name !== SAMPLE_NAME) return 'not-sample'
+    const fresh = buildSample(now, { realTimes: true })
+    const real = (id: string) => id.includes('@')
+    const col = fresh.col as unknown as CollectionData
+    for (const [id, m] of Object.entries(core.col.members)) if (real(id)) (col.members as Record<Id, unknown>)[id] = m
+    for (const [sid, team] of Object.entries(core.col.stageteam)) {
+      const keep = Object.fromEntries(Object.entries(team.crew ?? {}).filter(([u]) => real(u)))
+      if (!Object.keys(keep).length) continue
+      const st = (col.stageteam as Record<Id, { id: Id; crew: Record<Id, true> }>)
+      st[sid] = { id: sid, crew: { ...(st[sid]?.crew ?? {}), ...keep } }
+    }
+    for (const [id, f] of Object.entries(core.col.files)) if (f.blob && !f.blob.key.startsWith('data:')) (col.files as Record<Id, unknown>)[id] = f
+    const cfg = { ...fresh.cfg!, modules: core.cfg.modules, ...(core.cfg.accred ? { accred: core.cfg.accred } : {}) }
+    let records = 0
+    this.ctx.storage.transactionSync(() => {
+      this.sql.exec("DELETE FROM docs WHERE col NOT IN ('prefs', 'requests')")
+      for (const c of COLLECTIONS) {
+        if (c === 'prefs' || c === 'requests') continue
+        for (const [id, doc] of Object.entries(col[c] ?? {})) { this.sql.exec('INSERT INTO docs (col, id, data) VALUES (?, ?, ?)', c, id, JSON.stringify(doc)); records++ }
+      }
+      this.sql.exec('INSERT OR REPLACE INTO config (which, data) VALUES (?, ?)', 'event', JSON.stringify(cfg))
+    })
+    this.hub = this.load()
+    // Everyone reconnects (the app does that on its own) and gets the new snapshot.
+    for (const ws of this.ctx.getWebSockets()) {
+      try { ws.close(1012, 'The sample festival was reset.') } catch { /* already closed */ }
+    }
+    return { records }
   }
 
   /** Emails the people who just got access: who gave it, and as what. */

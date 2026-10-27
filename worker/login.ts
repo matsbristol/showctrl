@@ -4,7 +4,12 @@
 //   POST /api/auth/verify  { email, code }  signs in: sets the session cookie
 //   POST /api/auth/logout                   ends this session
 //   POST /api/auth/link    { token }        signs in with a sign-in link from a superadmin
-//   POST /api/auth/magic   { token }        signs in with the link in the sign-in email (once, 10 minutes)
+//   POST /api/auth/magic   { token, auto? } signs in with the link in the sign-in email (once, 10 minutes)
+//
+// The email's link signs in as soon as it opens, but only in the browser that asked for the code
+// (`auto`, checked against the sc_browser cookie set by /start). Anywhere else, such as a phone or
+// a mail scanner that opens links to check them, the page asks the person to press Sign in, so a
+// scanner can't use the link up.
 //
 // When the email doesn't arrive (a strict mail filter, a brand-new domain), a superadmin can make
 // a sign-in link (createSigninLink) and send it another way, e.g. by text message. It works every
@@ -32,6 +37,9 @@ const PER_EMAIL_PER_HOUR = 5
 const PER_IP_PER_HOUR = 20
 
 export const SESSION_COOKIE = 'sc_session'
+/** Marks the browser that asked for a code. Only sent to /api/auth. */
+const BROWSER_COOKIE = 'sc_browser'
+const BROWSER_TTL = 24 * HOUR
 
 /** `wrangler dev` only (DEV_USER_EMAIL in .dev.vars, no Access): codes are returned instead of emailed. */
 export const isDev = (env: Env) => !!env.DEV_USER_EMAIL && !env.ACCESS_AUD
@@ -68,6 +76,10 @@ function sessionCookie(token: string, maxAge: number, secure: boolean): string {
   return `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure ? '; Secure' : ''}`
 }
 
+function browserCookie(value: string, maxAge: number, secure: boolean): string {
+  return `${BROWSER_COOKIE}=${value}; Path=/api/auth; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure ? '; Secure' : ''}`
+}
+
 /** The signed-in email for this request's session cookie, if the session is still valid. */
 export async function sessionEmail(request: Request, env: Env): Promise<string | null> {
   const token = readCookie(request, SESSION_COOKIE)
@@ -92,7 +104,7 @@ async function body(request: Request): Promise<Record<string, unknown>> {
 /** Handles /api/auth/…, or returns null for other paths. These need no sign-in. */
 export async function loginRoutes(request: Request, env: Env, url: URL): Promise<Response | null> {
   if (request.method !== 'POST') return null
-  if (url.pathname === '/api/auth/start') return start(request, env)
+  if (url.pathname === '/api/auth/start') return start(request, env, url)
   if (url.pathname === '/api/auth/verify') return verify(request, env, url)
   if (url.pathname === '/api/auth/logout') return logout(request, env, url)
   if (url.pathname === '/api/auth/link') return linkSignIn(request, env, url)
@@ -100,7 +112,16 @@ export async function loginRoutes(request: Request, env: Env, url: URL): Promise
   return null
 }
 
-async function start(request: Request, env: Env): Promise<Response> {
+async function start(request: Request, env: Env, url: URL): Promise<Response> {
+  // Every answer marks this browser, for known and unknown addresses alike.
+  const old = readCookie(request, BROWSER_COOKIE)
+  const browser = old && /^[\w-]{40,64}$/.test(old) ? old : randomToken()
+  const res = await sendCode(request, env, browser)
+  res.headers.append('set-cookie', browserCookie(browser, BROWSER_TTL / 1000, url.protocol === 'https:'))
+  return res
+}
+
+async function sendCode(request: Request, env: Env, browser: string): Promise<Response> {
   const b = await body(request)
   if (!isEmail(b.email)) return json({ error: 'That doesn’t look like an email address.' }, 400)
   const email = normEmail(b.email)
@@ -127,13 +148,13 @@ async function start(request: Request, env: Env): Promise<Response> {
   if (!(await isKnown(env, email))) return ok
 
   const code = randomCode()
-  // The email also carries a link that signs in with one press. The token sits after #, so
-  // mail scanners that open links never send it; it's used only when the person presses Sign in.
+  // The email also carries a link. The token sits after #, so mail scanners that only fetch links
+  // never send it, and it signs in without a press only in this browser (see magicSignIn).
   const linkToken = randomToken()
   const link = `${env.PUBLIC_URL ?? new URL(request.url).origin}/#login=${linkToken}`
   await env.DB.batch([
-    env.DB.prepare('INSERT OR REPLACE INTO login_codes (email, code_hash, expires_at, attempts, sent_at, link_hash) VALUES (?, ?, ?, 0, ?, ?)')
-      .bind(email, await sha256(`${email}:${code}`), now + CODE_TTL, now, await sha256(linkToken)),
+    env.DB.prepare('INSERT OR REPLACE INTO login_codes (email, code_hash, expires_at, attempts, sent_at, link_hash, browser_hash) VALUES (?, ?, ?, 0, ?, ?, ?)')
+      .bind(email, await sha256(`${email}:${code}`), now + CODE_TTL, now, await sha256(linkToken), await sha256(browser)),
     env.DB.prepare('INSERT INTO login_sends (key, at) VALUES (?, ?)').bind(`e:${email}`, now),
   ])
   if (isDev(env)) return json({ ok: true, devCode: code, devLink: link })
@@ -228,9 +249,15 @@ async function magicSignIn(request: Request, env: Env, url: URL): Promise<Respon
   const b = await body(request)
   if (typeof b.token !== 'string' || !b.token) return json({ error: 'That sign-in link isn’t complete.' }, 400)
   const now = Date.now()
+  // `auto` (the page just opened): only in the browser that asked for the code. Otherwise the
+  // link stays unused and the page asks the person to press Sign in.
+  const auto = b.auto === true
+  const browser = readCookie(request, BROWSER_COOKIE)
+  if (auto && !browser) return json({ confirm: true })
   // Used up in the same statement that checks it, together with the code it came with.
-  const row = await env.DB.prepare('DELETE FROM login_codes WHERE link_hash = ? AND expires_at > ? RETURNING email')
-    .bind(await sha256(b.token), now).first<{ email: string }>()
+  const row = await env.DB.prepare('DELETE FROM login_codes WHERE link_hash = ?1 AND expires_at > ?2 AND (?3 = 0 OR browser_hash = ?4) RETURNING email')
+    .bind(await sha256(b.token), now, auto ? 1 : 0, browser ? await sha256(browser) : '').first<{ email: string }>()
+  if (!row && auto) return json({ confirm: true })
   if (!row) return json({ error: 'This sign-in link has been used or has expired. Ask for a new code.' }, 400)
   const token = randomToken()
   await env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), row.email, now, now + SESSION_TTL).run()

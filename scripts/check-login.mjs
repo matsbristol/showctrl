@@ -13,14 +13,14 @@ let ok = true
 const check = (label, cond, got) => { console.log(`${cond ? 'PASS' : 'FAIL'}  ${label}${cond ? '' : `  → ${JSON.stringify(got)}`}`); if (!cond) ok = false }
 
 // Known addresses: the admins of a new event (made as the dev superadmin).
-const known = `admin${t}@test.no`, locked = `lock${t}@test.no`
+const known = `admin${t}@test.no`, locked = `lock${t}@test.no`, third = `third${t}@test.no`
 const jpost = (path, b) => fetch(`${B}${path}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(b) }).then(r => r.json())
 const { id: org } = await jpost('/api/orgs', { name: `Login test ${t}` })
-await jpost('/api/events', { name: `Login test ${t}`, org, admins: [known, locked] })
+await jpost('/api/events', { name: `Login test ${t}`, org, admins: [known, locked, third] })
 
 let r = await me(); check('signed out: /api/me is 401', r.status === 401, r)
 r = await post('/api/auth/start', { email: 'not-an-email' }); check('a bad address is refused', r.status === 400, r)
-r = await post('/api/auth/start', { email: `stranger${t}@nowhere.no` }); check('an unknown address gets the same answer, but no code', r.status === 200 && r.body.ok && !r.body.devCode, r)
+r = await post('/api/auth/start', { email: `stranger${t}@nowhere.no` }); check('an unknown address gets the same answer, but no code', r.status === 200 && r.body.ok && !r.body.devCode && /sc_browser=/.test(r.cookie ?? ''), r)
 r = await post('/api/auth/start', { email: known.toUpperCase() }); check('a known address gets a code (case-insensitive)', r.status === 200 && /^\d{6}$/.test(r.body.devCode ?? ''), r)
 const code = r.body.devCode
 r = await post('/api/auth/start', { email: known }); check('asking again within a minute sends nothing new', r.status === 200 && !r.body.devCode, r)
@@ -57,14 +57,24 @@ await jdo('/api/admin/signin-link', { email: known }, 'DELETE')
 r = await post('/api/auth/link', { token: tok2 }); check('Cancel stops it', r.status === 400, r)
 r = await post('/api/auth/link', { token: 'made-up-token-123456789' }); check('a made-up link is refused', r.status === 400, r)
 
-// The link in the sign-in email: once, together with its code.
+// The link in the sign-in email: once, together with its code. It signs in by itself only in the
+// browser that asked for the code; anywhere else (a phone, a mail scanner) it waits for a press.
 r = await post('/api/auth/start', { email: locked })
+check('asking for a code marks the browser (HttpOnly, only for /api/auth)', /sc_browser=[\w-]{40,}/.test(r.cookie ?? '') && /Path=\/api\/auth;/.test(r.cookie) && /HttpOnly/i.test(r.cookie), r)
+const browser = r.cookie.split(';')[0]
 check('the sign-in email has a link (token after #login=)', /\/#login=[\w-]{20,}$/.test(r.body?.devLink ?? ''), r)
 const mtok = r.body.devLink.split('#login=')[1], mcode = r.body.devCode
-r = await post('/api/auth/magic', { token: mtok }); check('the email link signs in', r.status === 200 && r.body.email === locked && /sc_session=/.test(r.cookie ?? ''), r)
+r = await post('/api/auth/magic', { token: mtok, auto: true }); check('opened without that mark (a mail scanner), it asks first', r.status === 200 && r.body.confirm && !r.cookie, r)
+r = await post('/api/auth/magic', { token: mtok, auto: true }, { cookie: `sc_browser=${'x'.repeat(43)}` }); check('in another browser too', r.status === 200 && r.body.confirm && !r.cookie, r)
+r = await post('/api/auth/magic', { token: mtok }); check('and pressing Sign in there signs in', r.status === 200 && r.body.email === locked && /sc_session=/.test(r.cookie ?? ''), r)
 r = await me({ cookie: r.cookie.split(';')[0] }); check('as that person', r.status === 200 && r.body.email === locked, r)
 r = await post('/api/auth/magic', { token: mtok }); check('the email link works only once', r.status === 400, r)
 r = await post('/api/auth/verify', { email: locked, code: mcode }); check('and its code is used up with it', r.status === 400, r)
 r = await post('/api/auth/magic', { token: 'made-up-token-123456789' }); check('a made-up email link is refused', r.status === 400, r)
+
+r = await post('/api/auth/start', { email: third }, { cookie: browser }); check('the browser keeps its mark', r.cookie?.split(';')[0] === browser, r)
+const ttok = r.body.devLink.split('#login=')[1]
+r = await post('/api/auth/magic', { token: ttok, auto: true }, { cookie: browser }); check('in the browser that asked, the link signs in by itself', r.status === 200 && r.body.email === third && /sc_session=/.test(r.cookie ?? ''), r)
+r = await post('/api/auth/magic', { token: ttok, auto: true }, { cookie: browser }); check('and only once', r.status === 200 && r.body.confirm && !r.cookie, r)
 
 console.log(ok ? '\nALL PASS' : '\nSOME FAILED'); process.exit(ok ? 0 : 1)

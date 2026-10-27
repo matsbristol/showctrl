@@ -1,15 +1,22 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { setLangValue } from '../i18n'
 import { ShowctrlRoot } from './ShowctrlRoot'
 
 afterEach(() => { cleanup(); setLangValue('en'); localStorage.clear(); history.replaceState(null, '', '/') })
 const calls: string[] = []
+const bodies: unknown[] = []
+let sameBrowser = false
 beforeAll(() => {
-  globalThis.fetch = (async (url: string) => {
+  globalThis.fetch = (async (url: string, init?: RequestInit) => {
     calls.push(String(url))
-    const body = String(url).startsWith('/api/me') && !String(url).includes('prefs') ? { error: 'Not signed in.' } : String(url).startsWith('/api/auth/start') ? { ok: true, devCode: '123456' } : { ok: true }
+    const sent = init?.body ? JSON.parse(String(init.body)) : {}
+    bodies.push(sent)
+    const body = String(url).startsWith('/api/me') && !String(url).includes('prefs') ? { error: 'Not signed in.' }
+      : String(url).startsWith('/api/auth/start') ? { ok: true, devCode: '123456' }
+      : String(url) === '/api/auth/magic' && sent.auto && !sameBrowser ? { confirm: true }
+      : { ok: true }
     return new Response(JSON.stringify(body), { status: String(url).startsWith('/api/me?') || String(url) === '/api/me' ? 401 : 200, headers: { 'content-type': 'application/json' } })
   }) as unknown as typeof fetch
 })
@@ -25,11 +32,25 @@ describe('sign-in page', () => {
     expect(screen.getByText('kari@x.no')).toBeTruthy()
   })
 
-  it('opens the sign-in email’s link as a one-press sign-in', async () => {
+  it('signs in from the email’s link by itself in the browser that asked', async () => {
+    sameBrowser = true
+    const reload = vi.spyOn(location, 'reload').mockImplementation(() => {})
+    history.replaceState(null, '', '/#login=abcDEF123_-xyz')
+    await act(async () => { render(<ShowctrlRoot />) })
+    expect(bodies).toContainEqual({ token: 'abcDEF123_-xyz', auto: true })
+    expect(reload).toHaveBeenCalled()
+    expect(location.hash).toBe('')
+    expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull()
+    reload.mockRestore()
+    sameBrowser = false
+  })
+
+  it('asks for one press when the link opens anywhere else', async () => {
     history.replaceState(null, '', '/#login=abcDEF123_-xyz')
     await act(async () => { render(<ShowctrlRoot />) })
     expect(screen.getByText('Press Sign in to finish signing in to showctrl.')).toBeTruthy()
+    bodies.length = 0
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Sign in' })) })
-    expect(calls).toContain('/api/auth/magic')
+    expect(bodies).toContainEqual({ token: 'abcDEF123_-xyz' })
   })
 })

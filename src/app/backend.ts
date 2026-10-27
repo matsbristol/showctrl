@@ -115,7 +115,6 @@ export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>
 /** Sign-in step 2: the code from the email. Sets the session cookie. */
 export const verifyLogin = (email: string, code: string) => api<{ ok: true }>('/api/auth/verify', { body: { email, code } })
 
-/** Ends this device's session and goes back to the sign-in page. */
 /**
  * When the page was opened from a sign-in link: a superadmin's (#signin=…, reusable) or the one
  * in the sign-in email (#login=…, once, 10 minutes).
@@ -126,6 +125,10 @@ export function linkToken(): SignInLink | null {
   return m ? { kind: m[1] === 'login' ? 'email' : 'admin', token: m[2] } : null
 }
 export const signInWithLink = (l: SignInLink) => api<{ ok: true; email: string }>(l.kind === 'email' ? '/api/auth/magic' : '/api/auth/link', { body: { token: l.token } })
+/** The email's link, as the page opens: signs in only in the browser that asked for the code, otherwise `confirm`. */
+export const autoSignInWithLink = (l: SignInLink) => api<{ ok: true; email: string } | { confirm: true }>('/api/auth/magic', { body: { token: l.token, auto: true } })
+
+/** Ends this device's session and goes back to the sign-in page. */
 /** Superadmins: a sign-in link to send someone whose email doesn't arrive. Replaces any earlier link. */
 export const makeSigninLink = (email: string) => api<{ url: string; expiresAt: number }>('/api/admin/signin-link', { body: { email } })
 export const cancelSigninLink = (email: string) => api<{ ok: true }>('/api/admin/signin-link', { method: 'DELETE', body: { email } })

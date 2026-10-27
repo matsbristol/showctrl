@@ -52,7 +52,8 @@ CREATE TABLE IF NOT EXISTS login_codes (
   expires_at INTEGER NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
   sent_at INTEGER NOT NULL,
-  link_hash TEXT                -- the email's sign-in link (once, as long as the code)
+  link_hash TEXT,               -- the email's sign-in link (once, as long as the code)
+  browser_hash TEXT             -- the browser that asked (sc_browser cookie): the link signs in there without asking
 );
 CREATE TABLE IF NOT EXISTS login_sends (
   key TEXT NOT NULL,            -- 'ip:<address>' or 'e:<email>'

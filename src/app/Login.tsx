@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { signInWithLink, startLogin, verifyLogin, type SignInLink } from './backend'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { autoSignInWithLink, signInWithLink, startLogin, verifyLogin, type SignInLink } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
 
@@ -109,7 +109,23 @@ export function LinkSignIn({ link }: { link: SignInLink }) {
   useLang() // redraw in the new language
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  // The email's link signs in by itself in the browser that asked for the code; elsewhere it asks.
+  const [checking, setChecking] = useState(link.kind === 'email')
+  const tried = useRef(false)
   const leave = () => { history.replaceState(null, '', location.pathname + location.search); location.reload() }
+  useEffect(() => {
+    if (link.kind !== 'email' || tried.current) return
+    tried.current = true
+    autoSignInWithLink(link).then(r => { if ('ok' in r) leave(); else setChecking(false) }, () => setChecking(false))
+  }, [link])
+  if (checking) {
+    return (
+      <div className="setup login">
+        <Brand />
+        <div className="panel"><p className="muted" role="status">{tr('Signing in…')}</p></div>
+      </div>
+    )
+  }
   const go = async () => {
     setBusy(true)
     setErr('')

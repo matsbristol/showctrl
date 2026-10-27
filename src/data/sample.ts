@@ -6,7 +6,7 @@ import { parseTrucks } from '../lib/trucks'
 import { sampleLines, samplePlot, sampleRiserStock } from './sampleTech'
 import { addDays, festDay, fromLocal } from '../lib/time'
 import { DEFAULT_ROLES, DEFAULT_TPL, EVENT_TYPES, HOUR, KINDS, MIN, SCHEMA_VERSION, defaultDepts } from '../types/constants'
-import type { Accred, ArtistContact, EventConfig, Id, Member, RiderItem, RiderStatus, RiskLevel, RosItem, TapeColor } from '../types/model'
+import type { Accred, ArtistContact, CommChannel, EventConfig, Id, Member, RiderItem, RiderStatus, RiskLevel, RosItem, TapeColor } from '../types/model'
 import { emptyCollections, type LocalData } from './collections'
 
 /** An empty three-day festival starting today, with one admin user (the demo persona `demo-admin`). */
@@ -18,7 +18,7 @@ export function blankEvent(t: number = Date.now()): LocalData {
   return {
     cfg: {
       schema: SCHEMA_VERSION, name: 'New festival', type: 'festival', tz, start: d0, end: addDays(d0, 2),
-      terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true }, depts: defaultDepts(),
+      terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true, comms: true }, depts: defaultDepts(),
     },
     roles: { roles: structuredClone(DEFAULT_ROLES) },
     col,
@@ -32,7 +32,7 @@ export function buildSample(t: number = Date.now()): LocalData {
   const d0 = festDay(t, tz)
   const cfg: EventConfig = {
     schema: SCHEMA_VERSION, name: 'Nordlys Open Air 2026', type: 'festival', tz, start: d0, end: addDays(d0, 2), visitors: 200000,
-    terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true }, depts: defaultDepts(),
+    terms: EVENT_TYPES.festival.terms, modules: { accommodation: true, riders: true, comms: true }, depts: defaultDepts(),
   }
   const col = emptyCollections()
 
@@ -184,6 +184,17 @@ export function buildSample(t: number = Date.now()): LocalData {
   for (const s of STG) for (const n of [1, 2, 3]) col.facilities[`dr-${s.id}-${n}`] = { id: `dr-${s.id}-${n}`, name: `Dressing room ${n} · ${s.name}`, kind: 'dressing', stage: s.id, notes: n === 1 ? 'Shower, fridge' : '' }
   col.facilities['office'] = { id: 'office', name: 'Production office', kind: 'production', stage: null, capacity: 20, notes: 'Container 4, behind Main Stage' }
   col.facilities['catering'] = { id: 'catering', name: 'Crew catering', kind: 'catering', stage: null, capacity: 200, notes: 'Hot food 11–15 and 17–21' }
+
+  // comm channels: festival-wide lines, then each stage's radio channel and intercom
+  const comm = (id: Id, c: Omit<CommChannel, 'id'>) => { col.comms[id] = { id, ...c } }
+  comm('c-prod', { name: 'Production', kind: 'radio', channel: 'Ch 1', stage: null, depts: ['prod'], notes: 'Production office is “Base”', order: 0 })
+  comm('c-sec', { name: 'Security', kind: 'radio', channel: 'Ch 7', stage: null, depts: [], notes: 'Emergencies: say “priority” and wait for Control', order: 1 })
+  comm('c-al', { name: 'Artist liaison', kind: 'radio', channel: 'Ch 9', stage: null, depts: ['al', 'hosp', 'transport'], notes: '', order: 2 })
+  comm('c-bridge', { name: 'Production bridge', kind: 'phone', channel: '+47 21 00 00 00, PIN 4411', stage: null, depts: ['prod'], notes: 'Stage managers’ call at 11:00', order: 3 })
+  STG.forEach(s => {
+    comm(`c-${s.id}`, { name: s.name, kind: 'radio', channel: s.radio, stage: s.id, depts: [], notes: 'Stage manager, stage crew, backline', order: 0 })
+    comm(`c-${s.id}-ic`, { name: 'FOH ↔ monitors ↔ stage', kind: 'intercom', channel: 'Clear-Com A', stage: s.id, depts: ['stage', 'audio', 'light'], notes: '', order: 1 })
+  })
   const perStage = new Map<Id, number>()
   Object.values(col.ros).filter(r => r.kind === 'show' && r.artist && festDay(r.start, tz) === d0).sort((x, y) => x.start - y.start).forEach((show, i) => {
     const n = (perStage.get(show.stage) ?? 0) + 1

@@ -150,6 +150,11 @@ export function canWrite(a: Access, req: WriteRequest, ctx: WriteContext): Write
       return check(onBothStages(a, 'facilities', stageOf(prev as Collections['allocations'] | null), stageOf(next as Collections['allocations'] | null), p, n), 'No edit access to this facility’s bookings.')
     }
 
+    case 'comms': {
+      const pr = prev as Collections['comms'] | null, nx = next as Collections['comms'] | null
+      return check(onBothStages(a, 'comms', pr?.stage, nx?.stage, p, n), 'No edit access to these comm channels.')
+    }
+
     case 'files': {
       const stageOf = (f: Collections['files'] | null) => f?.stage ?? (f?.artist ? ctx.artistStage(f.artist) : null) ?? null
       return check(onBothStages(a, 'documents', stageOf(prev as Collections['files'] | null), stageOf(next as Collections['files'] | null), p, n), 'No edit access to these documents.')

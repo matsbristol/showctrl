@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Routes } from 'react-router-dom'
-import { afterEach, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { LocalStore } from '../data/localStore'
 import { buildSample } from '../data/sample'
 import { shiftTargets } from '../lib/runsheet'
@@ -11,7 +11,13 @@ import { ShowctrlRoot } from './ShowctrlRoot'
 
 afterEach(cleanup)
 // No server in tests: clock sync stays on device time.
-beforeAll(() => { globalThis.fetch = (async () => { throw new Error('offline') }) as unknown as typeof fetch })
+beforeAll(() => {
+  globalThis.fetch = (async () => { throw new Error('offline') }) as unknown as typeof fetch
+  // The sample festival is built around "now"; pin it to a festival afternoon so results don't depend on the time of day.
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-06-12T14:00:00+02:00'))
+})
+afterAll(() => { vi.useRealTimers() })
 
 function mount(path: string, me: string) {
   const store = new LocalStore({ initial: () => buildSample(Date.now()), storageKey: null })

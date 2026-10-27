@@ -54,8 +54,8 @@ export default {
     'Felles nedtellinger, tidtakere og sceneklokker, med veggvisning for skjermer.',
   'A full-screen “now and next” countdown for stage monitors, following the run sheet.':
     'En fullskjerms nedtelling for «nå og neste» på scenemonitorer, etter run sheet.',
-  'Everyone on the event in one list: contact details, accreditation, and who can sign in. Paste-in import from spreadsheets.':
-    'Alle på arrangementet i én liste: kontaktinfo, akkreditering og hvem som kan logge inn. Lim inn fra regneark.',
+  'Everyone on the event in one list: contact details, accreditation, and who can sign in. Import from and export to Excel or CSV.':
+    'Alle på arrangementet i én liste: kontaktinfo, akkreditering og hvem som kan logge inn. Import fra og eksport til Excel eller CSV.',
   'Hotels, room blocks per night and the rooming list.':
     'Hoteller, romkvoter per natt og romlisten.',
   'Technical and hospitality riders, item by item, assigned to the departments that source them.':

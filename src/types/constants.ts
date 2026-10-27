@@ -41,6 +41,7 @@ export const PERM_KEYS = [
   { key: 'riders_tech', label: 'Technical riders' },
   { key: 'riders_hosp', label: 'Hospitality riders' },
   { key: 'documents', label: 'Documents' },
+  { key: 'comms', label: 'Comm channels' },
   { key: 'admin', label: 'Admin' },
 ] as const
 
@@ -56,19 +57,19 @@ export const DEFAULT_ROLES: Record<string, RoleDef> = {
   pm: { label: 'Production manager', perms: perms({ admin: 1 }, 2), contacts: true },
   liaison: {
     label: 'Artist liaison', contacts: true,
-    perms: perms({ show: 1, schedule: 1, artists: 2, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 1, transport: 2, accommodation: 2, facilities: 2, riders_tech: 2, riders_hosp: 2, documents: 1 }),
+    perms: perms({ show: 1, schedule: 1, artists: 2, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 1, transport: 2, accommodation: 2, facilities: 2, riders_tech: 2, riders_hosp: 2, documents: 1, comms: 1 }),
   },
   hosp: {
     label: 'Hospitality', contacts: false,
-    perms: perms({ show: 1, schedule: 1, artists: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, transport: 2, accommodation: 1, facilities: 2, riders_hosp: 2, documents: 1 }),
+    perms: perms({ show: 1, schedule: 1, artists: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, transport: 2, accommodation: 1, facilities: 2, riders_hosp: 2, documents: 1, comms: 1 }),
   },
   tech: {
     label: 'Technical production', contacts: false,
-    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 2, risk: 1, personnel: 1, clocks: 2, messages: 2, accommodation: 1, facilities: 1, riders_tech: 2, documents: 1 }),
+    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 2, risk: 1, personnel: 1, clocks: 2, messages: 2, accommodation: 1, facilities: 1, riders_tech: 2, documents: 1, comms: 2 }),
   },
   site: {
     label: 'Site & security', contacts: false,
-    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 1, risk: 2, personnel: 1, clocks: 1, messages: 2, transport: 1, facilities: 2, documents: 1 }),
+    perms: perms({ show: 1, schedule: 1, artists: 1, technical: 1, risk: 2, personnel: 1, clocks: 1, messages: 2, transport: 1, facilities: 2, documents: 1, comms: 2 }),
   },
   none: { label: 'Stage access only', perms: perms({}), contacts: false, locked: true },
 }
@@ -79,9 +80,9 @@ export const STAGE_ROLES = { manager: 'Stage manager', crew: 'Stage crew' } as c
 export const STAGE_LV: Record<keyof typeof STAGE_ROLES, Partial<Record<PermKey | 'setup', PermLevel>>> = {
   manager: {
     show: 1, schedule: 2, artists: 2, technical: 2, risk: 2, personnel: 2, clocks: 2, messages: 2, transport: 1,
-    accommodation: 1, facilities: 1, riders_tech: 2, riders_hosp: 2, documents: 2, setup: 2,
+    accommodation: 1, facilities: 1, riders_tech: 2, riders_hosp: 2, documents: 2, comms: 2, setup: 2,
   },
-  crew: { show: 1, schedule: 1, artists: 1, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, facilities: 1, riders_tech: 1, documents: 1 },
+  crew: { show: 1, schedule: 1, artists: 1, technical: 1, risk: 1, personnel: 1, clocks: 1, messages: 2, facilities: 1, riders_tech: 1, documents: 1, comms: 1 },
 }
 
 /** Accreditation levels an event starts with. Each event can change its list (config/event.accred). */
@@ -254,6 +255,14 @@ export const LEGACY_RISER_SIZES: Record<string, { w: number; d: number }> = {
 
 export const TRANSFER_STATUS = ['planned', 'confirmed', 'en route', 'done', 'cancelled'] as const
 
+/** Comm channels: what kind of line a channel is. */
+export const COMM_KINDS = {
+  radio: 'Radio',
+  intercom: 'Intercom',
+  phone: 'Phone line',
+  other: 'Other',
+} as const
+
 export const FACILITY_KINDS = {
   dressing: 'Dressing room',
   production: 'Production office',
@@ -269,13 +278,13 @@ export const FILE_CATEGORIES = ['Site plan', 'Safety', 'Technical', 'Contract', 
 /** Optional sections an event can switch on or off. Defined in src/shared/modules.ts. */
 export const MODULE_IDS = [
   'messages', 'clocks', 'screens', 'display', 'personnel', 'accommodation', 'riders', 'risk', 'trucks',
-  'summary', 'lines', 'plots', 'risers', 'transport', 'facilities', 'documents',
+  'summary', 'lines', 'plots', 'risers', 'transport', 'facilities', 'documents', 'comms',
 ] as const
 
 /** Every record collection. `config/event` and `config/roles` are stored separately. */
 export const COLLECTIONS = [
   'clocks', 'stages', 'artists', 'ros', 'msgs', 'hotels', 'bookings', 'riders', 'members', 'requests', 'people', 'stageteam', 'prefs', 'risks', 'locations',
-  'screens', 'lines', 'plots', 'risers', 'transfers', 'facilities', 'allocations', 'files',
+  'screens', 'lines', 'plots', 'risers', 'transfers', 'facilities', 'allocations', 'files', 'comms',
 ] as const
 
 export function defaultDepts(): Dept[] {

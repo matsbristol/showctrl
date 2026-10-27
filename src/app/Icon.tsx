@@ -21,6 +21,7 @@ const PATHS = {
   riser: <><path d="M3 16h18v4H3zM6 12h12v4M9 8h6v4" /></>,
   car: <><path d="M3 16v-4l2-5h14l2 5v4z" /><path d="M3 12h18" /><circle cx="7" cy="17" r="2" /><circle cx="17" cy="17" r="2" /></>,
   room: <><path d="M4 21V3h11v18M15 7h5v14M2 21h20" /><path d="M11 12h.01" /></>,
+  radio: <><rect x="7" y="7" width="10" height="14" rx="2" /><path d="M10 7V2M10 11h4M10 14h4" /></>,
   file: <><path d="M6 3h8l5 5v13H6z" /><path d="M14 3v5h5" /></>,
   upload: <><path d="M12 16V4M7 9l5-5 5 5" /><path d="M4 16v4h16v-4" /></>,
   link: <><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" /><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" /></>,

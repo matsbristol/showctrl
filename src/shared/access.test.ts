@@ -117,7 +117,7 @@ describe('views', () => {
     expect(hqViews(as('demo-admin'), d.cfg)).toContain('admin')
     expect(hqViews(as('demo-hosp'), d.cfg)).toEqual([
       'overview', 'schedule', 'screens', 'clocks', 'messages', 'artists', 'summary', 'risk', 'riders',
-      'trucks', 'transport', 'accommodation', 'facilities', 'personnel', 'documents',
+      'trucks', 'transport', 'accommodation', 'facilities', 'personnel', 'comms', 'documents',
     ]) // no input lists, plots or risers: Hospitality has no Technical rights
     expect(hqViews(as('demo-sm-main'), d.cfg)).toEqual([])
   })

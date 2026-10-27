@@ -38,6 +38,7 @@ export const HQ_NAV: Record<HqView, NavMeta> = {
   accommodation: { label: () => tr('Accommodation'), icon: 'accommodation', group: 'logistics' },
   facilities: { label: () => tr('Facilities'), icon: 'room', group: 'logistics' },
   personnel: { label: () => tr('People'), icon: 'personnel', group: 'team' },
+  comms: { label: () => tr('Comm channels'), icon: 'radio', group: 'team' },
   documents: { label: () => tr('Documents'), icon: 'file', group: 'team' },
   admin: { label: () => tr('Admin'), icon: 'admin', group: 'admin' },
 }
@@ -60,6 +61,7 @@ export const STAGE_NAV: Record<StageView, NavMeta> = {
   transport: { label: () => tr('Transport'), icon: 'car', group: 'logistics' },
   facilities: { label: () => tr('Facilities'), icon: 'room', group: 'logistics' },
   personnel: { label: () => tr('Crew & contacts'), icon: 'personnel', group: 'team' },
+  comms: { label: () => tr('Comm channels'), icon: 'radio', group: 'team' },
   documents: { label: () => tr('Documents'), icon: 'file', group: 'team' },
   setup: { label: () => tr('Stage setup'), icon: 'setup', group: 'admin' },
 }

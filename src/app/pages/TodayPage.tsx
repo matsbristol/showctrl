@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useCollection, useConfig } from '../../data/hooks'
 import { moduleOn } from '../../shared/modules'
+import { commsFor } from '../../lib/comms'
 import { eff, itemsFor } from '../../lib/runsheet'
 import { peopleFor, stageLead } from '../../shared/people'
 import { TAPE } from '../../types/constants'
@@ -10,7 +11,7 @@ import { MsgBlock } from '../messages/MsgBlock'
 import { TrucksSoon } from '../trucks/parts'
 import { DelayChip, SheetRow, Slot, Tel } from '../runsheet/parts'
 import { useNowNext } from '../runsheet/helpers'
-import { useNow, useTz } from '../session'
+import { useAccess, useNow, useTz } from '../session'
 import { tr } from '../../i18n'
 
 /** A stage's start page: now and next, what's coming up, key contacts and messages. */
@@ -27,7 +28,7 @@ export function TodayPage({ sid }: { sid: Id }) {
   const upcoming = itemsFor(ros, sid, tz).filter(i => i.status !== 'done' && eff(i).e > t).sort((x, y) => eff(x).s - eff(y).s).slice(0, 10)
   const lead = stageLead(sid, members, people)
   const team = peopleFor(people, sid).slice(0, 8)
-  const sub = [st.location, st.radio && tr('Radio {channel}', { channel: st.radio }), lead ? tr('Stage manager {name}', { name: lead.name }) : tr('No stage manager assigned')].filter(Boolean).join(' · ')
+  const sub = [st.location, lead ? tr('Stage manager {name}', { name: lead.name }) : tr('No stage manager assigned')].filter(Boolean).join(' · ')
   return (
     <>
       <div className="head">
@@ -58,9 +59,28 @@ export function TodayPage({ sid }: { sid: Id }) {
             </div>
           )) : <p className="empty">{tr('No crew listed yet.')}</p>}
         </section>}
+        {moduleOn(cfg, 'comms') && <CommsBlock sid={sid} />}
         <MsgBlock sid={sid} />
         <TrucksSoon sid={sid} />
       </div>
     </>
+  )
+}
+
+/** The stage's own channels and the festival-wide ones, for whoever's on the radio. */
+function CommsBlock({ sid }: { sid: Id }) {
+  const a = useAccess()
+  const comms = useCollection('comms')
+  if (a.lv('comms', sid) < 1) return null
+  const list = commsFor(comms, sid)
+  return (
+    <section className="panel">
+      <div className="ph"><h3>{tr('Comm channels')}</h3><div className="actions"><Link className="btn sm" to={`/s/${sid}/comms`}>{tr('All channels')}</Link></div></div>
+      {list.length ? (
+        <ul className="list comm-list">
+          {list.map(c => <li key={c.id}><b className="num">{c.channel}</b><span>{c.name}{c.notes && <span className="small muted"> · {c.notes}</span>}</span></li>)}
+        </ul>
+      ) : <p className="empty">{tr('No channels yet.')}</p>}
+    </section>
   )
 }

@@ -10,7 +10,7 @@ export const HQ_VIEWS = [
   'schedule', 'screens', 'clocks', 'messages',
   'artists', 'summary', 'lines', 'plots', 'risers', 'risk', 'riders',
   'trucks', 'transport', 'accommodation', 'facilities',
-  'personnel', 'documents',
+  'personnel', 'comms', 'documents',
   'admin',
 ] as const
 export const STAGE_VIEWS = [
@@ -18,7 +18,7 @@ export const STAGE_VIEWS = [
   'runsheet', 'display', 'screens', 'clocks', 'messages',
   'artists', 'summary', 'lines', 'plots', 'risers', 'risk', 'riders',
   'trucks', 'transport', 'facilities',
-  'personnel', 'documents', 'setup',
+  'personnel', 'comms', 'documents', 'setup',
 ] as const
 
 export type HqView = (typeof HQ_VIEWS)[number]
@@ -41,6 +41,7 @@ export function canOpenHqView(a: Access, cfg: EventConfig | null | undefined, v:
     case 'transport': return a.perm('transport') >= 1
     case 'facilities': return a.perm('facilities') >= 1
     case 'documents': return a.anyLv('documents') >= 1
+    case 'comms': return a.anyLv('comms') >= 1
     case 'personnel': return a.perm('personnel') >= 1
     case 'clocks': return a.perm('clocks') >= 1
     case 'messages': return a.anyLv('messages') >= 1
@@ -68,6 +69,7 @@ export function canOpenStageView(a: Access, cfg: EventConfig | null | undefined,
     case 'transport': return a.lv('transport', sid) >= 1
     case 'facilities': return a.lv('facilities', sid) >= 1
     case 'documents': return a.lv('documents', sid) >= 1
+    case 'comms': return a.lv('comms', sid) >= 1
     case 'personnel': return a.lv('personnel', sid) >= 1
     case 'clocks': return a.lv('clocks', sid) >= 1
     // The display follows the run sheet, so it works without the Clocks module.

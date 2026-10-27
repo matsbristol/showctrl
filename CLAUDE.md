@@ -82,6 +82,8 @@ All records live in collections keyed by id. Times are epoch milliseconds; dates
 
 **`facilities`** / **`allocations`** (Facilities): rooms with `kind`, `stage`, `capacity`; bookings with `facility`, `artist` or `label`, `from`, `to`. Double bookings come from `src/lib/facilities.ts`. Permission key `facilities`.
 
+**`comms`** (Comm channels module, off by default): `name`, `kind` (radio | intercom | phone | other), `channel` (what to tune to or dial), `stage` (null = festival-wide), `depts` [ids; empty = everyone], `notes`, `order`. Permission key `comms` (Technical production and Site & security edit; stage managers edit their own stage). The stage's Today page shows its channels plus the festival-wide ones; exports as Excel or CSV.
+
 **`files`** (Documents): `name`, `category`, `stage` or `artist` (neither = whole event), and either `url` (http/https only) or `blob` {key, size, type}. Live blobs are in R2 under `<eventId>/<uuid>`, uploaded and downloaded through the Worker with permission checks. Demo blobs are data URLs up to 1 MB. Event-wide documents are visible to anyone with document access on any stage. Permission key `documents`.
 
 **`prefs`** (keyed by user id, written only by that user): `lastRead` (ms). Per-user state that must follow the user across devices.
@@ -142,7 +144,7 @@ Each stage has a template (`stage.template`, defaults in `DEFAULT_TPL`). `buildD
 showctrl is modular: each event switches optional sections on or off in **Admin → Modules**. The registry is `src/shared/modules.ts`.
 
 - **Core (always on):** Overview, Running order and run sheets, performers (Artists), Stage setup, Admin.
-- **Modules:** Messages, Clocks, Screens, Stage display, Personnel, Accommodation, Riders, Risk assessment, Trucks & docks, Technical summary, Input lists, Stage plots, Risers, Transport, Facilities, Documents.
+- **Modules:** Messages, Clocks, Screens, Stage display, Personnel, Accommodation, Riders, Risk assessment, Trucks & docks, Technical summary, Input lists, Stage plots, Risers, Transport, Facilities, Documents, Comm channels.
 - **Side-nav groups:** Live, Production, Logistics and Team, from `NAV_GROUPS` and `NavMeta.group` in `src/app/nav.ts`. The order comes from `HQ_VIEWS`/`STAGE_VIEWS`.
 - **Permission keys:** a key can belong to several modules (`technical` covers input lists, plots and risers), and its roles column stays visible while any of them is on. All are on by default. Choices are stored in `config/event.modules`, and a missing entry uses the module's `defaultOn`.
 

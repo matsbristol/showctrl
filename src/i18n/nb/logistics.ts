@@ -95,4 +95,22 @@ export default {
   'Trucks, next 4 hours': 'Biler, neste 4 timer', 'All trucks': 'Alle biler', 'No trucks due in the next four hours.': 'Ingen biler ventes de neste fire timene.',
   // Location kinds (LOCATION_KINDS)
   'Load bay': 'Lasterampe', 'Staging area': 'Oppstillingsplass', 'Truck park': 'Bilparkering', 'Dock / ramp': 'Rampe',
+  // Comm channels
+  'Comm channels': 'Samband',
+  'Radio channels, intercom rings and conference lines: festival-wide and per stage, with who uses each one. Exports a comms sheet.':
+    'Radiokanaler, intercom og telefonkonferanser: for hele festivalen og per scene, med hvem som bruker hva. Eksporterer sambandsliste.',
+  'Radio channels, intercom rings and phone lines, and who uses each one.': 'Radiokanaler, intercom og telefonlinjer, og hvem som bruker hva.',
+  Intercom: 'Intercom',
+  'Phone line': 'Telefonlinje',
+  '+ Add channel': '+ Legg til kanal',
+  'Add comm channel': 'Legg til samband',
+  'Used by': 'Brukes av',
+  'Used by (none ticked: everyone)': 'Brukes av (ingen avhuket: alle)',
+  'No channels yet.': 'Ingen kanaler ennå.',
+  'All channels': 'Alle kanaler',
+  'Export comm channels': 'Eksporter sambandsliste',
+  'Enter the channel, e.g. Ch 2 or a frequency.': 'Skriv inn kanalen, f.eks. Ch 2 eller en frekvens.',
+  'e.g. Production, Security, Stage': 'f.eks. Produksjon, Vakt, Scene',
+  'e.g. Ch 2, 446.006 MHz, Clear-Com B': 'f.eks. Ch 2, 446,006 MHz, Clear-Com B',
+  'Call signs, who’s on it, when to use it': 'Kallesignaler, hvem som er på, når den brukes',
 } satisfies Record<string, string>

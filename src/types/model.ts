@@ -2,7 +2,7 @@
 // Times are epoch milliseconds. Dates are YYYY-MM-DD strings in the event time zone.
 
 import type {
-  ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SYSTEMS, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
+  ARTIST_STATUS, BOOKING_STATUS, COLLECTIONS, DEFAULT_TPL, EVENT_TYPES, COMM_KINDS, FACILITY_KINDS, KINDS, LEGACY_KINDS, LOCATION_KINDS, MODULE_IDS, PLOT_KINDS, RISER_SYSTEMS, RISK_LEVELS, SCREEN_BLOCKS, TRANSFER_STATUS,
   MSG_PRIORITY, PERM_KEYS, RIDER_KINDS, RIDER_STATUS, ROS_STATUS, STAGE_ROLES, TAPE, TRACKS,
 } from './constants'
 
@@ -38,6 +38,7 @@ export type RiserSystem = keyof typeof RISER_SYSTEMS
 export type RiserSize = string
 export type TransferStatus = (typeof TRANSFER_STATUS)[number]
 export type FacilityKind = keyof typeof FACILITY_KINDS
+export type CommKind = keyof typeof COMM_KINDS
 export type LocationKind = keyof typeof LOCATION_KINDS
 export type MsgPriority = (typeof MSG_PRIORITY)[number]
 export type DayTemplate = { [K in keyof typeof DEFAULT_TPL]: number }
@@ -437,6 +438,21 @@ export interface Transfer extends BaseDoc {
   notes?: string
 }
 
+/** A radio channel, intercom ring or conference line, and who uses it. */
+export interface CommChannel extends BaseDoc {
+  name: string
+  kind: CommKind
+  /** What to dial or tune to: "Ch 2", "446.006 MHz", "Talkgroup 4101", "Clear-Com B". */
+  channel: string
+  /** Stage it belongs to, or null for festival-wide. */
+  stage?: Id | null
+  /** Departments that use it. Empty: everyone. */
+  depts: Id[]
+  /** Call signs, who's on it, or when to use it. */
+  notes?: string
+  order: number
+}
+
 /** A room or space: dressing room, production office, catering. */
 export interface Facility extends BaseDoc {
   name: string
@@ -506,6 +522,7 @@ export interface Collections {
   facilities: Facility
   allocations: Allocation
   files: FileDoc
+  comms: CommChannel
 }
 
 export type CollectionName = keyof Collections

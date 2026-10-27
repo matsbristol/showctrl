@@ -47,7 +47,7 @@ export const MODULES: Record<ModuleId, ModuleDef> = {
   },
   personnel: {
     id: 'personnel', label: 'People', defaultOn: true,
-    description: 'Everyone on the event in one list: contact details, accreditation, and who can sign in. Paste-in import from spreadsheets.',
+    description: 'Everyone on the event in one list: contact details, accreditation, and who can sign in. Import from and export to Excel or CSV.',
     // People records stay available: they also provide names for app users.
     perms: ['personnel'], collections: [], hqViews: ['personnel'], stageViews: ['personnel'],
   },
@@ -105,6 +105,11 @@ export const MODULES: Record<ModuleId, ModuleDef> = {
     id: 'documents', label: 'Documents', defaultOn: true,
     description: 'Site plans, safety documents, contracts and technical files for the event, a stage or one act.',
     perms: ['documents'], collections: ['files'], hqViews: ['documents'], stageViews: ['documents'],
+  },
+  comms: {
+    id: 'comms', label: 'Comm channels', defaultOn: false,
+    description: 'Radio channels, intercom rings and conference lines: festival-wide and per stage, with who uses each one. Exports a comms sheet.',
+    perms: ['comms'], collections: ['comms'], hqViews: ['comms'], stageViews: ['comms'],
   },
   trucks: {
     id: 'trucks', label: 'Trucks & docks', defaultOn: true,

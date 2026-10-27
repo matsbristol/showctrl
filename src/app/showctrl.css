@@ -675,6 +675,9 @@
 .sc .import-text { width: 100%; font: inherit; font-size: .9rem; line-height: 1.45; padding: .6rem .75rem; resize: vertical }
 .sc .import-list li.blocked { opacity: .6 }
 .sc .import-list input[type=checkbox] { margin-top: .25rem }
+.sc table.comms .comm-ch { font-size: 1.05rem; white-space: nowrap }
+.sc .comm-list li { display: flex; gap: .75rem; align-items: baseline }
+.sc .comm-list .num { min-width: 5.5rem }
 .sc .sheet-map { display: flex; flex-direction: column; gap: .4rem; max-height: 16rem; overflow: auto; border: 1px solid var(--line); border-radius: 8px; padding: .5rem .6rem }
 .sc .sheet-col { display: grid; grid-template-columns: minmax(0, 1fr) 11rem; gap: .6rem; align-items: center }
 .sc .sheet-col .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }

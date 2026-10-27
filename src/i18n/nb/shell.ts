@@ -75,7 +75,7 @@ export default {
   'Stage display': 'Sceneskjerm',
   'A full-screen “now and next” countdown for stage monitors, following the run sheet.': 'En fullskjerms nedtelling for «nå og neste» på scenemonitorer, etter run sheet.',
   People: 'Personer',
-  'Everyone on the event in one list: contact details, accreditation, and who can sign in. Paste-in import from spreadsheets.': 'Alle på arrangementet i én liste: kontaktinfo, akkreditering og hvem som kan logge inn. Lim inn fra regneark.',
+  'Everyone on the event in one list: contact details, accreditation, and who can sign in. Import from and export to Excel or CSV.': 'Alle på arrangementet i én liste: kontaktinfo, akkreditering og hvem som kan logge inn. Import fra og eksport til Excel eller CSV.',
   Accommodation: 'Overnatting',
   'Hotels, room blocks per night and the rooming list.': 'Hoteller, romkvoter per natt og romlisten.',
   Riders: 'Riders',

@@ -28,7 +28,7 @@ export function deviceOf(ua: string): string {
 }
 
 /** Called by sign-in when someone signs in. Never fails the sign-in. */
-export async function recordSignin(request: Request, env: Env, email: string, method: 'code' | 'link'): Promise<void> {
+export async function recordSignin(request: Request, env: Env, email: string, method: 'code' | 'link' | 'email-link'): Promise<void> {
   try {
     await env.DB.prepare('INSERT INTO signins (at, email, method, country, device) VALUES (?, ?, ?, ?, ?)')
       .bind(Date.now(), email, method, (request.cf?.country as string | undefined) ?? null, deviceOf(request.headers.get('user-agent') ?? '')).run()

@@ -4,6 +4,7 @@
 //   POST /api/auth/verify  { email, code }  signs in: sets the session cookie
 //   POST /api/auth/logout                   ends this session
 //   POST /api/auth/link    { token }        signs in with a sign-in link from a superadmin
+//   POST /api/auth/magic   { token }        signs in with the link in the sign-in email (once, 10 minutes)
 //
 // When the email doesn't arrive (a strict mail filter, a brand-new domain), a superadmin can make
 // a sign-in link (createSigninLink) and send it another way, e.g. by text message. It works every
@@ -95,6 +96,7 @@ export async function loginRoutes(request: Request, env: Env, url: URL): Promise
   if (url.pathname === '/api/auth/verify') return verify(request, env, url)
   if (url.pathname === '/api/auth/logout') return logout(request, env, url)
   if (url.pathname === '/api/auth/link') return linkSignIn(request, env, url)
+  if (url.pathname === '/api/auth/magic') return magicSignIn(request, env, url)
   return null
 }
 
@@ -125,12 +127,16 @@ async function start(request: Request, env: Env): Promise<Response> {
   if (!(await isKnown(env, email))) return ok
 
   const code = randomCode()
+  // The email also carries a link that signs in with one press. The token sits after #, so
+  // mail scanners that open links never send it; it's used only when the person presses Sign in.
+  const linkToken = randomToken()
+  const link = `${env.PUBLIC_URL ?? new URL(request.url).origin}/#login=${linkToken}`
   await env.DB.batch([
-    env.DB.prepare('INSERT OR REPLACE INTO login_codes (email, code_hash, expires_at, attempts, sent_at) VALUES (?, ?, ?, 0, ?)')
-      .bind(email, await sha256(`${email}:${code}`), now + CODE_TTL, now),
+    env.DB.prepare('INSERT OR REPLACE INTO login_codes (email, code_hash, expires_at, attempts, sent_at, link_hash) VALUES (?, ?, ?, 0, ?, ?)')
+      .bind(email, await sha256(`${email}:${code}`), now + CODE_TTL, now, await sha256(linkToken)),
     env.DB.prepare('INSERT INTO login_sends (key, at) VALUES (?, ?)').bind(`e:${email}`, now),
   ])
-  if (isDev(env)) return json({ ok: true, devCode: code })
+  if (isDev(env)) return json({ ok: true, devCode: code, devLink: link })
   if (!env.EMAIL) return json({ error: 'Sign-in email isn’t set up on this site.' }, 500)
   try {
     await env.EMAIL.send({
@@ -138,9 +144,9 @@ async function start(request: Request, env: Env): Promise<Response> {
       from: { email: env.LOGIN_FROM ?? 'login@showctrl.no', name: 'showctrl' },
       subject: nb ? `${code} er koden din til showctrl` : `${code} is your showctrl code`,
       text: nb
-        ? `Koden din for å logge inn på showctrl er ${code}\n\nDen virker i 10 minutter. Har du ikke bedt om den, kan du se bort fra denne e-posten.\n`
-        : `Your showctrl sign-in code is ${code}\n\nIt works for 10 minutes. If you didn’t ask for it, you can ignore this email.\n`,
-      html: codeEmail(code, new URL(request.url).origin, nb),
+        ? `Logg inn på showctrl:\n${link}\n\nEller skriv inn koden: ${code}\n\nLenken og koden virker i 10 minutter, og bare én gang. Har du ikke bedt om dem, kan du se bort fra denne e-posten.\n`
+        : `Sign in to showctrl:\n${link}\n\nOr enter the code: ${code}\n\nThe link and the code work for 10 minutes, once. If you didn’t ask for them, you can ignore this email.\n`,
+      html: codeEmail(code, link, new URL(request.url).origin, nb),
     })
   } catch (e) {
     console.error(JSON.stringify({ level: 'error', what: 'login email', error: String(e) }))
@@ -218,19 +224,34 @@ async function linkSignIn(request: Request, env: Env, url: URL): Promise<Respons
   return Response.json({ ok: true, email: row.email }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 
+async function magicSignIn(request: Request, env: Env, url: URL): Promise<Response> {
+  const b = await body(request)
+  if (typeof b.token !== 'string' || !b.token) return json({ error: 'That sign-in link isn’t complete.' }, 400)
+  const now = Date.now()
+  // Used up in the same statement that checks it, together with the code it came with.
+  const row = await env.DB.prepare('DELETE FROM login_codes WHERE link_hash = ? AND expires_at > ? RETURNING email')
+    .bind(await sha256(b.token), now).first<{ email: string }>()
+  if (!row) return json({ error: 'This sign-in link has been used or has expired. Ask for a new code.' }, 400)
+  const token = randomToken()
+  await env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), row.email, now, now + SESSION_TTL).run()
+  await recordSignin(request, env, row.email, 'email-link')
+  return Response.json({ ok: true, email: row.email }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
+}
+
 async function logout(request: Request, env: Env, url: URL): Promise<Response> {
   const token = readCookie(request, SESSION_COOKIE)
   if (token) await env.DB.prepare('DELETE FROM sessions WHERE token_hash = ?').bind(await sha256(token)).run()
   return Response.json({ ok: true }, { headers: { 'set-cookie': sessionCookie('', 0, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 
-function codeEmail(code: string, origin: string, nb = false): string {
+function codeEmail(code: string, link: string, origin: string, nb = false): string {
   return `<!doctype html><html><body style="margin:0;background:#f4f5f7;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:32px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#fff;border-radius:10px;padding:32px">
 <tr><td><img src="${origin}/brand/logo-dark.png" alt="showctrl" height="28" style="display:block;height:28px;width:auto"></td></tr>
-<tr><td style="padding-top:24px;font-size:16px">${nb ? 'Koden din for å logge inn:' : 'Your sign-in code:'}</td></tr>
-<tr><td style="padding:12px 0 20px;font-size:36px;font-weight:700;letter-spacing:8px">${code}</td></tr>
-<tr><td style="font-size:14px;color:#555">${nb ? 'Den virker i 10 minutter. Har du ikke bedt om den, kan du se bort fra denne e-posten.' : 'It works for 10 minutes. If you didn’t ask for it, you can ignore this email.'}</td></tr>
+<tr><td style="padding-top:28px"><a href="${link}" style="display:inline-block;background:#2348C6;color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:14px 26px;border-radius:8px">${nb ? 'Logg inn på showctrl' : 'Sign in to showctrl'}</a></td></tr>
+<tr><td style="padding-top:28px;font-size:15px;color:#333">${nb ? 'Eller skriv inn koden:' : 'Or enter the code:'}</td></tr>
+<tr><td style="padding:8px 0 20px;font-size:32px;font-weight:700;letter-spacing:8px">${code}</td></tr>
+<tr><td style="font-size:14px;color:#555">${nb ? 'Lenken og koden virker i 10 minutter, og bare én gang. Har du ikke bedt om dem, kan du se bort fra denne e-posten.' : 'The link and the code work for 10 minutes, once. If you didn’t ask for them, you can ignore this email.'}</td></tr>
 </table></td></tr></table></body></html>`
 }

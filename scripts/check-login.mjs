@@ -57,4 +57,14 @@ await jdo('/api/admin/signin-link', { email: known }, 'DELETE')
 r = await post('/api/auth/link', { token: tok2 }); check('Cancel stops it', r.status === 400, r)
 r = await post('/api/auth/link', { token: 'made-up-token-123456789' }); check('a made-up link is refused', r.status === 400, r)
 
+// The link in the sign-in email: once, together with its code.
+r = await post('/api/auth/start', { email: locked })
+check('the sign-in email has a link (token after #login=)', /\/#login=[\w-]{20,}$/.test(r.body?.devLink ?? ''), r)
+const mtok = r.body.devLink.split('#login=')[1], mcode = r.body.devCode
+r = await post('/api/auth/magic', { token: mtok }); check('the email link signs in', r.status === 200 && r.body.email === locked && /sc_session=/.test(r.cookie ?? ''), r)
+r = await me({ cookie: r.cookie.split(';')[0] }); check('as that person', r.status === 200 && r.body.email === locked, r)
+r = await post('/api/auth/magic', { token: mtok }); check('the email link works only once', r.status === 400, r)
+r = await post('/api/auth/verify', { email: locked, code: mcode }); check('and its code is used up with it', r.status === 400, r)
+r = await post('/api/auth/magic', { token: 'made-up-token-123456789' }); check('a made-up email link is refused', r.status === 400, r)
+
 console.log(ok ? '\nALL PASS' : '\nSOME FAILED'); process.exit(ok ? 0 : 1)

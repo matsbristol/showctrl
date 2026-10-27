@@ -166,7 +166,7 @@ export default {
   'Sending…': 'Sender …',
   'Send code': 'Send kode',
   If: 'Hvis',
-  'has access to showctrl, a 6-digit code is on its way. It works for 10 minutes.': 'har tilgang til showctrl, er en sekssifret kode på vei. Den gjelder i 10 minutter.',
+  'has access to showctrl, an email is on its way. Press the link in it, or type the 6-digit code here. Both work for 10 minutes.': 'har tilgang til showctrl, er en e-post på vei. Trykk på lenken i den, eller skriv inn den sekssifrede koden her. Begge virker i 10 minutter.',
   Code: 'Kode',
   'Local development: the code is': 'Lokal utvikling: koden er',
   'Checking…': 'Sjekker …',
@@ -349,4 +349,7 @@ export default {
   Artists: 'Artister',
   'Run sheets': 'Run sheets',
   Access: 'Tilgang',
+  'Press Sign in to finish signing in to showctrl.': 'Trykk Logg inn for å fullføre innloggingen på showctrl.',
+  'Link in email': 'Lenke i e-post',
+  'This sign-in link has been used or has expired. Ask for a new code.': 'Denne innloggingslenken er brukt eller utløpt. Be om en ny kode.',
 } satisfies Record<string, string>

@@ -174,7 +174,7 @@ export function AnalyticsPage({ onBack }: { onBack: () => void }) {
                     <tr key={i}>
                       <td className="small num">{when(s.at)}</td>
                       <td><b>{name(s.email)}</b><div className="small muted">{s.email}</div></td>
-                      <td className="small">{s.method === 'link' ? tr('Sign-in link') : tr('Email code')}</td>
+                      <td className="small">{s.method === 'link' ? tr('Sign-in link') : s.method === 'email-link' ? tr('Link in email') : tr('Email code')}</td>
                       <td className="small">{s.device ?? '—'}</td>
                       <td className="small">{s.country ?? '—'}</td>
                     </tr>

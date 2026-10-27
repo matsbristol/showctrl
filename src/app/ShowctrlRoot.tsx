@@ -62,10 +62,10 @@ function Boot() {
   }, [])
   // Opened from a sign-in link: sign in with it first, whoever is signed in now.
   const token = linkToken()
-  if (token) return <Frame><LinkSignIn token={token} /></Frame>
+  if (token) return <Frame keep><LinkSignIn link={token} /></Frame>
   if (!backend) return <Frame><div className="loading">{tr('Connecting…')}</div></Frame>
   if (backend.mode === 'demo') return <App store={demoStore()} />
-  if (backend.mode === 'login') return <Frame><Login /></Frame>
+  if (backend.mode === 'login') return <Frame keep><Login /></Frame>
   if (backend.mode === 'error') return <Frame><div className="setup"><div className="panel"><h2>{tr('Can’t open showctrl')}</h2><p className="muted">{backend.message}</p></div></div></Frame>
   return <LiveApp me={backend.me} />
 }
@@ -123,7 +123,8 @@ function LiveEvent({ id, me, live }: { id: Id; me: Id; live: Live }) {
 }
 
 /** The .sc styling root, with wall mode (chrome hidden, full screen). */
-function Frame({ children }: { children: ReactNode }) {
+/** `keep`: don't redraw on a language change, so a half-filled form (the sign-in code) stays. */
+function Frame({ children, keep }: { children: ReactNode; keep?: boolean }) {
   const [on, setOn] = useState(false)
   const enter = useCallback(() => {
     setOn(true)
@@ -146,7 +147,7 @@ function Frame({ children }: { children: ReactNode }) {
     <WallContext.Provider value={wall}>
       <div className={`sc${on ? ' wallmode' : ''}`} style={fontVars(FONTS[font])} lang={lang === 'nb' ? 'nb' : 'en'}>
         {/* Changing language redraws everything in the new language (the data stays loaded). */}
-        <Fragment key={lang}>{children}</Fragment>
+        <Fragment key={keep ? undefined : lang}>{children}</Fragment>
         {on && <button type="button" className="btn exitwall" onClick={exit}>{tr('Exit wall mode')}</button>}
       </div>
     </WallContext.Provider>

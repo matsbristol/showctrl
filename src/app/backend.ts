@@ -116,9 +116,16 @@ export const startLogin = (email: string) => api<{ ok: true; devCode?: string }>
 export const verifyLogin = (email: string, code: string) => api<{ ok: true }>('/api/auth/verify', { body: { email, code } })
 
 /** Ends this device's session and goes back to the sign-in page. */
-/** A sign-in link's token, when the page was opened from one (https://showctrl.no/#signin=…). */
-export const linkToken = () => (location.hash.startsWith('#signin=') ? location.hash.slice(8) : null)
-export const signInWithLink = (token: string) => api<{ ok: true; email: string }>('/api/auth/link', { body: { token } })
+/**
+ * When the page was opened from a sign-in link: a superadmin's (#signin=…, reusable) or the one
+ * in the sign-in email (#login=…, once, 10 minutes).
+ */
+export type SignInLink = { kind: 'admin' | 'email'; token: string }
+export function linkToken(): SignInLink | null {
+  const m = location.hash.match(/^#(signin|login)=([\w-]+)$/)
+  return m ? { kind: m[1] === 'login' ? 'email' : 'admin', token: m[2] } : null
+}
+export const signInWithLink = (l: SignInLink) => api<{ ok: true; email: string }>(l.kind === 'email' ? '/api/auth/magic' : '/api/auth/link', { body: { token: l.token } })
 /** Superadmins: a sign-in link to send someone whose email doesn't arrive. Replaces any earlier link. */
 export const makeSigninLink = (email: string) => api<{ url: string; expiresAt: number }>('/api/admin/signin-link', { body: { email } })
 export const cancelSigninLink = (email: string) => api<{ ok: true }>('/api/admin/signin-link', { method: 'DELETE', body: { email } })

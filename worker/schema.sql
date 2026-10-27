@@ -51,7 +51,8 @@ CREATE TABLE IF NOT EXISTS login_codes (
   code_hash TEXT NOT NULL,
   expires_at INTEGER NOT NULL,
   attempts INTEGER NOT NULL DEFAULT 0,
-  sent_at INTEGER NOT NULL
+  sent_at INTEGER NOT NULL,
+  link_hash TEXT                -- the email's sign-in link (once, as long as the code)
 );
 CREATE TABLE IF NOT EXISTS login_sends (
   key TEXT NOT NULL,            -- 'ip:<address>' or 'e:<email>'
@@ -83,7 +84,7 @@ CREATE INDEX IF NOT EXISTS signin_links_email ON signin_links (email);
 CREATE TABLE IF NOT EXISTS signins (
   at INTEGER NOT NULL,
   email TEXT NOT NULL,
-  method TEXT NOT NULL,          -- 'code' or 'link'
+  method TEXT NOT NULL,          -- 'code', 'link' (from a superadmin) or 'email-link'
   country TEXT,
   device TEXT
 );

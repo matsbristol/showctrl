@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { signInWithLink, startLogin, verifyLogin } from './backend'
+import { signInWithLink, startLogin, verifyLogin, type SignInLink } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
 
@@ -27,6 +27,7 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : tr('Something 
 
 /** Sign-in: your email, then the 6-digit code showctrl emails you. No passwords. */
 export function Login() {
+  useLang() // redraw in the new language; what's typed stays
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [code, setCode] = useState('')
@@ -81,7 +82,7 @@ export function Login() {
           </form>
         ) : (
           <form className="stack" style={{ marginTop: '1rem', gap: '.75rem' }} onSubmit={e => void verify(e)}>
-            <p className="muted">{tr('If')} <b>{email.trim()}</b> {tr('has access to showctrl, a 6-digit code is on its way. It works for 10 minutes.')}</p>
+            <p className="muted">{tr('If')} <b>{email.trim()}</b> {tr('has access to showctrl, an email is on its way. Press the link in it, or type the 6-digit code here. Both work for 10 minutes.')}</p>
             <label className="fld"><span>{tr('Code')}</span>
               <input className="login-code num" inputMode="numeric" autoComplete="one-time-code" autoFocus maxLength={7} required value={code}
                 placeholder="123456" onChange={e => setCode(e.target.value.replace(/[^\d ]/g, ''))} />
@@ -103,8 +104,9 @@ export function Login() {
   )
 }
 
-/** Opened from a sign-in link a superadmin sent: one press signs in. */
-export function LinkSignIn({ token }: { token: string }) {
+/** Opened from a sign-in link (from the sign-in email or a superadmin): one press signs in. */
+export function LinkSignIn({ link }: { link: SignInLink }) {
+  useLang() // redraw in the new language
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const leave = () => { history.replaceState(null, '', location.pathname + location.search); location.reload() }
@@ -112,7 +114,7 @@ export function LinkSignIn({ token }: { token: string }) {
     setBusy(true)
     setErr('')
     try {
-      await signInWithLink(token)
+      await signInWithLink(link)
       leave()
     } catch (e) {
       setErr(errText(e))
@@ -125,7 +127,7 @@ export function LinkSignIn({ token }: { token: string }) {
       <div className="panel">
         <h1>{tr('Sign in')}</h1>
         <div className="stack" style={{ marginTop: '1rem', gap: '.75rem' }}>
-          <p className="muted">{tr('This link signs you in to showctrl. Keep it to yourself: anyone with it can sign in as you.')}</p>
+          <p className="muted">{link.kind === 'email' ? tr('Press Sign in to finish signing in to showctrl.') : tr('This link signs you in to showctrl. Keep it to yourself: anyone with it can sign in as you.')}</p>
           {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{tr(err)}</p>}
           <div className="row" style={{ flexWrap: 'wrap' }}>
             <button type="button" className="btn primary" autoFocus disabled={busy} onClick={() => void go()}>{busy ? tr('Signing in…') : tr('Sign in')}</button>

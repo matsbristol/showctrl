@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS signins (
   at INTEGER NOT NULL,
   email TEXT NOT NULL,
-  method TEXT NOT NULL,          -- 'code' or 'link'
+  method TEXT NOT NULL,          -- 'code', 'link' (from a superadmin) or 'email-link'
   country TEXT,
   device TEXT
 );

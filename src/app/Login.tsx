@@ -3,6 +3,16 @@ import { signInWithLink, startLogin, verifyLogin } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
 
+/** English / Norsk, small, under the sign-in box. */
+function LangSwitch() {
+  const lang = useLang()
+  return (
+    <div className="langpick langpick-inline langpick-login" role="group" aria-label={tr('Language')}>
+      {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
+    </div>
+  )
+}
+
 /** The logo with the tagline under it. The tagline is the brand's, so it stays in English. */
 function Brand() {
   return (
@@ -17,7 +27,6 @@ const errText = (e: unknown) => (e instanceof Error ? e.message : tr('Something 
 
 /** Sign-in: your email, then the 6-digit code showctrl emails you. No passwords. */
 export function Login() {
-  const lang = useLang()
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [code, setCode] = useState('')
@@ -58,12 +67,7 @@ export function Login() {
 
   return (
     <div className="setup login">
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <Brand />
-        <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
-          {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
-        </div>
-      </div>
+      <Brand />
       <div className="panel">
         <h1>{tr('Sign in')}</h1>
         {!sent ? (
@@ -94,13 +98,13 @@ export function Login() {
           </form>
         )}
       </div>
+      <LangSwitch />
     </div>
   )
 }
 
 /** Opened from a sign-in link a superadmin sent: one press signs in. */
 export function LinkSignIn({ token }: { token: string }) {
-  const lang = useLang()
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const leave = () => { history.replaceState(null, '', location.pathname + location.search); location.reload() }
@@ -117,12 +121,7 @@ export function LinkSignIn({ token }: { token: string }) {
   }
   return (
     <div className="setup login">
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <Brand />
-        <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
-          {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
-        </div>
-      </div>
+      <Brand />
       <div className="panel">
         <h1>{tr('Sign in')}</h1>
         <div className="stack" style={{ marginTop: '1rem', gap: '.75rem' }}>
@@ -134,6 +133,7 @@ export function LinkSignIn({ token }: { token: string }) {
           </div>
         </div>
       </div>
+      <LangSwitch />
     </div>
   )
 }

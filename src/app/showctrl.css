@@ -718,3 +718,5 @@
 /* Sign-in page: language choice */
 .sc .langpick-inline { border: 0; padding: 0; display: flex; gap: .35rem }
 .sc .langpick-inline button { font-size: .8rem; padding: .25rem .6rem }
+.sc .langpick-login { justify-content: center; margin-top: -.25rem }
+.sc .langpick-login button { font-size: .72rem; font-weight: 600; padding: .15rem .5rem }

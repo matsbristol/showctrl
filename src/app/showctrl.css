@@ -142,10 +142,11 @@
 .sc .an-tiles .pb { display: flex; flex-direction: column; gap: .25rem }
 .sc .an-n { font-family: var(--display); font-size: 2rem; line-height: 1 }
 .sc .login-code { font-size: 1.6rem; letter-spacing: .35em; font-family: var(--display); font-stretch: var(--display-stretch) }
-.sc .setup-logo { height: 30px; width: auto; margin-bottom: .5rem }
+.sc .setup-logo { height: 40px; width: auto; max-width: 100%; margin-bottom: .5rem }
+.sc .login .setup-logo { height: 52px }
 .sc .brand { display: flex; flex-direction: column; align-items: flex-start }
 .sc .brand .setup-logo { margin-bottom: 0 }
-.sc .tagline { margin: .45rem 0 0; font-family: var(--display); font-weight: var(--display-w); font-stretch: var(--display-stretch); font-size: .8rem; letter-spacing: .32em; text-transform: uppercase; color: var(--ink2) }
+.sc .tagline { margin: .45rem 0 0; font-family: var(--display); font-weight: var(--display-w); font-stretch: var(--display-stretch); font-size: .95rem; letter-spacing: .32em; text-transform: uppercase; color: var(--ink2) }
 .sc .loading { padding: 3rem; text-align: center; color: var(--ink2) }
 .sc .stack { display: flex; flex-direction: column; gap: .25rem }
 .sc .grid { display: grid; gap: 1rem }

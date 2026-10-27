@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { startLogin, verifyLogin } from './backend'
+import { signInWithLink, startLogin, verifyLogin } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
 
@@ -83,6 +83,46 @@ export function Login() {
             <p className="small muted">{tr('No email? Check spam. If it still doesn’t come, ask your organisation’s showctrl admin to add this address.')}</p>
           </form>
         )}
+      </div>
+    </div>
+  )
+}
+
+/** Opened from a sign-in link a superadmin sent: one press signs in. */
+export function LinkSignIn({ token }: { token: string }) {
+  const lang = useLang()
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const leave = () => { history.replaceState(null, '', location.pathname + location.search); location.reload() }
+  const go = async () => {
+    setBusy(true)
+    setErr('')
+    try {
+      await signInWithLink(token)
+      leave()
+    } catch (e) {
+      setErr(errText(e))
+      setBusy(false)
+    }
+  }
+  return (
+    <div className="setup login">
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <div className="langpick langpick-inline" role="group" aria-label={tr('Language')}>
+          {(Object.keys(LANGS) as Lang[]).map(l => <button key={l} type="button" aria-pressed={l === lang} onClick={() => setLang(l)}>{LANGS[l]}</button>)}
+        </div>
+      </div>
+      <div className="panel">
+        <h1>{tr('Sign in')}</h1>
+        <div className="stack" style={{ marginTop: '1rem', gap: '.75rem' }}>
+          <p className="muted">{tr('This link signs you in to showctrl. Keep it to yourself: anyone with it can sign in as you.')}</p>
+          {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{tr(err)}</p>}
+          <div className="row" style={{ flexWrap: 'wrap' }}>
+            <button type="button" className="btn primary" autoFocus disabled={busy} onClick={() => void go()}>{busy ? tr('Signing in…') : tr('Sign in')}</button>
+            <button type="button" className="linkish small" style={{ marginLeft: 'auto' }} onClick={leave}>{tr('Sign in with email instead')}</button>
+          </div>
+        </div>
       </div>
     </div>
   )

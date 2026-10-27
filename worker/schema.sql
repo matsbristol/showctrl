@@ -65,3 +65,15 @@ CREATE TABLE IF NOT EXISTS sessions (
   expires_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS sessions_email ON sessions (email);
+-- Sign-in links from superadmins, for when the email doesn't arrive: reusable for 30 days,
+-- one per person (a new link replaces the old one).
+CREATE TABLE IF NOT EXISTS signin_links (
+  token_hash TEXT PRIMARY KEY,
+  email TEXT NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL,
+  last_used_at INTEGER,
+  uses INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS signin_links_email ON signin_links (email);

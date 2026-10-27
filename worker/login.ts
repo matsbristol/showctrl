@@ -3,6 +3,13 @@
 //   POST /api/auth/start   { email }        sends a code, if showctrl knows the address
 //   POST /api/auth/verify  { email, code }  signs in: sets the session cookie
 //   POST /api/auth/logout                   ends this session
+//   POST /api/auth/link    { token }        signs in with a sign-in link from a superadmin
+//
+// When the email doesn't arrive (a strict mail filter, a brand-new domain), a superadmin can make
+// a sign-in link (createSigninLink) and send it another way, e.g. by text message. It works every
+// time for 30 days; making a new one, or cancelling it, stops the old one. The token sits after #
+// in the link, so link previews in chat apps never send it to the server; it's only used when the
+// person presses "Sign in". Stored only as a hash.
 //
 // Codes last 10 minutes and allow 5 tries. Sending is rate-limited per address and per IP.
 // Only addresses showctrl knows (superadmins and event members) get a code,
@@ -18,6 +25,7 @@ const CODE_TTL = 10 * MIN
 const SESSION_TTL = 30 * 24 * HOUR
 const MAX_TRIES = 5
 const RESEND_AFTER = MIN
+const LINK_TTL = 30 * 24 * HOUR
 const PER_EMAIL_PER_HOUR = 5
 const PER_IP_PER_HOUR = 20
 
@@ -85,6 +93,7 @@ export async function loginRoutes(request: Request, env: Env, url: URL): Promise
   if (url.pathname === '/api/auth/start') return start(request, env)
   if (url.pathname === '/api/auth/verify') return verify(request, env, url)
   if (url.pathname === '/api/auth/logout') return logout(request, env, url)
+  if (url.pathname === '/api/auth/link') return linkSignIn(request, env, url)
   return null
 }
 
@@ -163,6 +172,47 @@ async function verify(request: Request, env: Env, url: URL): Promise<Response> {
     env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), email, now, now + SESSION_TTL),
   ])
   return Response.json({ ok: true }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
+}
+
+/**
+ * Superadmins: POST makes a sign-in link for someone showctrl knows (replacing any earlier one),
+ * DELETE cancels it. Not for other superadmins.
+ */
+export async function signinLinkRoute(request: Request, env: Env, me: string): Promise<Response> {
+  if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
+  const b = await body(request)
+  if (!isEmail(b.email)) return json({ error: 'That doesn’t look like an email address.' }, 400)
+  const email = normEmail(b.email)
+  const now = Date.now()
+  const clear = env.DB.prepare('DELETE FROM signin_links WHERE email = ? OR expires_at < ?').bind(email, now)
+  if (request.method === 'DELETE') {
+    await clear.run()
+    console.log(JSON.stringify({ level: 'info', what: 'signin link cancelled', for: email, by: me }))
+    return json({ ok: true })
+  }
+  if (isSuperadmin(env, email)) return json({ error: 'Superadmins sign in with their own email.' }, 400)
+  if (!(await isKnown(env, email))) return json({ error: 'This address has no access to any event yet.' }, 400)
+  const token = randomToken()
+  await env.DB.batch([
+    clear,
+    env.DB.prepare('INSERT INTO signin_links (token_hash, email, created_by, created_at, expires_at) VALUES (?, ?, ?, ?, ?)')
+      .bind(await sha256(token), email, me, now, now + LINK_TTL),
+  ])
+  console.log(JSON.stringify({ level: 'info', what: 'signin link', for: email, by: me }))
+  const origin = env.PUBLIC_URL ?? new URL(request.url).origin
+  return json({ url: `${origin}/#signin=${token}`, expiresAt: now + LINK_TTL })
+}
+
+async function linkSignIn(request: Request, env: Env, url: URL): Promise<Response> {
+  const b = await body(request)
+  if (typeof b.token !== 'string' || !b.token) return json({ error: 'That sign-in link isn’t complete.' }, 400)
+  const now = Date.now()
+  const row = await env.DB.prepare('UPDATE signin_links SET uses = uses + 1, last_used_at = ?1 WHERE token_hash = ?2 AND expires_at > ?1 RETURNING email')
+    .bind(now, await sha256(b.token)).first<{ email: string }>()
+  if (!row) return json({ error: 'This sign-in link has expired or was replaced. Ask for a new one.' }, 400)
+  const token = randomToken()
+  await env.DB.prepare('INSERT INTO sessions (token_hash, email, created_at, expires_at) VALUES (?, ?, ?, ?)').bind(await sha256(token), row.email, now, now + SESSION_TTL).run()
+  return Response.json({ ok: true, email: row.email }, { headers: { 'set-cookie': sessionCookie(token, SESSION_TTL / 1000, url.protocol === 'https:'), 'cache-control': 'no-store' } })
 }
 
 async function logout(request: Request, env: Env, url: URL): Promise<Response> {

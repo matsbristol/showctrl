@@ -6,12 +6,12 @@ import { LocalStore } from '../data/localStore'
 import { blankEvent, buildSample } from '../data/sample'
 import type { DataStore } from '../data/store'
 import type { Id } from '../types/model'
-import { detectBackend, eventStore, rememberEvent, saveName, type Backend, type Me } from './backend'
+import { detectBackend, eventStore, linkToken, rememberEvent, saveName, type Backend, type Me } from './backend'
 import { EventPicker } from './EventPicker'
 import { fontVars, initFont, useFont } from './font'
 import { initLang, useLang } from './lang'
 import { FONTS } from '../shared/fonts'
-import { Login } from './Login'
+import { LinkSignIn, Login } from './Login'
 import { NamePrompt } from './YourName'
 import { Layout } from './Layout'
 import { LiveContext, type Live } from './live'
@@ -60,6 +60,9 @@ function Boot() {
       setBackend(b)
     })
   }, [])
+  // Opened from a sign-in link: sign in with it first, whoever is signed in now.
+  const token = linkToken()
+  if (token) return <Frame><LinkSignIn token={token} /></Frame>
   if (!backend) return <Frame><div className="loading">{tr('Connecting…')}</div></Frame>
   if (backend.mode === 'demo') return <App store={demoStore()} />
   if (backend.mode === 'login') return <Frame><Login /></Frame>
@@ -90,7 +93,8 @@ function LiveApp({ me }: { me: Me }) {
   const live = useMemo<Live>(() => ({
     events, switchEvent: () => setEventId(null),
     name, setName: async (n: string) => { await saveName(n); setName(n.replace(/\s+/g, ' ').trim()) },
-  }), [events, name])
+    superadmin: !!me.superadmin,
+  }), [events, name, me.superadmin])
   if (!eventId) {
     return (
       <LiveContext.Provider value={live}>

@@ -39,4 +39,22 @@ for (let i = 0; i < 5; i++) r = await post('/api/auth/verify', { email: locked, 
 check('the fifth wrong code locks it', /Too many wrong tries/.test(r.body?.error ?? ''), r)
 r = await post('/api/auth/verify', { email: locked, code: lcode }); check('after that, even the right code is refused', r.status === 400, r)
 
+// Sign-in links: superadmins only, reusable for 30 days, a new one or Cancel stops the old one.
+const jdo = (path, b, method = 'POST', headers = {}) => fetch(`${B}${path}`, { method, headers: { 'content-type': 'application/json', ...headers }, body: JSON.stringify(b) }).then(async x => ({ status: x.status, body: await x.json().catch(() => null) }))
+r = await jdo('/api/admin/signin-link', { email: known }); check('a superadmin makes a sign-in link (token after #)', r.status === 200 && /\/#signin=[\w-]{20,}$/.test(r.body?.url ?? ''), r)
+const tok = r.body.url.split('#signin=')[1]
+r = await post('/api/auth/link', { token: tok }); check('the link signs in', r.status === 200 && r.body.email === known && /sc_session=/.test(r.cookie ?? ''), r)
+r = await me({ cookie: r.cookie.split(';')[0] }); check('as the person it was made for', r.status === 200 && r.body.email === known, r)
+r = await post('/api/auth/link', { token: tok }); check('and works again (reusable)', r.status === 200, r)
+r = await jdo('/api/admin/signin-link', { email: known }, 'POST', { 'x-showctrl-anon': '1' }); check('signed out, nobody can make one', r.status === 401, r)
+r = await jdo('/api/admin/signin-link?as=' + encodeURIComponent(known), { email: locked }); check('an event admin can’t make one', r.status === 403, r)
+r = await jdo('/api/admin/signin-link', { email: `stranger${t}@nowhere.no` }); check('not for unknown addresses', r.status === 400, r)
+r = await jdo('/api/admin/signin-link', { email: 'mats@larkolluka.no' }); check('not for superadmins', r.status === 400, r)
+const tok2 = (await jdo('/api/admin/signin-link', { email: known })).body.url.split('#signin=')[1]
+r = await post('/api/auth/link', { token: tok }); check('a new link stops the old one', r.status === 400, r)
+r = await post('/api/auth/link', { token: tok2 }); check('and the new one works', r.status === 200, r)
+await jdo('/api/admin/signin-link', { email: known }, 'DELETE')
+r = await post('/api/auth/link', { token: tok2 }); check('Cancel stops it', r.status === 400, r)
+r = await post('/api/auth/link', { token: 'made-up-token-123456789' }); check('a made-up link is refused', r.status === 400, r)
+
 console.log(ok ? '\nALL PASS' : '\nSOME FAILED'); process.exit(ok ? 0 : 1)

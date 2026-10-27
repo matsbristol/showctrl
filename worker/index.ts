@@ -25,7 +25,7 @@ import { eventStub, moveToEu } from './events'
 import { EMAIL_HEADER, NAME_HEADER } from './event'
 import { isLang } from '../src/i18n'
 import { isFontId } from '../src/shared/fonts'
-import { isDev, loginRoutes } from './login'
+import { isDev, loginRoutes, signinLinkRoute } from './login'
 import { isSuperadmin, json, mayConnect, namesFor, parsePeople, portfolioRoutes } from './orgs'
 
 import { importRoute } from './import'
@@ -86,6 +86,7 @@ export default {
         return json({ ok: true })
       }
       // One-time: copy events made before EU storage into the EU (superadmins). ?purge=1 then removes the old copies.
+      if (url.pathname === '/api/admin/signin-link' && (request.method === 'POST' || request.method === 'DELETE')) return await signinLinkRoute(request, env, me)
       if (url.pathname === '/api/admin/move-to-eu' && request.method === 'POST') {
         if (!isSuperadmin(env, me)) return json({ error: 'Only showctrl’s superadmins can do that.' }, 403)
         return json({ events: await moveToEu(env, url.searchParams.get('purge') === '1') })

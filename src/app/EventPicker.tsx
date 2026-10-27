@@ -7,6 +7,7 @@ import { MODULES } from '../shared/modules'
 import { MODULE_IDS } from '../types/constants'
 import type { ModuleId } from '../types/model'
 import { FontPicker } from './FontPicker'
+import { SigninLinkDialog } from './SigninLink'
 import { tr } from '../i18n'
 
 /** Ticked when a new event is created: what nearly every event uses on show days. */
@@ -167,6 +168,7 @@ function AdminList({ event, me }: { event: string; me: Me }) {
   const [name, setName] = useState('')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  const [linkFor, setLinkFor] = useState<{ email: string; name: string } | null>(null)
   useEffect(() => {
     let alive = true
     getEventAdmins(event).then(d => { if (alive) setData(d) }, e => { if (alive) setErr(errText(e, tr('Could not load the admins.'))) })
@@ -185,7 +187,10 @@ function AdminList({ event, me }: { event: string; me: Me }) {
           {data.admins.map(a => (
             <li key={a.email} className="row">
               <span className="stack"><b>{a.name}{a.email === me.email ? ` ${tr('(you)')}` : ''}</b><span className="small muted">{a.email}{a.email === data.owner ? ` · ${tr('created it')}` : ''}</span></span>
-              {a.email !== data.owner && <button type="button" className="btn sm" style={{ marginLeft: 'auto' }} disabled={busy} onClick={() => void run(() => removeEventAdmin(event, a.email))}>{tr('Remove')}</button>}
+              <span className="row" style={{ marginLeft: 'auto', gap: '.35rem' }}>
+                {a.email !== me.email && <button type="button" className="btn sm" onClick={() => setLinkFor(a)}>{tr('Sign-in link')}</button>}
+                {a.email !== data.owner && <button type="button" className="btn sm" disabled={busy} onClick={() => void run(() => removeEventAdmin(event, a.email))}>{tr('Remove')}</button>}
+              </span>
             </li>
           ))}
         </ul>
@@ -196,6 +201,7 @@ function AdminList({ event, me }: { event: string; me: Me }) {
         <button type="submit" className="btn" disabled={busy || !email.trim() || !name.trim()}>{tr('Add admin')}</button>
       </form>
       {err && <p className="small" style={{ color: 'var(--stop)' }} role="alert">{err}</p>}
+      {linkFor && <SigninLinkDialog email={linkFor.email} name={linkFor.name} onClose={() => setLinkFor(null)} />}
     </div>
   )
 }

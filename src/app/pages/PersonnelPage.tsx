@@ -11,10 +11,12 @@ import { AccessForm} from '../admin/forms'
 import { roleLabel } from '../admin/roleLabel'
 import { PersonForm } from '../people/forms'
 import { ExportForm, FileImportForm } from '../people/FileImport'
+import { useLive } from '../live'
+import { SigninLinkDialog } from '../SigninLink'
 import { Tel } from '../runsheet/parts'
 import { useAccess, useNow } from '../session'
 
-type Dialog = { type: 'person'; person: Person | null } | { type: 'file' } | { type: 'export' } | { type: 'access'; person: Person } | { type: 'edit-access'; uid: Id } | { type: 'new-access' } | null
+type Dialog = { type: 'person'; person: Person | null } | { type: 'file' } | { type: 'link'; email: string; name: string } | { type: 'export' } | { type: 'access'; person: Person } | { type: 'edit-access'; uid: Id } | { type: 'new-access' } | null
 
 /**
  * HQ "People": everyone on the event, their contact details and, for admins, their login (role,
@@ -42,6 +44,8 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
   const requests = useCollection('requests')
   const now = useNow(60_000)
   const admin = !sid && canGrant
+  // Superadmins can hand out sign-in links (live mode only).
+  const superadmin = !!useLive()?.superadmin
   // The login that belongs to a person: linked to their entry, or signing in with their email.
   const loginOf = (p: Person): Id | undefined => Object.values(members).find(m => m.person === p.id)?.id ?? (p.email && members[p.email.trim().toLowerCase()] ? p.email.trim().toLowerCase() : undefined)
   // A login's access, laid out: the festival role, then one line per kind of stage role.
@@ -170,7 +174,12 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                       {canEdit(p) && <button type="button" className="btn sm" onClick={() => setDialog({ type: 'person', person: p })} aria-label={tr('Edit {name}', { name: p.name })}>{tr('Edit')}</button>}
                       {admin && (() => {
                         const uid = loginOf(p)
-                        if (uid) return <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: p.name })} onClick={() => setDialog({ type: 'edit-access', uid })}>{tr('Edit access')}</button>
+                        if (uid) return (
+                          <>
+                            <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: p.name })} onClick={() => setDialog({ type: 'edit-access', uid })}>{tr('Edit access')}</button>
+                            {superadmin && uid.includes('@') && <button type="button" className="btn sm" aria-label={tr('Sign-in link for {name}', { name: p.name })} onClick={() => setDialog({ type: 'link', email: uid, name: p.name })}>{tr('Sign-in link')}</button>}
+                          </>
+                        )
                         if (p.email || store.mode === 'local') return <button type="button" className="btn sm" title={tr('Being listed here doesn’t let them sign in. This does, and emails them.')} onClick={() => setDialog({ type: 'access', person: p })}>{tr('Give showctrl.no access')}</button>
                         return null
                       })()}
@@ -190,6 +199,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
                   <div className="row-actions">
                     {w && <button type="button" className="btn sm" onClick={() => void addDetails(u)}>{tr('Add details')}</button>}
                     <button type="button" className="btn sm" aria-label={tr('Edit access for {name}', { name: personName(u, members, people) })} onClick={() => setDialog({ type: 'edit-access', uid: u })}>{tr('Edit access')}</button>
+                    {superadmin && u.includes('@') && <button type="button" className="btn sm" aria-label={tr('Sign-in link for {name}', { name: personName(u, members, people) })} onClick={() => setDialog({ type: 'link', email: u, name: personName(u, members, people) })}>{tr('Sign-in link')}</button>}
                   </div>
                 </td>
               </tr>
@@ -200,6 +210,7 @@ export function PersonnelPage({ sid }: { sid: Id | null }) {
       </div>
       {dialog?.type === 'person' && <PersonForm person={dialog.person} sid={sid} onClose={() => setDialog(null)} />}
       {dialog?.type === 'file' && <FileImportForm sid={sid} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'link' && <SigninLinkDialog email={dialog.email} name={dialog.name} onClose={() => setDialog(null)} />}
       {dialog?.type === 'export' && (
         <ExportForm list={list} all={Object.values(people).filter(p => !sid || p.stages.includes(sid)).sort((x, y) => x.name.localeCompare(y.name))} sid={sid} onClose={() => setDialog(null)}
           signIn={admin ? p => { const u = loginOf(p); return u ? (members[u] && members[u].role !== 'none' ? roleLabel(a.roleDef(members[u].role)) : tr('Stage access only')) : '' } : undefined} />

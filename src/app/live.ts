@@ -8,6 +8,8 @@ export interface Live {
   /** The name they go by, or null until they give one. */
   name: string | null
   setName: (name: string) => Promise<void>
+  /** Runs the whole portfolio (can make sign-in links). */
+  superadmin: boolean
 }
 
 export const LiveContext = createContext<Live | null>(null)

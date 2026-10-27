@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
 import LandingPage from './pages/LandingPage'
 import EventsPage from './pages/EventsPage'
@@ -28,6 +28,7 @@ import { PerformersContextProvider } from './context/PerformersContext'
 import { StagesProvider } from './context/StagesContext'
 import { DepartmentStatusProvider } from './context/DepartmentStatusContext'
 import { showctrlRoutes } from './app/routes'
+import { ToHq } from './app/ToHq'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -46,7 +47,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                         <DepartmentStatusProvider>
                       <BrowserRouter>
                         <Routes>
-            <Route index element={<Navigate to="/hq" replace />} />
+            <Route index element={<ToHq />} />
             <Route path="/old" element={<LandingPage />} />
             {showctrlRoutes()}
             <Route element={<App />}>

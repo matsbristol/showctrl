@@ -19,8 +19,8 @@ function mount() {
 const root = () => document.querySelector('.sc') as HTMLElement
 
 describe('fonts', () => {
-  it('offers the classic fonts, the pairings, Schibsted Grotesk on its own, Futura and Helvetica', () => {
-    expect(FONT_IDS).toEqual(['classic', 'signage', 'schibsted', 'plex', 'overpass', 'archivo', 'futura', 'helvetica', 'chivo'])
+  it('offers the classic fonts, the pairings, Schibsted Grotesk on its own, Futura, Helvetica and Inter', () => {
+    expect(FONT_IDS).toEqual(['classic', 'signage', 'schibsted', 'plex', 'overpass', 'archivo', 'futura', 'helvetica', 'inter', 'chivo'])
   })
 
   it('switches the whole app, clocks included, from the Aa menu, and remembers it in demo mode', async () => {

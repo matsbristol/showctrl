@@ -21,6 +21,7 @@ export default {
   'Archivo, normal width for text and narrow for headings and clocks': 'Archivo, normal bredde til tekst og smal til overskrifter og klokker',
   'Futura Demibold where the device has it (Apple devices), otherwise Jost, a free font drawn after Futura': 'Futura Demibold der enheten har den (Apple-enheter), ellers Jost, en gratis skrift tegnet etter Futura',
   'Helvetica where the device has it (Apple devices), otherwise Arial': 'Helvetica der enheten har den (Apple-enheter), ellers Arial',
+  'Inter for everything, with even-width figures in clocks': 'Inter til alt, med like brede tall i klokkene',
   'Chivo and Chivo Mono': 'Chivo og Chivo Mono',
   // Time
   'just now': 'akkurat nå', '{n} days': '{n} dager', 'in {time}': 'om {time}', '{time} ago': '{time} siden',

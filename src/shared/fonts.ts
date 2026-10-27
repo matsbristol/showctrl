@@ -69,6 +69,12 @@ export const FONTS = {
     display: `'Helvetica Neue', Helvetica, Arial, ${SANS}`, body: `'Helvetica Neue', Helvetica, Arial, ${SANS}`, clock: `'Helvetica Neue', Helvetica, Arial, ${SANS}`,
     displayWeight: 700, clockWeight: 700,
   },
+  inter: {
+    label: 'Inter', note: 'Inter for everything, with even-width figures in clocks',
+    google: 'Inter:wght@400;500;600;700;800',
+    display: `'Inter', ${SANS}`, body: `'Inter', ${SANS}`, clock: `'Inter', ${SANS}`,
+    displayWeight: 700, clockWeight: 700,
+  },
   chivo: {
     label: 'Chivo', note: 'Chivo and Chivo Mono',
     google: 'Chivo:wght@400;700;800&family=Chivo+Mono:wght@500;700',

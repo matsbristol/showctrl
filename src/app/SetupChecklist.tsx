@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useCollection, useStore } from '../data/hooks'
+import { useCollection, useConfig, useStore } from '../data/hooks'
+import { moduleOn } from '../shared/modules'
 import { useAccess, useTerms } from './session'
 import { tr } from '../i18n'
 
@@ -16,6 +17,7 @@ export function SetupChecklist() {
   const stageteam = useCollection('stageteam')
   const ros = useCollection('ros')
   const prefs = useCollection('prefs')
+  const cfg = useConfig('event')
   if (!a.canW('admin') || !a.me || prefs[a.me]?.setupHidden) return null
 
   const list = Object.values(stages)
@@ -26,7 +28,8 @@ export function SetupChecklist() {
     { done: list.length > 0, title: tr('Add your {stages}', { stages: t.stages.toLowerCase() }), how: tr('Each gets its own run sheet, crew and clock.'), to: '/hq/admin?tab=stages', go: tr('Add {stages}', { stages: t.stages.toLowerCase() }) },
     { done: list.length > 0 && list.every(s => managed(s.id)), title: tr('Appoint a stage manager for each {stage}', { stage: t.stage.toLowerCase() }), how: tr('They run their stage and add their own crew.'), to: '/hq/admin?tab=stages', go: tr('Appoint') },
     { done: Object.values(ros).some(i => i.kind === 'show'), title: tr('Add {performers} with their times', { performers: t.performers.toLowerCase() }), how: tr('On a {stage}’s run sheet, “Add {performer} with day sheet” fills in their whole day.', { stage: t.stage.toLowerCase(), performer: t.performer.toLowerCase() }), to: first ? `/s/${first.id}/runsheet` : '/hq/admin?tab=stages', go: tr('Open run sheet') },
-    { done: team > 0, title: tr('Give your team access'), how: tr('They get an email with how to sign in.'), to: '/hq/personnel', go: tr('Open People') },
+    // Without the People module, logins are managed in Admin → People with access.
+    { done: team > 0, title: tr('Give your team access'), how: tr('They get an email with how to sign in.'), ...(moduleOn(cfg, 'personnel') ? { to: '/hq/personnel', go: tr('Open People') } : { to: '/hq/admin?tab=access', go: tr('Give access') }) },
   ]
   const left = steps.filter(s => !s.done).length
   if (!left) return null

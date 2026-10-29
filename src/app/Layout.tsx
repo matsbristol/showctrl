@@ -32,7 +32,7 @@ export function Layout() {
   return (
     <>
       <header className="strip">
-        <div className="brand"><img src="/logo.svg" alt="showctrl" /></div>
+        <Brand />
         <EventName />
         <MasterClock />
         <Who />
@@ -46,6 +46,16 @@ export function Layout() {
         <main><Outlet /></main>
       </div>
     </>
+  )
+}
+
+/** The logo goes to Festival overview, or the user's first stage if they can't see HQ. */
+function Brand() {
+  const a = useAccess()
+  return (
+    <Link className="brand" to={homePath(a)} title={tr('Festival overview')}>
+      <img src="/brand/logo-tagline.svg" alt="showctrl" />
+    </Link>
   )
 }
 

@@ -13,12 +13,12 @@ function LangSwitch() {
   )
 }
 
-/** The logo with the tagline under it. The tagline is the brand's, so it stays in English. */
+/** The logo with its tagline (English, as the brand's). Dark text in light mode, white text in dark mode. */
 function Brand() {
   return (
     <div className="brand">
-      <img className="setup-logo" src="/logo.svg" alt="showctrl" />
-      <p className="tagline" lang="en">Know The Show</p>
+      <img className="setup-logo logo-on-light" src="/brand/logo-tagline-dark.svg" alt="showctrl · Know The Show" />
+      <img className="setup-logo logo-on-dark" src="/brand/logo-tagline.svg" alt="showctrl · Know The Show" />
     </div>
   )
 }

@@ -55,6 +55,9 @@
 .sc .strip { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--strip); color: var(--strip-ink); display: flex; align-items: center; gap: 1.25rem; padding: .5rem 1rem; min-height: var(--strip-h); flex-wrap: wrap }
 .sc .brand { font-family: var(--display); font-stretch: var(--display-stretch); font-weight: 700; font-size: 1.35rem; letter-spacing: .06em; display: flex; align-items: center; gap: .5rem; white-space: nowrap }
 .sc .brand img { display: block; height: 24px; width: auto }
+.sc .strip .brand { color: inherit; text-decoration: none; border-radius: 4px }
+.sc .strip .brand img { height: 34px }
+.sc .strip .brand:focus-visible { outline: 2px solid var(--strip-ink); outline-offset: 3px }
 .sc .ev { min-width: 0; line-height: 1.2 }
 .sc .ev b { display: block; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 26ch }
 .sc .ev span { color: var(--strip-ink2); font-size: .85rem }
@@ -143,10 +146,16 @@
 .sc .an-n { font-family: var(--display); font-size: 2rem; line-height: 1 }
 .sc .login-code { font-size: 1.6rem; letter-spacing: .35em; font-family: var(--display); font-stretch: var(--display-stretch) }
 .sc .setup-logo { height: 40px; width: auto; max-width: 100%; margin-bottom: .5rem }
-.sc .login .setup-logo { height: 52px }
+.sc .login .setup-logo { height: 66px }
+.sc .logo-on-dark { display: none !important }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .sc .logo-on-light { display: none !important }
+  :root:not([data-theme="light"]) .sc .logo-on-dark { display: block !important }
+}
+:root[data-theme="dark"] .sc .logo-on-light { display: none !important }
+:root[data-theme="dark"] .sc .logo-on-dark { display: block !important }
 .sc .brand { display: flex; flex-direction: column; align-items: flex-start }
 .sc .brand .setup-logo { margin-bottom: 0 }
-.sc .tagline { margin: .45rem 0 0; font-family: var(--display); font-weight: var(--display-w); font-stretch: var(--display-stretch); font-size: .95rem; letter-spacing: .32em; text-transform: uppercase; color: var(--ink2) }
 .sc .loading { padding: 3rem; text-align: center; color: var(--ink2) }
 .sc .stack { display: flex; flex-direction: column; gap: .25rem }
 .sc .grid { display: grid; gap: 1rem }

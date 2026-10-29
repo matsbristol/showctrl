@@ -145,7 +145,7 @@
 .sc .an-tiles .pb { display: flex; flex-direction: column; gap: .25rem }
 .sc .an-n { font-family: var(--display); font-size: 2rem; line-height: 1 }
 .sc .login-code { font-size: 1.6rem; letter-spacing: .35em; font-family: var(--display); font-stretch: var(--display-stretch) }
-.sc .setup-logo { height: 40px; width: auto; max-width: 100%; margin-bottom: .5rem }
+.sc .setup-logo { height: 52px; width: auto; max-width: 100%; margin-bottom: .5rem }
 .sc .login .setup-logo { height: 66px }
 .sc .logo-on-dark { display: none !important }
 @media (prefers-color-scheme: dark) {

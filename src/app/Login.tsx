@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { autoSignInWithLink, signInWithLink, startLogin, verifyLogin, type SignInLink } from './backend'
 import { LANGS, tr, type Lang } from '../i18n'
 import { setLang, useLang } from './lang'
+import { BrandLogo } from './BrandLogo'
 
 /** English / Norsk, small, under the sign-in box. */
 function LangSwitch() {
@@ -13,14 +14,8 @@ function LangSwitch() {
   )
 }
 
-/** The logo with its tagline (English, as the brand's). Dark text in light mode, white text in dark mode. */
 function Brand() {
-  return (
-    <div className="brand">
-      <img className="setup-logo logo-on-light" src="/brand/logo-tagline-dark.svg" alt="showctrl · Know The Show" />
-      <img className="setup-logo logo-on-dark" src="/brand/logo-tagline.svg" alt="showctrl · Know The Show" />
-    </div>
-  )
+  return <div className="brand"><BrandLogo /></div>
 }
 
 const errText = (e: unknown) => (e instanceof Error ? e.message : tr('Something went wrong. Try again.'))

@@ -6,6 +6,7 @@ import {
 import { MODULES } from '../shared/modules'
 import { MODULE_IDS } from '../types/constants'
 import type { ModuleId } from '../types/model'
+import { BrandLogo } from './BrandLogo'
 import { FontPicker } from './FontPicker'
 import { AnalyticsPage } from './Analytics'
 import { SigninLinkDialog } from './SigninLink'
@@ -46,7 +47,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
       : [{ o: null as OrgSummary | null, list: events }]
     return (
       <div className="setup">
-        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <BrandLogo />
         <div className="panel">
           <h1>{tr('Your events')}</h1>
           {signedIn}
@@ -69,7 +70,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
     const loose = events.filter(e => !e.org || !orgs.some(o => o.id === e.org))
     return (
       <div className="setup">
-        <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+        <BrandLogo />
         <div className="panel">
           <h1>{tr('Customers')}</h1>
           {signedIn}
@@ -103,7 +104,7 @@ export function EventPicker({ me, orgs, events, org, onOrg, onOpen, onCreated, o
   const mine = events.filter(e => e.org === current.id)
   return (
     <div className="setup">
-      <img className="setup-logo" src="/logo.svg" alt="showctrl" />
+      <BrandLogo />
       <div className="panel">
         <button type="button" className="btn sm" style={{ marginBottom: '.75rem' }} onClick={() => onOrg(null)}>← {tr('All customers')}</button>
         <h1>{current.name}</h1>
